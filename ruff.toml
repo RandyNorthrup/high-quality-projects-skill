@@ -1,0 +1,19 @@
+# Lint config for this repository's own Python.
+#
+# Extends the strict template we ship. The package must pass the gates it
+# asks other projects to adopt — a linter config whose own author cannot
+# satisfy it is not a credible recommendation.
+
+extend = "templates/python/ruff.toml"
+
+[lint]
+extend-ignore = [
+    # Copyright is asserted once in LICENSE. Per-file headers add no legal
+    # weight and go stale every January.
+    "CPY001",
+]
+
+[lint.per-file-ignores]
+# scripts/ are command-line tools. print() to stdout/stderr is their entire
+# interface — routing it through logging would make them harder to pipe.
+"scripts/*.py" = ["T201"]

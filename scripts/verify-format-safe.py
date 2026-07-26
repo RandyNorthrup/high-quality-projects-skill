@@ -25,6 +25,9 @@ EXIT_OK = 0
 EXIT_CHANGED = 1
 EXIT_PARSE_ERROR = 2
 
+# sys.argv holds the script name plus the two files being compared.
+EXPECTED_ARGC = 3
+
 
 def normalized_ast(path: Path) -> str:
     """Return a formatting-independent dump of the file's syntax tree.
@@ -38,7 +41,8 @@ def normalized_ast(path: Path) -> str:
 
 
 def main(argv: list[str]) -> int:
-    if len(argv) != 3:
+    """Compare two Python files and report whether they are semantically equal."""
+    if len(argv) != EXPECTED_ARGC:
         print(__doc__, file=sys.stderr)
         return EXIT_PARSE_ERROR
 
