@@ -1,0 +1,50 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+
+  "//": [
+    "Dead-code gate for JS/TS. Knip finds three things ESLint cannot, because",
+    "it reasons across the whole project graph rather than per-file:",
+    "  1. unused FILES        — modules nothing imports",
+    "  2. unused EXPORTS      — exported symbols nobody consumes",
+    "  3. unused DEPENDENCIES — packages in package.json nothing requires",
+    "",
+    "Run as a gate:  knip --strict",
+    "Preview only:   knip --reporter compact"
+  ],
+
+  "entry": [
+    "src/index.{js,ts,tsx}",
+    "src/main.{js,ts,tsx}",
+    "src/app/**/{page,layout,route,loading,error,not-found}.{js,ts,tsx}",
+    "**/*.{test,spec}.{js,ts,tsx}",
+    "scripts/**/*.{js,ts,mjs}"
+  ],
+
+  "project": ["src/**/*.{js,ts,tsx,jsx}", "scripts/**/*.{js,ts,mjs}"],
+
+  "ignore": ["**/*.d.ts", "dist/**", "build/**", "coverage/**"],
+
+  "ignoreDependencies": [
+    "//: build-time-only packages that no source file imports directly.",
+    "//: Remove any your project does not actually use.",
+    "prettier",
+    "stylelint-config-standard",
+    "@types/.*"
+  ],
+
+  "ignoreExportsUsedInFile": true,
+
+  "//rules": "error = fails the run under --strict; warn = reported only.",
+  "rules": {
+    "files": "error",
+    "dependencies": "error",
+    "devDependencies": "error",
+    "unlisted": "error",
+    "unresolved": "error",
+    "exports": "error",
+    "types": "error",
+    "duplicates": "error",
+    "enumMembers": "warn",
+    "classMembers": "warn"
+  }
+}

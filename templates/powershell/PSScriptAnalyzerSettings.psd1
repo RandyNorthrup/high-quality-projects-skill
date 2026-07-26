@@ -1,0 +1,63 @@
+<#
+    Strict PSScriptAnalyzer settings. Copy to project root as
+    PSScriptAnalyzerSettings.psd1, then run:
+
+        Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit
+
+    -EnableExit is what makes it a gate: non-zero exit when any rule fires.
+#>
+@{
+    # Every built-in rule, including the ones off by default.
+    IncludeDefaultRules = $true
+    Severity            = @('Error', 'Warning', 'Information')
+
+    ExcludeRules = @(
+        # Fires on any function named Get-/Set-/New- that lacks ShouldProcess
+        # even when it has no side effects. Re-enable per-project once the
+        # genuinely destructive functions are annotated.
+        'PSUseShouldProcessForStateChangingFunctions',
+
+        # Demands Write-Host be replaced with Write-Output everywhere. For
+        # interactive CLI tools coloured Write-Host is correct.
+        'PSAvoidUsingWriteHost'
+    )
+
+    Rules = @{
+        PSPlaceOpenBrace = @{
+            Enable             = $true
+            OnSameLine         = $true
+            NewLineAfter       = $true
+            IgnoreOneLineBlock = $true
+        }
+        PSPlaceCloseBrace = @{
+            Enable             = $true
+            NewLineAfter       = $true
+            IgnoreOneLineBlock = $true
+            NoEmptyLineBefore  = $false
+        }
+        PSUseConsistentIndentation = @{
+            Enable              = $true
+            Kind                = 'space'
+            IndentationSize     = 4
+            PipelineIndentation = 'IncreaseIndentationForFirstPipeline'
+        }
+        PSUseConsistentWhitespace = @{
+            Enable          = $true
+            CheckInnerBrace = $true
+            CheckOpenBrace  = $true
+            CheckOpenParen  = $true
+            CheckOperator   = $true
+            CheckPipe       = $true
+            CheckSeparator  = $true
+        }
+        PSAlignAssignmentStatement = @{
+            Enable         = $true
+            CheckHashtable = $true
+        }
+        # Full cmdlet names only — no `ls`, `%`, `?` in committed scripts.
+        PSAvoidUsingCmdletAliases = @{ Enable = $true }
+        PSUseCorrectCasing        = @{ Enable = $true }
+        # Catches typos against the real cmdlet surface for these versions.
+        PSUseCompatibleCmdlets    = @{ Compatibility = @('core-7.4.0-linux', 'core-7.4.0-windows') }
+    }
+}

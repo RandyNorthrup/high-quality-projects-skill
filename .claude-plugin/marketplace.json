@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "project-forge",
+  "description": "Production-grade code standards for Claude Code: scaffold new projects or retrofit existing ones with strict quality gates.",
+  "owner": {
+    "name": "Randy Northrup",
+    "url": "https://github.com/RandyNorthrup"
+  },
+  "plugins": [
+    {
+      "name": "project-forge",
+      "source": "./",
+      "description": "/project_setup scaffolds a new project with the strictest practical gates. /quality_retrofit brings an existing codebase into compliance.",
+      "category": "productivity"
+    }
+  ]
+}

@@ -1,0 +1,157 @@
+# Polyglot strict pre-commit gate. Copy to project root, then:
+#
+#     pre-commit install                 # run on every commit
+#     pre-commit run --all-files         # run over the whole repo now
+#     pre-commit autoupdate              # bump pinned rev: pins
+#
+# Delete the language blocks a given project does not use — every hook that
+# stays enabled must pass, so an unused block is pure friction.
+
+fail_fast: false
+default_install_hook_types: [pre-commit, commit-msg]
+
+repos:
+  # ── universal hygiene ───────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-symlinks
+      - id: destroyed-symlinks
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+      - id: check-json
+      - id: check-yaml
+      - id: check-toml
+      - id: detect-private-key
+
+  # ── secrets: scans full history, not just the diff ──────────────────
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
+  # ── Python ──────────────────────────────────────────────────────────
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.0
+    hooks:
+      - id: ruff-check
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v2.3.0
+    hooks:
+      - id: mypy
+        args: [--strict, --ignore-missing-imports]
+        additional_dependencies: [types-requests, types-PyYAML]
+
+  - repo: https://github.com/jendrikseipp/vulture
+    rev: v2.16
+    hooks:
+      - id: vulture   # dead Python code
+
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.9.4
+    hooks:
+      - id: bandit
+        args: [-c, pyproject.toml]
+        additional_dependencies: ['bandit[toml]']
+
+  # ── Shell ───────────────────────────────────────────────────────────
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.11.0
+    hooks:
+      - id: shellcheck
+        args: [--severity=style, --enable=all]
+
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.13.0-1
+    hooks:
+      - id: shfmt
+        args: [-i, '4', -ci, -sr, -d]
+
+  # ── C / C++ ─────────────────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v21.1.8
+    hooks:
+      - id: clang-format
+        types_or: [c, c++, cuda]
+
+  # ── local: tools already installed globally on this machine ─────────
+  # `language: system` means pre-commit calls the binary on PATH instead of
+  # building its own isolated env. Faster, and guarantees the same version
+  # you get in the terminal.
+  - repo: local
+    hooks:
+      - id: eslint
+        name: eslint (strict, type-checked)
+        entry: eslint --max-warnings=0
+        language: system
+        types_or: [javascript, jsx, ts, tsx]
+        pass_filenames: true
+
+      - id: prettier
+        name: prettier
+        entry: prettier --write
+        language: system
+        types_or: [javascript, jsx, ts, tsx, css, scss, html, json, yaml, markdown]
+
+      - id: stylelint
+        name: stylelint (strict)
+        entry: stylelint --max-warnings=0
+        language: system
+        types_or: [css, scss]
+
+      - id: knip
+        name: knip (unused files/exports/deps)
+        entry: knip --strict
+        language: system
+        pass_filenames: false
+        files: ^(package\.json|src/.*)$
+
+      - id: cargo-fmt
+        name: cargo fmt --check
+        entry: cargo fmt --all -- --check
+        language: system
+        types: [rust]
+        pass_filenames: false
+
+      - id: cargo-clippy
+        name: cargo clippy (deny warnings)
+        entry: cargo clippy --all-targets --all-features -- -D warnings
+        language: system
+        types: [rust]
+        pass_filenames: false
+
+      - id: cargo-machete
+        name: cargo machete (unused deps)
+        entry: cargo machete
+        language: system
+        types: [rust]
+        pass_filenames: false
+
+      - id: cppcheck
+        name: cppcheck (all checks)
+        entry: cppcheck --enable=all --inline-suppr --error-exitcode=1 --std=c++23 --suppress=missingIncludeSystem --suppress=unusedFunction
+        language: system
+        types_or: [c, c++]
+
+      - id: dotnet-format
+        name: dotnet format --verify-no-changes
+        entry: dotnet format --verify-no-changes --severity info
+        language: system
+        files: \.(cs|csproj|sln)$
+        pass_filenames: false
+
+      - id: psscriptanalyzer
+        name: PSScriptAnalyzer (strict)
+        entry: pwsh -NoProfile -Command "Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit"
+        language: system
+        files: \.(ps1|psm1|psd1)$
+        pass_filenames: false

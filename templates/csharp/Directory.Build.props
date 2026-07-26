@@ -1,0 +1,57 @@
+<!--
+  Strict C# / .NET defaults. Drop this at the ROOT of a solution and every
+  project under it inherits these settings — no per-.csproj edits needed.
+
+  This is the highest-leverage file in the set: it turns the compiler and the
+  built-in Roslyn analyzers into a hard gate rather than advisory warnings.
+-->
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <TargetFramework Condition="'$(TargetFramework)' == ''">net10.0</TargetFramework>
+
+    <!-- Nullable reference types on, and violations are build errors.
+         Without TreatWarningsAsErrors this is just advisory noise. -->
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningLevel>9999</WarningLevel>
+
+    <!-- latest-all = every shipped analyzer rule, including the ones off by
+         default. This is the strict setting; "latest-recommended" is the
+         gentler fallback if the codebase is large and legacy. -->
+    <AnalysisLevel>latest-all</AnalysisLevel>
+    <AnalysisMode>All</AnalysisMode>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+
+    <!-- Without this, `dotnet format` style rules (IDExxxx) never fail CI —
+         they only show in the IDE. This makes formatting a real gate. -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <!-- Dead code / correctness -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- ^ CS1591 = "missing XML comment on public member". Doc generation is
+         on so other doc warnings still fire, but requiring a comment on every
+         public member is busywork. Remove from NoWarn to enforce it. -->
+
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <ReportAnalyzer>true</ReportAnalyzer>
+
+    <!-- Supply chain -->
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <NuGetAuditLevel>low</NuGetAuditLevel>
+
+    <!-- Reproducibility -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <!-- Tests: xUnit analyzers plus a relaxation for the doc rules. -->
+  <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Tests'))">
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CA1707;CA2007</NoWarn>
+    <!-- CA1707: underscores in test method names are the convention.
+         CA2007: ConfigureAwait(false) is not needed in test code. -->
+  </PropertyGroup>
+</Project>
