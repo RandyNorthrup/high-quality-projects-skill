@@ -201,6 +201,21 @@ Do this **per-module with tests green after each**, never as a bulk sweep. This
 phase changes behavior if you get a unit wrong — `86400` seconds and
 `86400000` milliseconds look alike in a diff.
 
+### Handing the tree to an external reviewer
+
+If a step invokes an outside reviewer (Codex, a SAST service, another agent),
+**scope it to specific files or the diff.** Those tools read the filesystem, not
+git, so `.gitignore` does not protect them: a `.venv/`, `node_modules/`, or
+`target/` you created during the retrofit will be crawled, burning the entire
+budget on vendored stubs before it reaches your code.
+
+Delete build and environment directories first, or name the files explicitly:
+
+```bash
+rm -rf .venv .mypy_cache .ruff_cache __pycache__
+# then scope the request: "review only src/foo.py and the diff A..B"
+```
+
 ### Phase 7 — security and sanitizers
 - `gitleaks detect` over full history. **A hit here is an incident**, not a
   lint finding: the secret is in history, so rotate it first, then scrub.
