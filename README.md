@@ -1,31 +1,38 @@
 # high-quality-projects-skill
 
-Two paired [Claude Code](https://claude.com/claude-code) skills that hold a
-codebase to production-grade standards — one for new projects, one for existing
-ones.
+**Two [Claude Code](https://claude.com/claude-code) skills that hold a codebase to production-grade standards.** One sets a new project up right. One cleans an existing one up.
 
 ```
-/project_setup <description>   scaffold a new project with strict gates from commit one
-/quality_retrofit              bring an existing codebase into compliance
+/project_setup <description>   →  new project, strict gates from commit one
+/quality_retrofit              →  existing codebase, brought into compliance
 ```
 
-Both **scan before they write**. Neither overwrites configuration you already
-have — existing choices are read, preserved, and extended.
+Covers Python, TypeScript, JavaScript, Rust, C++, C#, CSS, HTML, PowerShell, and Shell.
 
 ---
 
-## Why two skills
+## The problem this solves
 
-They solve opposite problems and the failure modes are different.
+Most "quality setup" leaves you with linters that **report findings and exit 0**. CI goes green. The bug ships anyway.
 
-`/project_setup` starts from nothing, so the risk is *guessing* — wrong
-versions, incompatible packages, gates that were never actually run.
+```bash
+eslint .                    # 47 warnings.  exit 0.  CI passes. ✅❌
+eslint . --max-warnings=0   # 47 warnings.  exit 1.  CI fails.  ✅
+```
 
-`/quality_retrofit` starts from working code someone depends on, so the risk is
-*breaking it* — an unreviewable 4,000-file diff, a deleted function that was
-reached by reflection, a magic number extracted with the wrong unit.
+That one flag is the difference between a quality gate and a decoration. There is an equivalent for every tool, and missing any of them produces the same false green:
 
-Same standards, different safety rails.
+| Tool | Without it | With it |
+|---|---|---|
+| eslint / stylelint | reports, exits 0 | `--max-warnings=0` |
+| clippy | warns | `-D warnings` |
+| cppcheck | prints | `--error-exitcode=1` |
+| PSScriptAnalyzer | returns objects | `-EnableExit` |
+| knip | lists | `--strict` |
+| UBSan | prints and **continues** | `-fno-sanitize-recover=all` |
+| C# style rules | IDE-only | `<EnforceCodeStyleInBuild>` |
+
+Both skills wire these by default, and **report any gate they could not run** instead of quietly skipping it.
 
 ---
 
@@ -36,87 +43,87 @@ claude plugin marketplace add RandyNorthrup/high-quality-projects-skill
 claude plugin install high-quality-projects-skill@high-quality-projects-skill
 ```
 
-The name appears twice because the syntax is `plugin@marketplace`, and this
-repo publishes a single plugin under a marketplace of the same name.
+The name appears twice because the syntax is `plugin@marketplace`, and this repo publishes one plugin under a marketplace of the same name.
 
-Restart Claude Code — skills are loaded at session start, so a freshly
-installed one is not available until you do.
-
-Verify:
+**Restart Claude Code.** Skills load at session start, so a freshly installed one is not available until you do.
 
 ```bash
-claude plugin list          # high-quality-projects-skill · enabled
+claude plugin list      # high-quality-projects-skill · enabled
 ```
+
+Requires `git`, `bash`, `jq`. Everything else is per-stack and optional — the skills detect what is installed and declare anything they had to defer.
 
 ---
 
-## Usage
-
-### New project
+## `/project_setup`
 
 ```
 /project_setup A REST API for tracking gym workouts. Postgres, JWT auth, deployed on Fly.io.
 ```
 
-The description is the argument and it matters — a one-liner gets you a round of
-clarifying questions, a real description gets you a plan.
+The description is the argument, and detail pays off — a one-liner gets you a round of questions, a real description gets you a plan.
 
-What happens:
+1. **Scans first.** Even an "empty" directory. Existing files change the plan, and may mean you want `/quality_retrofit` instead.
+2. **Asks once.** One batched round: stack, deployment, database, auth, testing. Never asks what the files already answer.
+3. **Verifies versions.** Against official docs and registries — no guessed compatibility. Pins what it installs.
+4. **Writes `PLAN.md` before code.** Decisions, milestones, and per-milestone certification gates.
+5. **Proves the gates.** Every gate runs and passes on the empty scaffold before milestone one begins.
 
-1. **Scan** — even an "empty" directory gets checked. Existing files change the plan.
-2. **Ask** — one batched round covering stack, deployment, database, auth, testing.
-3. **Verify** — every dependency version checked against official sources, not guessed.
-4. **`PLAN.md` first** — decisions and milestones before any code.
-5. **Scaffold** — structure, configs, gates.
-6. **Prove** — every gate runs and passes on the empty scaffold before milestone one.
+Produces `README.md`, `CHANGELOG.md`, `PLAN.md`, and project-local agent instruction files. **Never touches global config** — no global user memory, no machine-wide IDE settings.
 
-### Existing project
+---
+
+## `/quality_retrofit`
 
 ```
 /quality_retrofit
 ```
 
-Runs in phases, each independently reviewable and revertible:
+Runs on an existing codebase, in phases. Each is independently reviewable and revertible, and it **stops and reports between them** rather than chaining silently.
 
 | Phase | What | Risk |
 |---|---|---|
-| 0 | Baseline: tests, build, error counts | none |
-| 1 | Formatting | none — but huge diff, needs blame-ignore |
+| 0 | Baseline — tests, build, error counts | none |
+| 1 | Formatting | none, but huge diff — needs blame-ignore |
 | 2 | Configs and gates wired | none — no source changes |
-| 3 | Autofixable lint | low — read the diff, `--fix` is not always neutral |
-| 4 | Strict types | medium — largest error count, finds real bugs |
-| 5 | Dead code removal | **high** — false positives on dynamic dispatch |
-| 6 | Magic numbers | **high** — wrong unit is a behavior change |
+| 3 | Autofixable lint | low — `--fix` is not always semantically neutral |
+| 4 | Strict types | medium — biggest error count, finds real bugs |
+| 5 | Dead-code removal | **high** — false positives on dynamic dispatch |
+| 6 | Magic numbers → constants | **high** — a wrong unit is a behavior change |
 | 7 | Security + sanitizers | findings are real bugs, not lint |
 | 8 | Documentation reconciliation | none |
 
-It stops and reports between phases. It will not chain them silently.
+### It refuses to
 
-**It refuses to** modify a dirty working tree, bulk-modify code outside version
-control, delete code it has not verified is unreachable, or rewrite git history
-to scrub a leaked secret without being told to.
+- Modify a **dirty working tree** — uncommitted work would get tangled with mechanical changes
+- Bulk-modify code **not under version control**
+- Delete code it has **not verified** is unreachable
+- **Rewrite git history** to scrub a leaked secret without being told to
+- Weaken a rule your project already set stricter
+- Report a gate as passing when it was skipped
+
+### Why phase 1 gets its own commit
+
+Formatting touches every file and changes no behavior — which makes it simultaneously the safest change and the most destructive to `git blame`. It lands alone, and the commit goes into `.git-blame-ignore-revs`:
+
+```bash
+git rev-parse HEAD >> .git-blame-ignore-revs
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
+
+Skip that and every `git blame` for the rest of the repo's life points at the formatting commit.
 
 ---
 
 ## Standards enforced
 
-**Constants and literals** — no unexplained magic numbers, strings, booleans, or
-timeouts. Named constants, enums, literal unions, or schema-validated config.
-Idiomatic literals (`0`, `1`, `-1`, `[]`, `""`, booleans in conditions) stay —
-a rule that rejects `if (xs.length === 0)` is misconfigured.
+**Magic numbers** — extracted into named constants, enums, or validated config. But `if (xs.length === 0)`, `for (i = 0; ...)`, `return []`, and `arr[0]` are left alone. The test is whether the name adds information the value lacks: `const TWO = 2` adds nothing, `const RETRY_LIMIT = 2` adds everything.
 
-**Dead code** — none. No commented-out legacy, unused files, unused exports,
-unused dependencies, stale config.
+**Dead code** — none. No commented-out legacy, unused files, unused exports, unused dependencies, stale config.
 
-**Honesty** — no silent fallbacks, fake implementations, placeholder production
-code, or mock data outside test/dev/demo boundaries. A function that cannot do
-its job raises; it does not return an empty result that reads like success.
+**Honesty** — no silent fallbacks, fake implementations, placeholder production code, or mock data outside test/dev/demo boundaries. A function that cannot do its job raises; it does not return an empty result that reads like success.
 
-**Escape hatches** — no broad `any`, unchecked casts, or suppressed rules
-without inline justification *and* a tracked debt entry.
-
-**Dependencies** — nothing added without purpose, compatibility check, and
-security review.
+**Escape hatches** — no broad `any`, unchecked cast, or suppressed rule without inline justification *and* a tracked debt entry in the report.
 
 ---
 
@@ -125,83 +132,66 @@ security review.
 | Stack | Format | Lint | Types | Dead code | Security | Test |
 |---|---|---|---|---|---|---|
 | Python | ruff format | ruff (`ALL`) | mypy strict+ | vulture, deptry | bandit, pip-audit | pytest |
-| TS/JS | prettier | eslint strictTypeChecked | tsc strict+ | knip | npm audit, semgrep | vitest |
+| TypeScript / JS | prettier | eslint strictTypeChecked | tsc strict+ | knip | npm audit, semgrep | vitest |
 | Rust | rustfmt | clippy pedantic | compiler | cargo-machete | cargo-audit, cargo-deny | cargo test |
 | C++ | clang-format | clang-tidy, cppcheck | compiler | cppcheck | sanitizers, valgrind | ctest |
-| C# | dotnet format | AnalysisLevel latest-all | nullable + warnaserror | IDE0051/2 | NuGetAudit | dotnet test |
+| C# / .NET | dotnet format | AnalysisLevel latest-all | nullable + warnaserror | IDE0051/2 | NuGetAudit | dotnet test |
 | CSS | prettier | stylelint | — | — | — | — |
 | HTML | prettier | htmlhint | — | — | — | — |
 | PowerShell | PSScriptAnalyzer | PSScriptAnalyzer | — | — | — | Pester |
 | Shell | shfmt | shellcheck | — | — | gitleaks | bats |
 
-Cross-cutting: `gitleaks` (secrets, full history), `semgrep` (SAST), `jscpd`
-(copy-paste).
+Cross-cutting: **gitleaks** (secrets, full history), **semgrep** (SAST), **jscpd** (copy-paste).
 
-Config templates live in [`templates/`](templates/) — each documents its own
-deliberate loosenings so you can see what was *not* enforced and why.
-
----
-
-## The part most setups get wrong
-
-A configured linter that exits 0 on findings is decorative. These flags are what
-make a gate a gate:
-
-```
-eslint --max-warnings=0                stylelint --max-warnings=0
-cargo clippy -- -D warnings            cppcheck --error-exitcode=1
-knip --strict                          Invoke-ScriptAnalyzer -EnableExit
--fno-sanitize-recover=all              ← UBSan, else prints and continues
-<EnforceCodeStyleInBuild>true</...>    ← C#, else IDE-only
-<TreatWarningsAsErrors>true</...>      ← C#
-```
-
-Both skills wire these by default and report any gate they could not run.
+Config templates in [`templates/`](templates/) — each documents its own deliberate loosenings, so you can see what was *not* enforced and why.
 
 ---
 
 ## Sanitizers
 
-Verified working on gcc 15, clang 21, and Rust nightly.
+Verified trapping real bugs on gcc 15, clang 21, and Rust nightly.
 
 | | gcc | clang | Rust | Catches |
 |---|---|---|---|---|
-| ASan | yes | yes | yes | use-after-free, overflow, double-free |
-| LSan | yes | yes | yes | leaks |
-| UBSan | yes | yes | — | overflow, bad shift, misaligned, null deref |
-| TSan | yes | yes | yes | data races |
-| MSan | no | yes | yes | uninitialized reads |
+| ASan | ✅ | ✅ | ✅ | use-after-free, buffer overflow, double-free |
+| LSan | ✅ | ✅ | ✅ | memory leaks |
+| UBSan | ✅ | ✅ | — | overflow, bad shift, misaligned, null deref |
+| TSan | ✅ | ✅ | ✅ | data races |
+| MSan | — | ✅ | ✅ | uninitialized reads |
 
-Three things that silently defeat them, handled by the skills:
+Three things that silently defeat them, all handled:
 
-- **ASan and TSan cannot be combined** — incompatible shadow memory, separate builds
-- **`-fno-sanitize-recover=all`** or UBSan prints and the job still exits 0
-- **Rust needs `-Zbuild-std`** — the shipped `std` is uninstrumented, so you get
-  false negatives without rebuilding it
+- **ASan and TSan cannot be combined** — incompatible shadow memory, so they need separate builds and separate CI jobs
+- **`-fno-sanitize-recover=all`**, or UBSan prints its finding and the job still exits 0
+- **Rust needs `-Zbuild-std`** — the shipped `std` is uninstrumented, so you get false negatives without rebuilding it
 
-MSan on real C++ needs an instrumented libc++, which most distros do not ship.
-The skills will not add an MSan gate unless the project builds its own standard
-library. Full reference: [`templates/cpp/sanitizers.md`](templates/cpp/sanitizers.md).
+MSan on real C++ needs an instrumented libc++, which most distributions do not ship. The skills will not add an MSan gate unless the project builds its own standard library — otherwise it drowns in false positives from library internals.
+
+Full reference: [`templates/cpp/sanitizers.md`](templates/cpp/sanitizers.md).
 
 ---
 
-## Requirements
+## Dead-code tools do not overlap
 
-Claude Code, `git`, `bash`, `jq`.
+Running one and calling it done leaves real holes:
 
-Everything else is per-stack and optional — `scripts/detect-stack.sh` reports
-what is installed, and the skills declare any gate they had to defer rather than
-reporting it green. Install what you need for the languages you use.
+- **`tsc --noEmit`** with `noUnusedLocals` — unused symbols *inside* a file. Blind to unused exports.
+- **`knip`** — whole-graph: dead *modules*, unused exports, unused dependencies. Finds what tsc structurally cannot.
+- **`vulture`** — Python, heuristic, reports a confidence percentage for a reason.
+- **`cppcheck --enable=all`** — includes `unusedFunction`, but per-file invocation cannot see cross-TU callers.
+- **`cargo machete`** — unused Cargo dependencies.
+- **Roslyn IDE0051/0052** — unused C# private members.
+
+All of them false-positive on dynamic dispatch, string-keyed lookup, library public API, test fixtures, and framework entry points. So the tools produce *candidates*; a grep across the whole repo produces *deletions*. Unverified candidates get listed in the report, not removed.
 
 ---
 
 ## Documentation
 
-- [`docs/PHILOSOPHY.md`](docs/PHILOSOPHY.md) — why these rules, and where strict is the wrong call
+- [`docs/PHILOSOPHY.md`](docs/PHILOSOPHY.md) — the reasoning behind each rule, and explicitly where strict is the wrong call
 - [`templates/README.md`](templates/README.md) — every config, its gate command, its loosenings
-- [`templates/cpp/sanitizers.md`](templates/cpp/sanitizers.md) — sanitizer flags and caveats
-- [`CONTRIBUTING.md`](CONTRIBUTING.md)
-- [`CHANGELOG.md`](CHANGELOG.md)
+- [`templates/cpp/sanitizers.md`](templates/cpp/sanitizers.md) — flags, runtime options, CMake, Rust
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) · [`CHANGELOG.md`](CHANGELOG.md)
 
 ## License
 
