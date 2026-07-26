@@ -29,7 +29,8 @@ change anything yet.** Report:
 - Languages found, by file count
 - Quality config that already exists
 - Required tools that are missing from this machine
-- Estimated blast radius: how many findings, in how many files
+- Estimated blast radius: how many findings, in how many files. Run the
+  strict template against the tree to get a real number — do not guess
 
 Then get agreement on scope before writing. A retrofit that surprises someone
 is a failed retrofit.
@@ -88,8 +89,28 @@ number every later phase is measured against. Write it into the report.
 `prettier` · `ruff format` · `rustfmt` · `clang-format` · `dotnet format` ·
 `shfmt`
 
-Pure whitespace and layout. No semantic change. Land it as **one isolated
-commit** and add that commit to `.git-blame-ignore-revs`:
+Layout only — no behaviour change. Land it as **one isolated commit**.
+
+**Prove it before committing.** "Formatting is safe" is an assumption, not a
+fact, and a byte-diff cannot check it: `ruff format` and `black` also add magic
+trailing commas and normalize quotes, so the file legitimately changes beyond
+whitespace. Comparing the parsed AST is the correct test — it ignores layout
+entirely and fails only if something behavioural moved:
+
+```bash
+cp target.py /tmp/before.py
+ruff format target.py
+"${CLAUDE_PLUGIN_ROOT}/scripts/verify-format-safe.py" /tmp/before.py target.py
+```
+
+Exit 0 means semantically identical. **This tool belongs to phase 1 only** —
+phases 3 onward change the AST on purpose (removing an unused import deletes a
+node), so a difference there is expected, not a failure.
+
+For non-Python stacks the equivalent is a token-stream or AST diff; where no
+such tool exists, at minimum re-run the test suite and read the diff.
+
+Then add the commit to `.git-blame-ignore-revs`:
 
 ```bash
 git rev-parse HEAD >> .git-blame-ignore-revs
