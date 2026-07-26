@@ -51,5 +51,5 @@ planted defects. Sanitizers were verified trapping real use-after-free, leak,
 UB, data-race, and uninitialized-read bugs on gcc 15, clang 21, and Rust
 nightly.
 
-[Unreleased]: https://github.com/RandyNorthrup/project-forge/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/RandyNorthrup/project-forge/releases/tag/v0.1.0
+[Unreleased]: https://github.com/RandyNorthrup/high-quality-projects-skill/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/RandyNorthrup/high-quality-projects-skill/releases/tag/v0.1.0

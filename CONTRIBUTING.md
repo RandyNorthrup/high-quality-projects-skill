@@ -65,8 +65,8 @@ Test with:
 ## Testing changes locally
 
 ```bash
-claude plugin marketplace add ~/path/to/project-forge
-claude plugin install project-forge@project-forge
+claude plugin marketplace add ~/path/to/high-quality-projects-skill
+claude plugin install high-quality-projects-skill@high-quality-projects-skill
 # restart Claude Code — skills load at session start
 claude plugin list
 ```

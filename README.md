@@ -1,4 +1,4 @@
-# project-forge
+# high-quality-projects-skill
 
 Two paired [Claude Code](https://claude.com/claude-code) skills that hold a
 codebase to production-grade standards — one for new projects, one for existing
@@ -32,16 +32,20 @@ Same standards, different safety rails.
 ## Install
 
 ```bash
-claude plugin marketplace add RandyNorthrup/project-forge
-claude plugin install project-forge@project-forge
+claude plugin marketplace add RandyNorthrup/high-quality-projects-skill
+claude plugin install high-quality-projects-skill@high-quality-projects-skill
 ```
 
-Restart Claude Code. Skills load at session start.
+The name appears twice because the syntax is `plugin@marketplace`, and this
+repo publishes a single plugin under a marketplace of the same name.
+
+Restart Claude Code — skills are loaded at session start, so a freshly
+installed one is not available until you do.
 
 Verify:
 
 ```bash
-claude plugin list          # project-forge · enabled
+claude plugin list          # high-quality-projects-skill · enabled
 ```
 
 ---

@@ -1,14 +1,14 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
-  "name": "project-forge",
+  "name": "high-quality-projects-skill",
   "version": "0.1.0",
   "description": "Two paired skills for production-grade code standards: /project_setup scaffolds a new project with the strictest practical gates, /quality_retrofit brings an existing codebase into compliance. Both scan before they write and extend existing config rather than replacing it.",
   "author": {
     "name": "Randy Northrup",
     "url": "https://github.com/RandyNorthrup"
   },
-  "homepage": "https://github.com/RandyNorthrup/project-forge",
-  "repository": "https://github.com/RandyNorthrup/project-forge",
+  "homepage": "https://github.com/RandyNorthrup/high-quality-projects-skill",
+  "repository": "https://github.com/RandyNorthrup/high-quality-projects-skill",
   "license": "MIT",
   "keywords": [
     "quality-gates",
