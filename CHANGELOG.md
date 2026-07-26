@@ -75,6 +75,19 @@ the templates that would have hit the first person to use them.
   import-graph rule report success, and `maxDepth: Infinity` becomes `null` when
   a rule option is JSON-serialised, which can disable traversal outright.
 
+- **Vacuous-assertion guidance**, in both skills. The same "looks configured,
+  checks nothing" failure occurs in tests, where it is harder to spot because
+  the test is green rather than missing. The case that prompted it: a test
+  pressed the arrow keys and asserted the page had not scrolled, and passed on
+  every run — including against a build with the `preventDefault` call deleted,
+  because the layout fitted the viewport and the page could never scroll at all.
+
+  Two rules now stated explicitly: assert the behaviour rather than a downstream
+  side effect, and give every assertion a case that must come back negative. An
+  assertion where every input yields the same answer is indistinguishable from a
+  broken one. `quality_retrofit` additionally warns that an inherited green
+  suite is not evidence the tests check anything.
+
 ### Changed
 
 - `templates/README.md` no longer claims every config "was run against

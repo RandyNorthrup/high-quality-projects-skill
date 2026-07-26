@@ -75,6 +75,13 @@ git rev-parse HEAD         # record for rollback
 - Establish the test baseline **before** touching anything. If tests already
   fail, record which ones. You cannot tell what you broke otherwise.
 - One phase per commit. Each commit passes the gates that existed before it.
+- **A green test suite is not evidence that the tests check anything.** An
+  inherited suite can contain assertions that cannot fail. One found this way:
+  a test pressed the arrow keys and asserted the page had not scrolled — but the
+  layout fitted the viewport, so the page could never scroll, and it passed just
+  as happily against a build with the `preventDefault` call deleted. When a test
+  guards behaviour you are about to touch, break that behaviour on purpose once
+  and confirm the test goes red before trusting it.
 
 ## Phases
 

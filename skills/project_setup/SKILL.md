@@ -161,6 +161,20 @@ its config without complaint and reports nothing:
   unreachable, consider that it may genuinely be unreachable and the branch is
   dead code. Deleting it is usually right; lowering the threshold rarely is.
 
+The same failure happens in tests, and is harder to spot because the test is
+green rather than absent:
+
+- **An assertion on a side effect is only as good as that side effect's ability
+  to occur.** A test that pressed the arrow keys and asserted the page had not
+  scrolled passed on every run — and passed just as happily against a build with
+  the `preventDefault` call deleted, because the layout fitted the viewport and
+  the page could never scroll in the first place. Assert the behaviour
+  (`event.defaultPrevented`) rather than a downstream symptom of it.
+- **Give an assertion a case that must come back negative.** In the fixed
+  version above, one key is expected to be *un*suppressed. If every input
+  produced the same answer, the assertion would not be distinguishing anything —
+  and that is indistinguishable from a broken check.
+
 Record any gate you could not get to fire in `PLAN.md` as deferred, naming the
 tool. A gate reported as passing when it was never verified is the single
 failure this skill exists to prevent.
