@@ -7,6 +7,81 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+Everything below came from running `/project_setup` end to end against a real
+project for the first time — a TypeScript canvas game, taken from empty
+directory to a published repository with green CI. The skill had only ever been
+exercised via `/quality_retrofit` before this, and the exercise found defects in
+the templates that would have hit the first person to use them.
+
+### Fixed
+
+- **`templates/web/knip.json` did not load under knip 6.** knip 6 validates its
+  config strictly and rejects unknown keys, so the knip 5 `"//": [...]`
+  pseudo-comment convention was a hard error —
+  `Invalid input (unrecognized_keys: //, //rules)` — and the `classMembers` rule
+  no longer exists. Replaced with **`templates/web/knip.jsonc`**, which knip
+  reads natively and which takes real comments. Verified to load.
+
+- **`templates/typescript/eslint.config.mjs` omitted `@eslint/js`** from its
+  install line while importing it. That fails at config load, not at lint time,
+  so the error is confusing.
+
+- **The eslint template did not enforce the skill's own magic-number rule.**
+  Phase 3 of `project_setup` requires "no unexplained magic numbers", and the
+  template shipped no rule to enforce it. Added
+  `@typescript-eslint/no-magic-numbers` with a justified ignore list, plus the
+  two overrides that make it satisfiable — the constants module and tests.
+
+### Added
+
+- **A TypeScript 7 compatibility warning, in both skills and the templates.**
+  As of 2026-07-26 `typescript` latest is 7.0.2, but every published
+  `typescript-eslint` — canary included — declares
+  `peerDependencies.typescript: ">=4.8.4 <6.1.0"`. Taking the latest TypeScript
+  installs cleanly and silently removes every type-aware lint rule:
+  `no-floating-promises`, `no-misused-promises`, `await-thenable`, and the whole
+  `no-unsafe-*` family. This is now a worked example under "Verify compatibility
+  — do not guess", since it is exactly the failure that section exists to catch.
+
+- **"Prove each gate fires before relying on it"**, a new section in
+  `project_setup`, and the equivalent guidance in `quality_retrofit`'s dead-code
+  phase. Three tools were found that loaded their config without complaint and
+  checked nothing:
+
+  - `import-x/no-cycle` reported nothing against a deliberately circular pair of
+    modules, while `import-x/no-self-import` and `import-x/no-unresolved`
+    correctly flagged their cases in the same run.
+  - knip 6's `cycles` rule was equally silent, by default and under
+    `--include cycles`.
+  - `madge` cannot be installed alongside TypeScript 6+ at all, because it
+    declares `peerOptional typescript@^5.4.4`.
+
+  `dpdm` is now the recommended cycle detector, verified in both directions:
+  exit 1 on a real cycle, exit 0 once removed.
+
+- **Prettier-conflict guidance.** `unicorn/number-literal-case` wants uppercase
+  hex digits and Prettier rewrites them to lowercase, so with both enabled
+  `format` and `lint` can never both pass. `unicorn/prefer-global-this` produces
+  a hard `TS2345` in browser-only code, because TypeScript types `window` as
+  `Window & typeof globalThis` while bare `globalThis` lacks the Window members.
+  Both are now disabled in the template with the conflict written out.
+
+- **A note that coverage thresholds find dead code.** A branch flagged as
+  unreachable by a coverage gate may genuinely be unreachable — that happened
+  during this exercise, and deleting the branch was correct where lowering the
+  threshold would have hidden it.
+
+- Two further traps recorded: a resolver that cannot resolve makes every
+  import-graph rule report success, and `maxDepth: Infinity` becomes `null` when
+  a rule option is JSON-serialised, which can disable traversal outright.
+
+### Changed
+
+- `templates/README.md` no longer claims every config "was run against
+  deliberately-broken code and confirmed to fire". That was not true of the knip
+  template, which did not load at all under knip 6. Replaced with the discipline
+  itself, stated as a requirement on the reader.
+
 ## [0.1.0] — 2026-07-26
 
 Initial release.

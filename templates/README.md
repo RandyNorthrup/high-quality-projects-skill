@@ -1,8 +1,13 @@
 # QA templates — strict quality gates
 
 Copy-in configs for lint / format / dead-code / test / security gates, tuned to
-the strictest setting that is still *correct* rather than merely loud. Every
-config in here was run against deliberately-broken code and confirmed to fire.
+the strictest setting that is still *correct* rather than merely loud.
+
+**A gate is not configured until it has been seen to fail on a case it is
+supposed to catch.** Before relying on any of these, break something on purpose
+and confirm the tool exits non-zero. That discipline is not decoration — three
+separate tools have been found here that loaded cleanly, reported nothing, and
+checked nothing (see Gotchas).
 
 Installed 2026-07-26.
 
@@ -15,7 +20,7 @@ Installed 2026-07-26.
 | `typescript/tsconfig.strict.json` | extend from your tsconfig | types |
 | `typescript/eslint.config.mjs` | project root | lint (type-checked) |
 | `web/.stylelintrc.json` | project root | CSS |
-| `web/knip.json` | project root | dead files / exports / deps |
+| `web/knip.jsonc` | project root | dead files / exports / deps |
 | `cpp/.clang-tidy` | project root | C++ static analysis |
 | `csharp/Directory.Build.props` | solution root | C# compiler + analyzers |
 | `rust/clippy-strict.toml` | see file — two parts | Rust lint |
@@ -123,6 +128,59 @@ Each is a single-line revert in its config file.
   only tunes thresholds. See `rust/clippy-strict.toml` — it holds both halves.
 - **gitleaks allowlists well-known example keys** (e.g.
   `AKIAIOSFODNN7EXAMPLE`). A clean run does not prove the scanner is off.
+
+### Gates that load cleanly and check nothing
+
+Found by deliberately breaking things. Each of these looked configured.
+
+- **`knip.jsonc`, not `knip.json`.** knip 6 validates its config strictly and
+  rejects unknown keys, so the `"//": [ ... ]` pseudo-comment convention that
+  works in knip 5 is a hard error: `Invalid input (unrecognized_keys: //,
+  //rules)`. knip 6 also dropped the `classMembers` rule.
+- **`import-x/no-cycle` does not fire.** Against a deliberately circular pair of
+  modules it reported nothing, while `import-x/no-self-import` and
+  `import-x/no-unresolved` correctly flagged their cases in the same run — so
+  the plugin and resolver were both working and that one rule was not. knip 6's
+  `cycles` rule was equally silent, by default and under `--include cycles`.
+  Use **`dpdm`**, which was verified in both directions:
+  `dpdm --no-warning --no-tree --exit-code circular:1 src/main.ts`
+- **`madge` cannot be installed alongside TypeScript 6+.** It declares
+  `peerOptional typescript@^5.4.4`. npm will suggest `--legacy-peer-deps`;
+  taking it means accepting a resolution npm has just called incorrect.
+- **`maxDepth: Infinity`** in any JSON-serialised rule option becomes `null`,
+  which can silently disable traversal. Use a finite number.
+
+### TypeScript 7 has no type-aware linting yet
+
+As of 2026-07-26, `typescript` latest is **7.0.2** but every published
+`typescript-eslint` — including canary — declares
+`peerDependencies.typescript: ">=4.8.4 <6.1.0"`.
+
+Installing TypeScript 7 therefore means **no type-aware linting at all**: no
+`no-floating-promises`, no `no-misused-promises`, no `await-thenable`, none of
+the `no-unsafe-*` family. Those rules need the type checker and cannot be
+approximated syntactically, and they are the most valuable half of
+`strictTypeChecked`.
+
+Pin `typescript@6.0.3` — the highest stable release inside the supported range —
+until `typescript-eslint` ships TypeScript 7 support. Check before assuming this
+is still true:
+
+```bash
+npm info typescript-eslint peerDependencies
+```
+
+### Prettier conflicts to disable, not fight
+
+`unicorn/number-literal-case` wants uppercase hex digits; Prettier rewrites them
+to lowercase. With both enabled, `format` and `lint` can never both pass. The
+formatter owns formatting — disable the lint rule.
+
+`unicorn/prefer-global-this` produces a hard type error in browser-only code:
+TypeScript types `window` as `Window & typeof globalThis`, while bare
+`globalThis` lacks the Window members, so obeying the rule yields
+`TS2345: ... Property 'name' is missing`. Disable it rather than reaching for a
+cast.
 - ESLint/stylelint plugin packages are installed **globally** here so the
   templates work anywhere. Projects with CI should still add them as local
   devDependencies — global installs are not reproducible on another machine.

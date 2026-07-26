@@ -70,6 +70,33 @@ matrix.
 Record every version decision and its source in `PLAN.md`. "Latest" is not a
 version; pin what you install.
 
+**Worked example — the trap this step exists to catch.** As of 2026-07-26,
+`npm info typescript version` reports `7.0.2`, but:
+
+```
+$ npm info typescript-eslint peerDependencies
+{ eslint: '^8.57.0 || ^9.0.0 || ^10.0.0', typescript: '>=4.8.4 <6.1.0' }
+```
+
+Installing the latest TypeScript would succeed, and then silently cost the
+project every type-aware lint rule — `no-floating-promises`,
+`no-misused-promises`, `await-thenable`, the whole `no-unsafe-*` family. Those
+need the type checker and cannot be approximated syntactically. The right call
+is to pin `typescript@6.0.3` and record why.
+
+Check whether this is still true rather than trusting the paragraph above. The
+general lesson holds regardless: **the newest version of a language toolchain is
+routinely ahead of its lint ecosystem, and taking it can quietly delete a gate.**
+Peer ranges are the cheapest place to find that out.
+
+Two more that recur in JS/TS setups:
+
+- `madge` declares `peerOptional typescript@^5.4.4` and cannot be installed
+  beside TypeScript 6+. npm will suggest `--legacy-peer-deps`; that means
+  accepting a resolution npm has just called incorrect. Use `dpdm` instead.
+- knip 6 rejects unknown config keys, so the knip 5 `"//": [...]` comment
+  convention is a hard error. Use `knip.jsonc`, which takes real comments.
+
 ## Phase 2 — quality gates
 
 Set up the strictest practical gate set for the stack. Copy from
@@ -107,6 +134,36 @@ mypy                (nonzero by default)
 <TreatWarningsAsErrors>true</TreatWarningsAsErrors>       ← C#
 -fno-sanitize-recover=all        ← UBSan, else prints and continues
 ```
+
+### Prove each gate fires before relying on it
+
+**A gate is not configured until it has been seen to fail on a case it is
+supposed to catch.** Break something on purpose, confirm a non-zero exit, then
+revert. This costs a minute per gate and is the only thing that distinguishes a
+gate from a decoration.
+
+The flags above are the common failure. These are worse, because the tool loads
+its config without complaint and reports nothing:
+
+- **`import-x/no-cycle` does not fire.** Against a deliberately circular pair of
+  modules it reported no findings, while `import-x/no-self-import` and
+  `import-x/no-unresolved` correctly flagged their cases in the same run — so
+  the plugin and its resolver were working and that one rule was not. knip 6's
+  `cycles` rule was equally silent, by default and under `--include cycles`.
+  `dpdm --no-warning --no-tree --exit-code circular:1 <entry>` works and was
+  verified in both directions.
+- **A resolver that cannot resolve reports success on everything.** Any
+  import-graph rule is blind to imports it cannot follow, so a broken resolver
+  reads as a clean graph. Enable `import-x/no-unresolved` alongside them.
+- **`maxDepth: Infinity`** becomes `null` when a rule option is JSON-serialised,
+  which can disable traversal entirely. Use a finite number.
+- **Coverage thresholds are load-bearing.** When a threshold flags a branch as
+  unreachable, consider that it may genuinely be unreachable and the branch is
+  dead code. Deleting it is usually right; lowering the threshold rarely is.
+
+Record any gate you could not get to fire in `PLAN.md` as deferred, naming the
+tool. A gate reported as passing when it was never verified is the single
+failure this skill exists to prevent.
 
 ### Sanitizers (C/C++/Rust)
 

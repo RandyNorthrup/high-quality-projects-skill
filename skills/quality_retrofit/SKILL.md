@@ -160,6 +160,26 @@ Each tool sees something the others structurally cannot:
 - `cppcheck --enable=all` — includes `unusedFunction`
 - `cargo machete` — unused Cargo deps
 - Roslyn `IDE0051`/`IDE0052` — unused C# private members
+- `dpdm --no-warning --no-tree --exit-code circular:1 <entry>` — import cycles
+
+**Confirm the tool fires before trusting a clean run.** A dead-code tool that
+reports nothing is indistinguishable from one that is misconfigured, and the
+failure is silent by construction. Add an unused export, confirm the tool
+catches it, then remove it.
+
+Three that were found reporting nothing while appearing configured:
+`import-x/no-cycle`, knip 6's `cycles` rule (both silent against a deliberately
+circular pair of modules), and `madge`, which cannot install alongside
+TypeScript 6+ at all because it declares `peerOptional typescript@^5.4.4`. Use
+`dpdm` for cycles; it was verified to exit 1 on a real cycle and 0 once removed.
+
+Note also that knip 6 rejects unknown config keys, so a knip 5 config using the
+`"//": [...]` comment convention fails to load outright — rename to
+`knip.jsonc` and use real comments.
+
+**Coverage can find dead code the dead-code tools miss.** A branch a coverage
+threshold flags as unreachable may genuinely be unreachable. Work out whether it
+can ever execute; if it cannot, delete it rather than lowering the threshold.
 
 **Verify every deletion before making it.** These tools produce false positives
 on:
