@@ -18,12 +18,29 @@ Status updates to the user: short, direct, no filler. Caveman style if the
 architectural reasoning, security notes, or commit messages. Brevity applies to
 chat only. A terse status line and a thorough `PLAN.md` are not in tension.
 
+## Locating this package
+
+Paths below are written `${SKILL_ROOT}/...` — the directory holding this
+package's `scripts/` and `templates/`. Resolve it once, first:
+
+```bash
+SKILL_ROOT="$(bash /path/to/high-quality-projects-skill/scripts/skill-root.sh)"
+```
+
+`skill-root.sh` locates itself, so it works from a plain clone, a vendored copy,
+or a submodule with no environment set at all. It honours an exported
+`$SKILL_ROOT`, and `$CLAUDE_PLUGIN_ROOT` when running under Claude Code.
+
+Nothing here is specific to one vendor. If your agent cannot run shell commands,
+read the files directly out of the repository — the templates are plain config
+files and the phases below are plain instructions.
+
 ## Rule zero: scan before you create
 
 Run this before anything else, even when the directory looks empty:
 
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/scripts/detect-stack.sh" .
+"${SKILL_ROOT}/scripts/detect-stack.sh" .
 ```
 
 It returns JSON: languages present, config files that already exist, tools
@@ -100,7 +117,7 @@ Two more that recur in JS/TS setups:
 ## Phase 2 — quality gates
 
 Set up the strictest practical gate set for the stack. Copy from
-`${CLAUDE_PLUGIN_ROOT}/templates/` — those configs are pre-tuned and tested,
+`${SKILL_ROOT}/templates/` — those configs are pre-tuned and tested,
 and each documents its own deliberate loosenings.
 
 | Stack | Format | Lint | Types | Dead code | Security | Test |
@@ -182,7 +199,7 @@ failure this skill exists to prevent.
 ### Sanitizers (C/C++/Rust)
 
 Wire these as a separate CI job, not the default build. Full reference:
-`${CLAUDE_PLUGIN_ROOT}/templates/cpp/sanitizers.md`.
+`${SKILL_ROOT}/templates/cpp/sanitizers.md`.
 
 ```bash
 # Default pairing for debug/test builds.

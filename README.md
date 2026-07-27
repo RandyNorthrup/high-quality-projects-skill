@@ -1,13 +1,15 @@
 # high-quality-projects-skill
 
-**Two [Claude Code](https://claude.com/claude-code) skills that hold a codebase to production-grade standards.** One sets a new project up right. One cleans an existing one up.
+**Two workflows that hold a codebase to production-grade standards, for any coding agent.** One sets a new project up right. One cleans an existing one up.
 
 ```
-/project_setup <description>   →  new project, strict gates from commit one
-/quality_retrofit              →  existing codebase, brought into compliance
+project setup <description>   →  new project, strict gates from commit one
+quality retrofit              →  existing codebase, brought into compliance
 ```
 
 Covers Python, TypeScript, JavaScript, Rust, C++, C#, CSS, HTML, PowerShell, and Shell.
+
+**Vendor-neutral.** The workflows are plain Markdown and the gate configs are plain files. Claude Code gets a one-command plugin install; every other agent reads [`AGENTS.md`](AGENTS.md) — the cross-vendor convention that Codex, Cursor, Aider, Zed, and others already look for. Nothing here requires a specific tool, and no path depends on a vendor-set environment variable.
 
 ---
 
@@ -38,6 +40,26 @@ Both skills wire these by default, and **report any gate they could not run** in
 
 ## Install
 
+### Any agent
+
+Clone it anywhere and point your agent at it:
+
+```bash
+git clone https://github.com/RandyNorthrup/high-quality-projects-skill.git
+```
+
+Then tell the agent to read [`AGENTS.md`](AGENTS.md), which routes to the two
+workflows and explains how paths resolve. Agents that auto-discover
+`AGENTS.md`, `.cursor/rules/`, or `.github/copilot-instructions.md` pick it up
+with no instruction at all — all three are included and point at the same
+source.
+
+To use it against a project without cloning into it, vendor it as a submodule or
+leave it beside the project; the workflows locate their own files with
+`scripts/skill-root.sh` and never assume a working directory.
+
+### Claude Code
+
 ```bash
 claude plugin marketplace add RandyNorthrup/high-quality-projects-skill
 claude plugin install high-quality-projects-skill@high-quality-projects-skill
@@ -51,19 +73,25 @@ The name appears twice because the syntax is `plugin@marketplace`, and this repo
 claude plugin list      # high-quality-projects-skill · enabled
 ```
 
-Requires `git`, `bash`, `jq`. Everything else is per-stack and optional — the skills detect what is installed and declare anything they had to defer.
+This registers `/project_setup` and `/quality_retrofit` as slash commands. It is packaging convenience only — the same files work unchanged without it.
+
+### Requirements
+
+`git` and `bash`. `verify-format-safe.py` needs Python 3. Everything else is per-stack and optional — the workflows detect what is installed and declare anything they had to defer rather than skipping it silently.
 
 ---
 
-## `/project_setup`
+## Project setup
+
+[`skills/project_setup/SKILL.md`](skills/project_setup/SKILL.md) — or `/project_setup` in Claude Code.
 
 ```
-/project_setup A REST API for tracking gym workouts. Postgres, JWT auth, deployed on Fly.io.
+project setup: A REST API for tracking gym workouts. Postgres, JWT auth, deployed on Fly.io.
 ```
 
 The description is the argument, and detail pays off — a one-liner gets you a round of questions, a real description gets you a plan.
 
-1. **Scans first.** Even an "empty" directory. Existing files change the plan, and may mean you want `/quality_retrofit` instead.
+1. **Scans first.** Even an "empty" directory. Existing files change the plan, and may mean you want the retrofit workflow instead.
 2. **Asks once.** One batched round: stack, deployment, database, auth, testing. Never asks what the files already answer.
 3. **Verifies versions.** Against official docs and registries — no guessed compatibility. Pins what it installs.
 4. **Writes `PLAN.md` before code.** Decisions, milestones, and per-milestone certification gates.
@@ -73,11 +101,9 @@ Produces `README.md`, `CHANGELOG.md`, `PLAN.md`, and project-local agent instruc
 
 ---
 
-## `/quality_retrofit`
+## Quality retrofit
 
-```
-/quality_retrofit
-```
+[`skills/quality_retrofit/SKILL.md`](skills/quality_retrofit/SKILL.md) — or `/quality_retrofit` in Claude Code.
 
 Runs on an existing codebase, in phases. Each is independently reviewable and revertible, and it **stops and reports between them** rather than chaining silently.
 

@@ -7,6 +7,46 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed — the workflows are now vendor-neutral
+
+They were not. The instructions referenced `${CLAUDE_PLUGIN_ROOT}` in six
+places, a variable only Claude Code sets. Under any other agent that expands to
+the empty string, so `"${CLAUDE_PLUGIN_ROOT}/scripts/detect-stack.sh"` became
+`/scripts/detect-stack.sh` — a silent failure of the mandatory first step, or a
+read of the wrong file. The README, both manifests, and the repository
+description also described the package as Claude Code-only.
+
+- **`${SKILL_ROOT}` replaces `${CLAUDE_PLUGIN_ROOT}`** throughout, resolved by
+  new **`scripts/skill-root.sh`**. That script locates *itself* rather than
+  depending on an environment variable, so it works from a plain clone, a
+  vendored copy, or a submodule with nothing configured. Resolution order is
+  `$SKILL_ROOT`, then `$CLAUDE_PLUGIN_ROOT`, then its own directory — so Claude
+  Code keeps working unchanged while everything else starts working.
+
+  Verified in five scenarios: no environment at all, `CLAUDE_PLUGIN_ROOT` set,
+  `SKILL_ROOT` overriding it, invoked through a symlink, and invoked from an
+  unrelated working directory.
+
+- **Added `AGENTS.md`** as the universal entry point — the cross-vendor
+  convention Codex, Cursor, Aider, Zed and others already look for. Added
+  `.cursor/rules/high-quality-projects.mdc` and
+  `.github/copilot-instructions.md` for tools that auto-discover their own
+  formats. All three are thin pointers to the same workflow files so they cannot
+  drift.
+
+- **Reframed `README.md`, both `.claude-plugin/` manifests, and `CONTRIBUTING.md`.**
+  Claude Code is now presented as one packaging option rather than the product.
+  `CONTRIBUTING.md` states the constraint explicitly: never reintroduce a
+  vendor-set variable into a workflow file, and keep content in the workflows
+  rather than in the auto-discovery pointers.
+
+Verified end to end by copying the package to a scratch directory, deleting
+`.git`, and running it from an unrelated workspace with `env -u SKILL_ROOT -u
+CLAUDE_PLUGIN_ROOT`: root resolved, all four spot-checked templates reachable,
+`detect-stack.sh` exited 0 with valid JSON, and `verify-format-safe.py` ran.
+Zero remaining uses of `CLAUDE_PLUGIN_ROOT` as a path; the three surviving
+mentions are prose describing the fallback.
+
 Everything below came from running `/project_setup` end to end against a real
 project for the first time — a TypeScript canvas game, taken from empty
 directory to a published repository with green CI. The skill had only ever been

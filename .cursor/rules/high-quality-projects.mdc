@@ -1,0 +1,22 @@
+---
+description: Production-grade project setup and quality retrofit workflows
+alwaysApply: false
+---
+
+This repository provides two workflows for holding a codebase to production
+standards. Both are plain Markdown and work with any agent.
+
+- **New project** → read `skills/project_setup/SKILL.md`
+- **Existing codebase** → read `skills/quality_retrofit/SKILL.md`
+
+Read the whole file before acting. Both open with a mandatory read-only scan
+(`scripts/detect-stack.sh`) that must run before anything is created or changed.
+
+Paths inside those files are written `${SKILL_ROOT}/...`. Resolve with:
+
+```bash
+SKILL_ROOT="$(bash scripts/skill-root.sh)"
+```
+
+Full detail, including the non-negotiable rules, is in `AGENTS.md` at the
+repository root.

@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "high-quality-projects-skill",
-  "description": "Production-grade code standards for Claude Code: scaffold new projects or retrofit existing ones with strict quality gates.",
+  "description": "Production-grade code standards for any coding agent: scaffold new projects or retrofit existing ones with strict quality gates.",
   "owner": {
     "name": "Randy Northrup",
     "url": "https://github.com/RandyNorthrup"

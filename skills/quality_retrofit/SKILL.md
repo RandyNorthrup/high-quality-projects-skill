@@ -17,10 +17,27 @@ Status updates: short, direct, no filler. Caveman style if that plugin is
 active. Never compress code comments, documentation, findings rationale, or
 risk notes.
 
+## Locating this package
+
+Paths below are written `${SKILL_ROOT}/...` — the directory holding this
+package's `scripts/` and `templates/`. Resolve it once, first:
+
+```bash
+SKILL_ROOT="$(bash /path/to/high-quality-projects-skill/scripts/skill-root.sh)"
+```
+
+`skill-root.sh` locates itself, so it works from a plain clone, a vendored copy,
+or a submodule with no environment set at all. It honours an exported
+`$SKILL_ROOT`, and `$CLAUDE_PLUGIN_ROOT` when running under Claude Code.
+
+Nothing here is specific to one vendor. If your agent cannot run shell commands,
+read the files directly out of the repository — the templates are plain config
+files and the phases below are plain instructions.
+
 ## Rule zero: scan, report, then ask
 
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/scripts/detect-stack.sh" .
+"${SKILL_ROOT}/scripts/detect-stack.sh" .
 ```
 
 Returns languages present, existing config, and installed tools. **Do not
@@ -47,7 +64,7 @@ For every config file that already exists:
    the project's and note the divergence in the report.
 
 Copy a template wholesale **only** when no config of that type exists. Templates
-live in `${CLAUDE_PLUGIN_ROOT}/templates/`.
+live in `${SKILL_ROOT}/templates/`.
 
 Special cases:
 
@@ -107,7 +124,7 @@ entirely and fails only if something behavioural moved:
 ```bash
 cp target.py /tmp/before.py
 ruff format target.py
-"${CLAUDE_PLUGIN_ROOT}/scripts/verify-format-safe.py" /tmp/before.py target.py
+"${SKILL_ROOT}/scripts/verify-format-safe.py" /tmp/before.py target.py
 ```
 
 Exit 0 means semantically identical. **This tool belongs to phase 1 only** —

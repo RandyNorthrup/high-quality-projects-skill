@@ -3,19 +3,40 @@
 ## Layout
 
 ```
-.claude-plugin/     plugin + marketplace manifests
+AGENTS.md                     universal entry point — any agent starts here
+.cursor/rules/                Cursor auto-discovery, points at AGENTS.md
+.github/copilot-instructions.md  Copilot auto-discovery, same
+.claude-plugin/               Claude Code manifests — packaging only
 skills/
   project_setup/    SKILL.md — new-project scaffolding
   quality_retrofit/ SKILL.md — existing-codebase compliance
 scripts/
+  skill-root.sh     resolves SKILL_ROOT from anywhere, no env needed
   detect-stack.sh   workspace inventory, emits JSON
+  verify-format-safe.py  AST comparison, proves a reformat was neutral
 templates/          strict configs, copied into target projects
 docs/               philosophy and extended reference
 ```
 
-Skill directory names use underscores because they become slash commands —
-`/project_setup`, `/quality_retrofit`. The `name:` in each `SKILL.md`
-frontmatter must match its directory name exactly or the skill will not load.
+**The workflows are vendor-neutral; only the packaging is not.** The two
+`SKILL.md` files are plain Markdown that any agent can follow. Keep them that
+way — no vendor-set environment variables, no assumptions about slash commands
+or a particular runner.
+
+`skills/` and the underscore directory names exist because Claude Code requires
+that layout, and because the directory name becomes the slash command. The
+`name:` in each `SKILL.md` frontmatter must match its directory exactly or the
+plugin will not load. This is the one place a vendor constraint shows through.
+
+Paths inside the workflows use `${SKILL_ROOT}`, resolved by
+`scripts/skill-root.sh`, which locates itself. Never reintroduce
+`${CLAUDE_PLUGIN_ROOT}` in a workflow file — it is unset for every other agent,
+so the path silently becomes `/scripts/...` and the command fails or, worse,
+reads the wrong file.
+
+The three auto-discovery files (`AGENTS.md`, `.cursor/rules/`,
+`.github/copilot-instructions.md`) are thin pointers on purpose. Put content in
+the workflow files, not in the pointers, so it cannot drift between them.
 
 ## Editing a skill
 
