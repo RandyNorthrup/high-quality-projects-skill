@@ -49,6 +49,14 @@ change anything yet.** Report:
 - Estimated blast radius: how many findings, in how many files. Run the
   strict template against the tree to get a real number — do not guess
 
+A Python tool counts as present when it is **importable**, which is not the same
+as being on `PATH` — an unactivated venv, or a Windows install without the
+scripts directory exported, routinely leaves `ruff` fully usable while
+`command -v ruff` finds nothing. Everything the scan lists under
+`python_runtime.module_only_tools` must be run as
+`<python_runtime.bin> -m <module>`; invoking it by bare name gets
+`command not found`, and a gate that works is then recorded as unavailable.
+
 Then get agreement on scope before writing. A retrofit that surprises someone
 is a failed retrofit.
 
@@ -109,6 +117,33 @@ Stop and report between phases; do not chain them silently.
 Record: test results, build status, current lint/type error counts. This is the
 number every later phase is measured against. Write it into the report.
 
+**Leave no trace.** Running the gates is not a read-only act: `ruff`, `mypy`,
+`pytest` and `cargo` all write cache directories, and in a repo whose
+`.gitignore` does not cover them yet, they land as untracked files. That is
+worse than untidy — `git status --porcelain` is the guard on every later phase,
+so a baseline that dirties the tree disarms the check it depends on, and the
+next phase either stops on damage this workflow caused or learns to ignore the
+one signal that protects the user's work.
+
+Record what exists before the gates run, and remove only what they created:
+
+```bash
+CACHES=(.ruff_cache .mypy_cache .pytest_cache .tox htmlcov)
+PRE=(); for d in "${CACHES[@]}"; do [ -e "$d" ] && PRE+=("$d"); done
+
+# ... run the baseline gates ...
+
+for d in "${CACHES[@]}"; do
+    [ -e "$d" ] || continue
+    printf '%s\n' "${PRE[@]:-}" | grep -qxF "$d" || rm -rf "$d"
+done
+git status --porcelain    # must match what it printed before the baseline
+```
+
+A cache that was already there is the user's, regenerable or not, and is not
+yours to delete. Anything still listed afterwards is a gap in `.gitignore` —
+close it in phase 2, do not clean it by hand every phase.
+
 ### Phase 1 — formatting (zero-risk, huge diff)
 `prettier` · `ruff format` · `rustfmt` · `clang-format` · `dotnet format` ·
 `shfmt`
@@ -147,6 +182,12 @@ step is not optional.
 ### Phase 2 — config and gates (no code change)
 Install or extend the strict configs. Wire the gate scripts. Add pre-commit.
 Add CI workflow. Nothing under `src/` changes in this phase.
+
+Ignore the tool caches here, once, for the rest of the retrofit —
+`.ruff_cache/`, `.mypy_cache/`, `.pytest_cache/`, `__pycache__/`, `.tox/`,
+`htmlcov/`, `node_modules/`, `target/`, `dist/`, `build/`, plus whatever the
+project's own toolchain writes. Extend the existing `.gitignore`; do not
+replace it.
 
 At the end, run every gate and **record the failure counts**. Those counts are
 the work list for phases 3–6.

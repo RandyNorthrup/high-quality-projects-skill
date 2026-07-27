@@ -27,6 +27,75 @@ count_ext() {
 has_file() { [ -e "$1" ] && echo true || echo false; }
 has_tool() { command -v "$1" >/dev/null 2>&1 && echo true || echo false; }
 
+# ── Python tools: PATH is not the whole story ───────────────────────────
+# A Python tool installed into an unactivated venv, or on Windows where the
+# console scripts directory is frequently absent from PATH, is fully usable via
+# `python -m <module>` while `command -v` reports it missing. Probing PATH alone
+# therefore reports an installed gate as unavailable, and the skills then defer
+# a gate that could have run — or reinstall a tool that is already present.
+#
+# find_spec resolves the import machinery only; it does not execute the package,
+# and one interpreter start covers every module, so the scan stays fast.
+# Do not take the first interpreter on PATH. `python3` on Windows is usually the
+# Store alias stub, which is on PATH, is not an interpreter, and reports every
+# module missing. A machine can also carry several real interpreters where only
+# one has the tools. So probe every candidate and keep whichever resolves the
+# most modules — a stub resolves none and loses automatically.
+#
+# Module names, not command names — these are what follows `-m`, and the two
+# differ for hyphenated tools (`pip-audit` is imported as `pip_audit`).
+py_probe() {
+    "$1" - <<'PYEOF' 2>/dev/null
+import importlib.util
+
+MODULES = ("ruff", "mypy", "vulture", "bandit", "pip_audit",
+           "deptry", "pytest", "semgrep", "pre_commit")
+
+found = []
+for module in MODULES:
+    try:
+        if importlib.util.find_spec(module) is not None:
+            found.append(module)
+    except (ImportError, ValueError):
+        pass  # a broken or shadowed install is not an available tool
+print(" ".join(found))
+PYEOF
+}
+
+PY_BIN=""
+PY_MODULES=""
+py_best=-1
+for candidate in python3 python py; do
+    command -v "$candidate" >/dev/null 2>&1 || continue
+    found="$(py_probe "$candidate")" || continue   # stub or broken interpreter
+    count=$(printf '%s' "$found" | wc -w)
+    if [ "$count" -gt "$py_best" ]; then
+        py_best="$count"
+        PY_BIN="$candidate"
+        PY_MODULES="$found"
+    fi
+done
+
+# $1 = command name as it appears on PATH, $2 = importable module name.
+has_py_tool() {
+    if command -v "$1" >/dev/null 2>&1; then echo true; return; fi
+    case " ${PY_MODULES} " in
+        *" $2 "*) echo true ;;
+        *)        echo false ;;
+    esac
+}
+
+# Tools reachable only as modules must be invoked as `$PY_BIN -m <module>`.
+# Reported separately so a skill knows which form to use rather than guessing.
+module_only() {
+    local out=""
+    for module in ${PY_MODULES}; do
+        local cmd="${module//_/-}"
+        command -v "$cmd" >/dev/null 2>&1 || out="${out:+$out, }\"$module\""
+    done
+    printf '%s' "$out"
+}
+
 # ── language detection by source-file count ─────────────────────────────
 py=$(count_ext '*.py')
 ts=$(( $(count_ext '*.ts') + $(count_ext '*.tsx') ))
@@ -101,14 +170,14 @@ cat <<JSON
     "claude_md":             $(has_file CLAUDE.md)
   },
   "tools_installed": {
-    "ruff":          $(has_tool ruff),
-    "mypy":          $(has_tool mypy),
-    "vulture":       $(has_tool vulture),
-    "bandit":        $(has_tool bandit),
-    "pip_audit":     $(has_tool pip-audit),
-    "deptry":        $(has_tool deptry),
-    "pytest":        $(has_tool pytest),
-    "semgrep":       $(has_tool semgrep),
+    "ruff":          $(has_py_tool ruff ruff),
+    "mypy":          $(has_py_tool mypy mypy),
+    "vulture":       $(has_py_tool vulture vulture),
+    "bandit":        $(has_py_tool bandit bandit),
+    "pip_audit":     $(has_py_tool pip-audit pip_audit),
+    "deptry":        $(has_py_tool deptry deptry),
+    "pytest":        $(has_py_tool pytest pytest),
+    "semgrep":       $(has_py_tool semgrep semgrep),
     "node":          $(has_tool node),
     "npm":           $(has_tool npm),
     "tsc":           $(has_tool tsc),
@@ -136,7 +205,11 @@ cat <<JSON
     "shellcheck":    $(has_tool shellcheck),
     "shfmt":         $(has_tool shfmt),
     "gitleaks":      $(has_tool gitleaks),
-    "pre_commit":    $(has_tool pre-commit)
+    "pre_commit":    $(has_py_tool pre-commit pre_commit)
+  },
+  "python_runtime": {
+    "bin": "${PY_BIN}",
+    "module_only_tools": [$(module_only)]
   }
 }
 JSON

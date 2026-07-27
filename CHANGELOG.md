@@ -47,6 +47,47 @@ CLAUDE_PLUGIN_ROOT`: root resolved, all four spot-checked templates reachable,
 Zero remaining uses of `CLAUDE_PLUGIN_ROOT` as a path; the three surviving
 mentions are prose describing the fallback.
 
+### Fixed — first Windows run
+
+Found by installing the plugin on Windows 11 and running both workflows against
+scratch projects. All three failures are silent ones: nothing errored, the
+output was just wrong.
+
+- **`detect-stack.sh` reported installed Python tools as missing.** `has_tool`
+  tested `PATH` only, but a Python tool is usable whenever it is *importable* —
+  `python -m ruff` works from an unactivated venv, and a Windows install
+  routinely has no console-scripts directory on `PATH` at all. On the test
+  machine `ruff`, `mypy`, `vulture`, `bandit`, `pip-audit`, `pytest` and
+  `pre-commit` were all installed and all reported `false`, which is the exact
+  input that makes a workflow defer a working gate or install a second copy of
+  a tool it already has.
+
+  Python tools are now resolved with `importlib.util.find_spec` in a single
+  interpreter start — import machinery only, nothing is executed. The scan
+  cannot assume the first interpreter on `PATH` is the right one either:
+  `python3` on Windows is normally the Store alias stub, which is not an
+  interpreter and resolves nothing. So every candidate is probed and the one
+  resolving the most modules wins; a stub loses by construction.
+
+  New `python_runtime` object reports the interpreter that was verified and
+  which tools exist *only* as modules, because those must be invoked as
+  `<bin> -m <module>`. Both workflows and `AGENTS.md` now say so. Costs one
+  extra interpreter start (~0.5s on the test machine).
+
+- **Phase 0 of `quality_retrofit` dirtied the tree it later requires clean.**
+  Running the baseline gates writes `.ruff_cache/`, `.mypy_cache/` and friends,
+  which land as untracked files in a repo that does not ignore them yet — and
+  `git status --porcelain` is the guard every later phase depends on. Phase 0
+  now records which caches existed beforehand and removes only the ones it
+  created; a pre-existing cache is the user's and is left alone. Phase 2 adds
+  the ignore entries so it stops being a per-phase cleanup.
+
+- **`verify-format-safe.py` printed a mojibake verdict on Windows.** The two
+  `RESULT:` lines contained a UTF-8 em dash, which a cp1252 console renders as
+  `?` — `RESULT: AST identical ? formatting was semantically neutral`. The one
+  line that reports the verdict looked like a broken tool. Both lines are ASCII
+  now.
+
 Everything below came from running `/project_setup` end to end against a real
 project for the first time — a TypeScript canvas game, taken from empty
 directory to a published repository with green CI. The skill had only ever been
