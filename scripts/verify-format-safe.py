@@ -55,11 +55,15 @@ def main(argv: list[str]) -> int:
         print(f"  PARSE ERROR: {exc}", file=sys.stderr)
         return EXIT_PARSE_ERROR
 
+    # Output is deliberately ASCII-only. This runs under whatever console the
+    # agent happens to have, and a Windows terminal on the cp1252 code page
+    # renders a UTF-8 em dash as a replacement character — turning the one line
+    # that reports the verdict into something that looks like a broken tool.
     if before_ast == after_ast:
-        print("  RESULT: AST identical — formatting was semantically neutral")
+        print("  RESULT: AST identical - formatting was semantically neutral")
         return EXIT_OK
 
-    print("  RESULT: AST DIFFERS — formatter changed behavior, review the diff")
+    print("  RESULT: AST DIFFERS - formatter changed behavior, review the diff")
     return EXIT_CHANGED
 
 

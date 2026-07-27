@@ -52,6 +52,11 @@ installed on this machine. Then:
   `/quality_retrofit` instead.
 - **A tool is not installed** → do not silently skip its gate. Either install
   it or record it in `PLAN.md` under deferred gates with the reason.
+- **A Python tool is listed in `python_runtime.module_only_tools`** → it is
+  installed and importable but has no console script on `PATH`, which is the
+  normal state of an unactivated venv or a Windows install. Run it as
+  `<python_runtime.bin> -m <module>`. Do not treat it as missing and do not
+  install a second copy.
 
 Creating a file that already exists, with different content, is the single
 worst failure mode of this skill.

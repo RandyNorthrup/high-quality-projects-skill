@@ -75,3 +75,11 @@ should not need reminding, but they are the ones most often skipped:
 Requires `bash` and standard POSIX tools. `verify-format-safe.py` needs Python 3.
 Individual gates need their own tools, and `detect-stack.sh` reports which are
 present — it never installs anything and always exits 0.
+
+Python tools are detected by importability, not by `PATH`, because an
+unactivated venv or a Windows install leaves them runnable as
+`python -m <module>` with no console script anywhere. The scan names the
+interpreter it verified in `python_runtime.bin` and lists the tools that need
+that form in `python_runtime.module_only_tools`. Use it: calling those by bare
+name fails, and the failure looks like a missing tool rather than a wrong
+invocation.
