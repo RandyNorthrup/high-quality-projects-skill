@@ -21,7 +21,7 @@ $repositoryRoot = [IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPa
 $builder = Join-Path -Path $repositoryRoot -ChildPath 'scripts/build-release.ps1'
 $manifestPath = Join-Path -Path $repositoryRoot -ChildPath '.claude-plugin/plugin.json'
 $changelogPath = Join-Path -Path $repositoryRoot -ChildPath 'CHANGELOG.md'
-$manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+$manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
 $tag = 'v{0}' -f $manifest.version
 $packageBase = 'high-quality-projects-skill-{0}' -f $tag
 $distRoot = [IO.Path]::GetFullPath((Join-Path -Path $repositoryRoot -ChildPath 'dist'))
@@ -64,7 +64,8 @@ try {
     }
 
     $releaseManifestPath = Join-Path -Path $temporaryRoot -ChildPath 'release-manifest.json'
-    $releaseManifest = Get-Content -LiteralPath $releaseManifestPath -Raw | ConvertFrom-Json
+    $releaseManifest = Get-Content -LiteralPath $releaseManifestPath -Raw -Encoding UTF8 |
+        ConvertFrom-Json
     $head = (& git -C $repositoryRoot rev-parse HEAD).Trim()
     Confirm-Condition -Condition ($releaseManifest.version -eq $manifest.version) `
         -Message 'Release manifest version does not match plugin manifest.'
@@ -74,7 +75,7 @@ try {
         -Message 'Release manifest commit does not match HEAD.'
 
     $checksumPath = Join-Path -Path $temporaryRoot -ChildPath 'SHA256SUMS.txt'
-    $checksumLines = @(Get-Content -LiteralPath $checksumPath)
+    $checksumLines = @(Get-Content -LiteralPath $checksumPath -Encoding UTF8)
     Confirm-Condition -Condition ($checksumLines.Count -eq 4) `
         -Message 'Checksum file must cover both archives, manifest, and release notes.'
     foreach ($checksumLine in $checksumLines) {
@@ -120,8 +121,8 @@ try {
 
     $releaseNotes = Get-Content -LiteralPath (
         Join-Path -Path $temporaryRoot -ChildPath 'RELEASE_NOTES.md'
-    ) -Raw
-    $changelogLines = @(Get-Content -LiteralPath $changelogPath)
+    ) -Raw -Encoding UTF8
+    $changelogLines = @(Get-Content -LiteralPath $changelogPath -Encoding UTF8)
     $versionHeading = '^##\s+' + [regex]::Escape([string]$manifest.version) + '(?:\s|$)'
     $notesStart = -1
     for ($index = 0; $index -lt $changelogLines.Count; $index++) {

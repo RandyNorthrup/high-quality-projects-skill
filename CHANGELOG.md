@@ -16,6 +16,8 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   time zones, fails if any archive or metadata file changes, and derives its
   expected release notes from the manifest-matched changelog section instead
   of stale version-specific text.
+- Release metadata reads now request UTF-8 explicitly, preventing Windows
+  PowerShell 5.1 from mangling non-ASCII changelog punctuation in release notes.
 
 ## 0.4.0 — 2026-08-20
 

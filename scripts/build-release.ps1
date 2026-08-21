@@ -60,7 +60,7 @@ if ($status.Count -gt 0) {
 }
 
 $manifestPath = Join-Path -Path $repositoryRoot -ChildPath '.claude-plugin/plugin.json'
-$manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+$manifest = Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
 $manifestVersion = [string]$manifest.version
 
 if ($manifestVersion -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') {
@@ -96,7 +96,7 @@ if ($RequireTag) {
 }
 
 $changelogPath = Join-Path -Path $repositoryRoot -ChildPath 'CHANGELOG.md'
-$changelogLines = @(Get-Content -LiteralPath $changelogPath)
+$changelogLines = @(Get-Content -LiteralPath $changelogPath -Encoding UTF8)
 $versionHeading = '^##\s+' + [regex]::Escape($manifestVersion) + '(?:\s|$)'
 $notesStart = -1
 for ($index = 0; $index -lt $changelogLines.Count; $index++) {
