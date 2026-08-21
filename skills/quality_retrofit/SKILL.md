@@ -177,7 +177,7 @@ A cache that was already there is the user's, regenerable or not, and is not
 yours to delete. Anything still listed afterwards is a gap in `.gitignore` —
 close it in phase 2, do not clean it by hand every phase.
 
-### Phase 1 — formatting (zero-risk, huge diff)
+### Phase 1 — formatting (low risk, huge diff)
 `prettier` · `ruff format` · `rustfmt` · `clang-format` · `dotnet format` ·
 `shfmt`
 
@@ -232,7 +232,7 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 Without that file, reformatted lines blame the formatting commit instead of the
 earlier change. This step is not optional.
 
-### Phase 2 — config and gates (no code change)
+### Phase 2 — config and gates (no product-source change)
 Install or extend the strict configs. Wire the gate scripts. Add pre-commit.
 Add CI workflow. Nothing under `src/` changes in this phase.
 
@@ -376,8 +376,8 @@ foreach ($Directory in @('.venv', '.mypy_cache', '.ruff_cache', '__pycache__')) 
   **separate** one — they use incompatible shadow memory and cannot be combined.
   Use `-fno-sanitize-recover=all` so recoverable UBSan findings halt instead of
   merely reporting and continuing.
-- Existing sanitizer findings are real bugs. Report them; do not paper over
-  them to make the gate green.
+- Existing sanitizer findings require triage as potential bugs. Report them;
+  do not suppress them merely to make the gate green.
 
 ### Phase 8 — documentation reconciliation
 Now that the code is known-good, make the docs match it:

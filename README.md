@@ -1,286 +1,258 @@
-# high-quality-projects-skill
+<h1 align="center">High-Quality Projects</h1>
 
-**Two workflows that encode production-grade standards for coding agents.** One
-sets a new project up. One brings an existing project toward compliance.
+<p align="center">
+  Two vendor-neutral workflows for setting up quality gates in new projects<br>
+  and introducing them safely in existing codebases.
+</p>
 
-```
-project setup <description>   →  new project, strict gates from commit one
-quality retrofit              →  existing codebase, brought into compliance
-```
+<p align="center">
+  <a href="https://github.com/RandyNorthrup/high-quality-projects-skill/actions/workflows/cross-platform.yml"><img alt="Cross-platform script checks" src="https://github.com/RandyNorthrup/high-quality-projects-skill/actions/workflows/cross-platform.yml/badge.svg"></a>
+  <a href="https://github.com/RandyNorthrup/high-quality-projects-skill/tags"><img alt="Latest Git tag" src="https://img.shields.io/github/v/tag/RandyNorthrup/high-quality-projects-skill?label=version"></a>
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+</p>
 
-Covers Python, TypeScript, JavaScript, Rust, C++, C#, CSS, HTML, PowerShell, and Shell.
+<p align="center">
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#workflows">Workflows</a> ·
+  <a href="#reference-tooling">Tooling</a> ·
+  <a href="#design-principles">Principles</a> ·
+  <a href="#documentation">Documentation</a>
+</p>
 
-**Vendor-neutral workflows.** The workflows are plain Markdown and the gate
-configs are plain files. Claude Code has optional marketplace packaging; other
-agents can start from [`AGENTS.md`](AGENTS.md). No workflow path depends only on
-a vendor-set environment variable.
+> [!IMPORTANT]
+> Windows runs natively through PowerShell 5.1 or newer. Bash, WSL, and Git
+> Bash are not required on Windows. Linux and macOS use the POSIX/Bash scripts.
 
----
+## Why this exists
 
-## The problem this solves
+A quality tool being installed does not prove that it checks the intended code,
+fails CI on findings, or works with the rest of the toolchain. These workflows
+make those details explicit:
 
-Most "quality setup" leaves you with linters that **report findings and exit 0**. CI goes green. The bug ships anyway.
+- inventory the project before writing anything;
+- extend existing configuration instead of replacing it;
+- confirm important gates can fail on a deliberate test case;
+- separate mechanical work from judgment-heavy changes;
+- report every gate as **pass**, **fail**, or **deferred**, with evidence.
 
-```console
-eslint .                    # 47 warnings.  exit 0.  CI passes. ✅❌
-eslint . --max-warnings=0   # 47 warnings.  exit 1.  CI fails.  ✅
-```
+The package provides instructions and templates. It does not claim that a
+target project is compliant merely because the files were copied.
 
-That one flag is the difference between a quality gate and a decoration. Each
-listed tool has an equivalent enforcement setting; omitting it can produce the
-same false green:
+## At a glance
 
-| Tool | Without it | With it |
+| New projects | Existing projects | Portable execution |
 |---|---|---|
-| eslint / stylelint | reports, exits 0 | `--max-warnings=0` |
-| clippy | warns | `-D warnings` |
-| cppcheck | prints | `--error-exitcode=1` |
-| PSScriptAnalyzer | returns objects | `-EnableExit` |
-| knip | lists | `--strict` |
-| UBSan | many checks may recover | `-fno-sanitize-recover=all` |
-| C# style rules | IDE-only | `<EnforceCodeStyleInBuild>` |
+| Resolve the stack, verify compatibility, scaffold gates, and write an evidence-based plan. | Establish a baseline, then apply formatting, lint, types, dead-code work, security, and documentation in reviewable phases. | Plain Markdown workflows, native PowerShell on Windows, and Bash on Linux/macOS. |
 
-Both workflow contracts require these flags and require agents to **report any
-gate they could not run** instead of quietly skipping it.
+## Quick start
 
----
+### Any coding agent
 
-## Install
-
-### Any agent
-
-Clone it anywhere and point your agent at it:
+Clone or vendor the repository, then direct the agent to read the appropriate
+workflow in full:
 
 ```console
 git clone https://github.com/RandyNorthrup/high-quality-projects-skill.git
 ```
 
-Then tell the agent to read [`AGENTS.md`](AGENTS.md), which routes to the two
-workflows and explains how paths resolve. Agents that auto-discover
-`AGENTS.md`, `.cursor/rules/`, or `.github/copilot-instructions.md` pick it up
-with no instruction at all — all three are included and point at the same
-source.
+- New project: [`skills/project_setup/SKILL.md`](skills/project_setup/SKILL.md)
+- Existing project: [`skills/quality_retrofit/SKILL.md`](skills/quality_retrofit/SKILL.md)
 
-To use it against a project without cloning into it, vendor it as a submodule or
-leave it beside the project. The workflows locate their own files with
-`scripts/skill-root.ps1` on PowerShell or `scripts/skill-root.sh` on POSIX and
-never assume a working directory.
+[`AGENTS.md`](AGENTS.md) is the shared entry point for agents that support that
+convention. Thin discovery adapters are also included for Cursor and GitHub
+Copilot; agents without automatic discovery can read the workflow files
+directly.
 
-Windows uses native PowerShell scripts and does not need Bash, WSL, Git Bash,
-or a Linux distribution:
+Resolve the package root with the active shell before using paths from a
+workflow.
+
+PowerShell on Windows:
 
 ```powershell
-$SkillRoot = & '.\high-quality-projects-skill\scripts\skill-root.ps1'
-& "$SkillRoot\scripts\detect-stack.ps1" . | ConvertFrom-Json
+$SkillRoot = & 'C:\path\to\high-quality-projects-skill\scripts\skill-root.ps1'
 ```
 
-Do not select `bash.exe` merely because Windows reports it on `PATH`: that file
-can be a WSL relay even when no distribution or `/bin/bash` exists.
-
-### Claude Code
-
-```console
-claude plugin marketplace add RandyNorthrup/high-quality-projects-skill
-claude plugin install high-quality-projects-skill@high-quality-projects-skill
-```
-
-The name appears twice because the syntax is `plugin@marketplace`, and this repo publishes one plugin under a marketplace of the same name.
-
-Run `/reload-plugins` inside an active Claude Code session after installation.
-Restarting Claude Code also reloads plugins.
-
-```console
-claude plugin list
-```
-
-This registers the namespaced skills
-`/high-quality-projects-skill:project_setup` and
-`/high-quality-projects-skill:quality_retrofit`. The underlying Markdown files
-can also be followed directly without Claude Code.
-
-### Requirements
-
-`git`, plus PowerShell 5.1 or newer on Windows, or Bash and standard POSIX tools
-on Linux and macOS. Bash is not required on Windows. `verify-format-safe.py`
-needs Python 3. Everything else is per-stack and optional — the workflows
-detect what is installed and declare anything they had to defer rather than
-skipping it silently.
-
----
-
-## Project setup
-
-[`skills/project_setup/SKILL.md`](skills/project_setup/SKILL.md) — or
-`/high-quality-projects-skill:project_setup` in Claude Code.
-
-```
-project setup: A REST API for tracking gym workouts. Postgres, JWT auth, deployed on Fly.io.
-```
-
-The description is the argument. The workflow contract requires a clarification
-round when the description is missing or only one line, then requires these
-steps:
-
-1. **Scans first.** Even an "empty" directory. Existing files change the plan, and may mean you want the retrofit workflow instead.
-2. **Asks once.** One batched round: stack, deployment, database, auth, testing. Never asks what the files already answer.
-3. **Verifies versions.** Against official docs and registries — no guessed compatibility. Pins what it installs.
-4. **Writes `PLAN.md` before code.** Decisions, milestones, and per-milestone certification gates.
-5. **Runs the gates.** Every configured gate passes on the empty scaffold before
-   milestone one; anything unavailable is named as deferred rather than passing.
-
-The contract requires `README.md`, `CHANGELOG.md`, `PLAN.md`, and project-local
-agent instruction files. It forbids global user memory and machine-wide IDE
-configuration changes.
-
----
-
-## Quality retrofit
-
-[`skills/quality_retrofit/SKILL.md`](skills/quality_retrofit/SKILL.md) — or
-`/high-quality-projects-skill:quality_retrofit` in Claude Code.
-
-The retrofit contract divides work into independently reviewable phases and
-requires the agent to **stop and report between them** rather than chaining
-silently.
-
-| Phase | What | Risk |
-|---|---|---|
-| 0 | Baseline — tests, build, error counts | none |
-| 1 | Formatting | none, but huge diff — needs blame-ignore |
-| 2 | Configs and gates wired | none — no source changes |
-| 3 | Autofixable lint | low — `--fix` is not always semantically neutral |
-| 4 | Strict types | medium — biggest error count, finds real bugs |
-| 5 | Dead-code removal | **high** — false positives on dynamic dispatch |
-| 6 | Magic numbers → constants | **high** — a wrong unit is a behavior change |
-| 7 | Security + sanitizers | findings are real bugs, not lint |
-| 8 | Documentation reconciliation | none |
-
-### The contract forbids
-
-- Modify a **dirty working tree** — uncommitted work would get tangled with mechanical changes
-- Bulk-modify code **not under version control**
-- Delete code it has **not verified** is unreachable
-- **Rewrite git history** to scrub a leaked secret without being told to
-- Weaken a rule your project already set stricter
-- Report a gate as passing when it was skipped
-
-### Why phase 1 gets its own commit
-
-Formatting is intended to change layout only, but can touch most files and
-obscure `git blame`. The workflow verifies the result, lands it alone, and adds
-the commit to `.git-blame-ignore-revs`:
+Bash on Linux or macOS:
 
 ```bash
-git rev-parse HEAD >> .git-blame-ignore-revs
-git config blame.ignoreRevsFile .git-blame-ignore-revs
+SKILL_ROOT="$(bash /path/to/high-quality-projects-skill/scripts/skill-root.sh)"
 ```
 
-PowerShell equivalent:
+Both resolvers honor an explicit `SKILL_ROOT`, then Claude Code's optional
+`CLAUDE_PLUGIN_ROOT`, then locate the package from the script itself.
+
+### Claude Code plugin
+
+From Claude Code, add this repository as a marketplace and install its plugin:
+
+```text
+/plugin marketplace add RandyNorthrup/high-quality-projects-skill
+/plugin install high-quality-projects-skill@high-quality-projects-skill
+/reload-plugins
+```
+
+The installed skills are namespaced:
+
+```text
+/high-quality-projects-skill:project_setup Build a project that ...
+/high-quality-projects-skill:quality_retrofit
+```
+
+## Workflows
+
+### Project setup
+
+[`project_setup`](skills/project_setup/SKILL.md) is for a new or effectively
+empty project. It:
+
+1. scans the workspace and stops rather than overwriting existing choices;
+2. resolves stack-defining questions and records reversible assumptions;
+3. verifies version compatibility using current official sources or registries;
+4. creates project-local quality, security, test, and CI gates appropriate to
+   the chosen stack;
+5. writes `README.md`, `CHANGELOG.md`, and `PLAN.md` from what actually exists;
+6. runs every available gate and records anything that could not be verified.
+
+The project description is the workflow argument. When required product or
+stack decisions are missing, the workflow batches the questions before making
+those decisions.
+
+### Quality retrofit
+
+[`quality_retrofit`](skills/quality_retrofit/SKILL.md) is for an existing,
+version-controlled codebase. It requires a clean working tree, records the
+baseline first, and separates work into nine independently reviewable phases.
+
+| Phase | Focus | Typical risk |
+|---:|---|---|
+| 0 | Baseline: tests, build, and finding counts | Low; commands may create caches, which the workflow tracks |
+| 1 | Formatting | Low; still requires semantic checks, tests, and diff review |
+| 2 | Configuration and gates | Low–medium; changes developer and CI behavior |
+| 3 | Autofixable lint | Medium; automated fixes can alter behavior |
+| 4 | Strict types | Medium–high; often exposes broad design debt |
+| 5 | Dead-code analysis and removal | High; dynamic entry points can look unused |
+| 6 | Literal and constant cleanup | High; unit mistakes can change behavior |
+| 7 | Security scans and native-code sanitizers | High; findings require triage and secrets may require incident response |
+| 8 | Documentation reconciliation | Low; commands and claims must match the resulting project |
+
+These risk labels are planning guidance, not guarantees. The workflow requires
+tests and evidence at each boundary and does not authorize silent phase
+chaining.
+
+It also refuses to:
+
+- retrofit a dirty tree or bulk-edit an unversioned codebase;
+- delete code without checking whether it is reachable through dynamic or
+  framework-driven paths;
+- rewrite Git history for a leaked secret without explicit authorization;
+- weaken an existing rule that is stricter than the supplied template;
+- report a skipped, missing, or unverified gate as passing.
+
+## Reference tooling
+
+The workflows select tools to fit the target project. This table describes the
+reference configurations and guidance included here; it is not a promise that
+every tool applies to every project.
+
+| Stack | Format | Lint / analysis | Types | Dead code | Security | Tests |
+|---|---|---|---|---|---|---|
+| Python | Ruff | Ruff | mypy | vulture, deptry | Bandit, pip-audit | pytest |
+| TypeScript / JavaScript | Prettier | ESLint | TypeScript | knip, dpdm | npm audit, Semgrep | project-selected runner |
+| Rust | rustfmt | Clippy | compiler | cargo-machete | cargo-audit, cargo-deny | cargo test |
+| C++ | clang-format | clang-tidy, cppcheck | compiler | cppcheck | sanitizers, Valgrind where supported | CTest or project runner |
+| C# / .NET | dotnet format | .NET analyzers | nullable, warnings as errors | Roslyn diagnostics | NuGet audit | dotnet test |
+| CSS / HTML | Prettier | Stylelint / HTMLHint | — | — | — | project-selected runner |
+| PowerShell | PSScriptAnalyzer | PSScriptAnalyzer | — | — | — | Pester where used |
+| Shell | shfmt | ShellCheck | — | — | — | bats where used |
+
+Cross-cutting guidance covers Gitleaks for secrets, Semgrep for multi-language
+static analysis, and jscpd for duplication. Tool availability and compatibility
+are checked in the target environment rather than assumed from this table.
+
+## Design principles
+
+### Scan before writing
+
+The native inventory scripts emit the same JSON shape:
 
 ```powershell
-git rev-parse HEAD | Add-Content -LiteralPath .git-blame-ignore-revs -Encoding Ascii
-git config blame.ignoreRevsFile .git-blame-ignore-revs
+& "$SkillRoot\scripts\detect-stack.ps1" .
 ```
 
-Without that file, blame results for reformatted lines point at the formatting
-commit instead of the earlier change.
+```bash
+"${SKILL_ROOT}/scripts/detect-stack.sh" .
+```
 
----
+They report detected languages, existing quality configuration, Git state, and
+locally available tools. They do not install dependencies or modify the target
+workspace. Callers must inspect the JSON for an `error` property; the scripts
+return their JSON contract even when inventory fails.
 
-## Standards required by the workflows
+### Prove gates can fail
 
-These are completion criteria in the workflow contracts, not proof that a
-particular agent run satisfied them. The final report must show the gate
-evidence and name anything deferred.
+A clean report is useful only after the gate has been exercised against an
+input it should reject. The workflows require a deliberate failure check where
+practical, followed by removal of the test defect. This catches decorative
+configuration, wrong include paths, broken resolvers, and warning-only CI.
 
-**Magic numbers** — extracted into named constants, enums, or validated config. But `if (xs.length === 0)`, `for (i = 0; ...)`, `return []`, and `arr[0]` are left alone. The test is whether the name adds information the value lacks: `const TWO = 2` adds nothing, `const RETRY_LIMIT = 2` adds everything.
+### Treat automatic fixes as code changes
 
-**Dead code** — none. No commented-out legacy, unused files, unused exports, unused dependencies, stale config.
+Formatting and autofix output still need review. For Python formatting,
+[`verify-format-safe.py`](scripts/verify-format-safe.py) compares parsed ASTs
+before and after formatting; tests and diff review remain necessary, especially
+for non-Python files.
 
-**Honesty** — no silent fallbacks, fake implementations, placeholder production code, or mock data outside test/dev/demo boundaries. A function that cannot do its job raises; it does not return an empty result that reads like success.
+### Keep security claims scoped
 
-**Escape hatches** — no broad `any`, unchecked cast, or suppressed rule without inline justification *and* a tracked debt entry in the report.
+The supplied pre-commit hook checks staged changes. The explicit
+`gitleaks git --redact` workflow scans reachable checked-out Git history. A
+history finding is handled as a potential credential incident: rotate first,
+then decide whether authorized history cleanup is needed.
 
----
+### Keep sanitizer builds honest
 
-## Stack coverage
-
-| Stack | Format | Lint | Types | Dead code | Security | Test |
-|---|---|---|---|---|---|---|
-| Python | ruff format | ruff (`ALL`) | mypy strict+ | vulture, deptry | bandit, pip-audit | pytest |
-| TypeScript / JS | prettier | eslint strictTypeChecked | tsc strict+ | knip | npm audit, semgrep | vitest |
-| Rust | rustfmt | clippy pedantic | compiler | cargo-machete | cargo-audit, cargo-deny | cargo test |
-| C++ | clang-format | clang-tidy, cppcheck | compiler | cppcheck | sanitizers, valgrind | ctest |
-| C# / .NET | dotnet format | AnalysisLevel latest-all | nullable + warnaserror | IDE0051/2 | NuGetAudit | dotnet test |
-| CSS | prettier | stylelint | — | — | — | — |
-| HTML | prettier | htmlhint | — | — | — | — |
-| PowerShell | PSScriptAnalyzer | PSScriptAnalyzer | — | — | — | Pester |
-| Shell | shfmt | shellcheck | — | — | gitleaks | bats |
-
-Cross-cutting: **gitleaks** (`gitleaks git` scans reachable checked-out
-history; its pre-commit hook scans staged changes), **semgrep** (SAST), and
-**jscpd** (copy-paste detection).
-
-Config templates live in [`templates/`](templates/). Their deliberate
-loosenings and required local adaptations are documented in
-[`templates/README.md`](templates/README.md) and inline where the format permits
-comments.
-
----
-
-## Sanitizers
-
-Project history records deliberately broken-program validation on 2026-07-26
-with gcc 15, clang 21, and Rust nightly. Treat that as dated evidence and rerun
-the sanitizer jobs for the target compiler and platform.
-
-| | gcc | clang | Rust | Catches |
-|---|---|---|---|---|
-| ASan | ✅ | ✅ | ✅ | use-after-free, buffer overflow, double-free |
-| LSan | ✅ | ✅ | ✅ | memory leaks |
-| UBSan | ✅ | ✅ | — | overflow, bad shift, misaligned, null deref |
-| TSan | ✅ | ✅ | ✅ | data races |
-| MSan | — | ✅ | ✅ | uninitialized reads |
-
-The workflows call out three common false-negative sources:
-
-- **ASan and TSan cannot be combined** — incompatible shadow memory, so they need separate builds and separate CI jobs
-- **`-fno-sanitize-recover=all`** makes recoverable UBSan findings halt the
-  process instead of merely reporting and continuing
-- **Rust sanitizer coverage can need `-Zbuild-std`** so standard-library code
-  is rebuilt with instrumentation
-
-MSan on real C++ needs an instrumented libc++, which most distributions do not ship. The skills will not add an MSan gate unless the project builds its own standard library — otherwise it drowns in false positives from library internals.
-
-Full reference: [`templates/cpp/sanitizers.md`](templates/cpp/sanitizers.md).
-
----
-
-## Dead-code tools do not overlap
-
-Running one and calling it done leaves real holes:
-
-- **`tsc --noEmit`** with `noUnusedLocals` — unused symbols *inside* a file. Blind to unused exports.
-- **`knip`** — whole-graph: dead *modules*, unused exports, unused dependencies. Finds what tsc structurally cannot.
-- **`vulture`** — Python, heuristic, reports a confidence percentage for a reason.
-- **`cppcheck --enable=all`** — includes `unusedFunction`, but per-file invocation cannot see cross-TU callers.
-- **`cargo machete`** — unused Cargo dependencies.
-- **Roslyn IDE0051/0052** — unused C# private members.
-
-These tools can false-positive on dynamic dispatch, string-keyed lookup,
-library public API, test fixtures, and framework entry points. The tools produce
-*candidates*; repository-wide evidence supports deletions. The workflow lists
-unverified candidates instead of removing them.
-
----
+For C and C++, the reference uses ASan with UBSan for one debug/test build and
+TSan in a separate build. Recoverable UBSan checks need
+`-fno-sanitize-recover=all` when a finding must fail the gate. Rust sanitizer
+support depends on the target and toolchain; full standard-library coverage may
+require nightly Rust and `-Zbuild-std`. See the
+[`sanitizer reference`](templates/cpp/sanitizers.md) before wiring CI.
 
 ## Documentation
 
-- [`docs/PHILOSOPHY.md`](docs/PHILOSOPHY.md) — the reasoning behind each rule, and explicitly where strict is the wrong call
-- [`templates/README.md`](templates/README.md) — every config, its gate command, its loosenings
-- [`templates/cpp/sanitizers.md`](templates/cpp/sanitizers.md) — flags, runtime options, CMake, Rust
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) · [`CHANGELOG.md`](CHANGELOG.md)
+- [`AGENTS.md`](AGENTS.md) — shared agent entry point and non-negotiable rules
+- [`docs/PHILOSOPHY.md`](docs/PHILOSOPHY.md) — why the standards exist and when
+  strictness is the wrong choice
+- [`templates/README.md`](templates/README.md) — template locations, commands,
+  deliberate loosenings, and dated compatibility evidence
+- [`templates/cpp/sanitizers.md`](templates/cpp/sanitizers.md) — C/C++ and Rust
+  sanitizer reference
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — contribution and verification contract
+- [`CHANGELOG.md`](CHANGELOG.md) — released and unreleased changes
+
+<details>
+<summary>Repository layout</summary>
+
+```text
+skills/       workflow contracts
+scripts/      native inventory and path-resolution helpers
+templates/    strict, adaptable configuration examples
+tests/        cross-platform smoke and parity checks
+docs/         design rationale and repository notes
+```
+
+</details>
+
+## Requirements
+
+- Git for cloning and version-control checks
+- Windows: Windows PowerShell 5.1 or newer, or PowerShell 7
+- Linux/macOS: Bash and standard POSIX command-line tools
+- Python 3 only for `scripts/verify-format-safe.py`
+
+Individual quality gates require their own project-local tools. The inventory
+scripts report availability; they do not install anything.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+[MIT](LICENSE)

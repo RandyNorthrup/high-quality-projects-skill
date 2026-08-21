@@ -232,8 +232,9 @@ Wire these as a separate CI job, not the default build. Full reference:
 -fsanitize=thread -fno-omit-frame-pointer -g -O1
 ```
 
-Rust needs nightly plus `-Zbuild-std`, because the shipped `std` is not
-instrumented and you get false negatives without rebuilding it:
+For full Rust sanitizer coverage, use a supported nightly target with
+`-Zbuild-std`; the shipped standard library is not instrumented, so code inside
+it is otherwise outside the sanitizer's coverage:
 
 ```bash
 RUSTFLAGS="-Zsanitizer=address" cargo +nightly test -Zbuild-std --target x86_64-unknown-linux-gnu

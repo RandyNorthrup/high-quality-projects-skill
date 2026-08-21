@@ -5,6 +5,23 @@ All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed — README presentation and claim audit
+
+- Reworked the README with a clearer overview, status badges, compact
+  navigation, streamlined quick starts, and a more readable workflow/risk
+  summary.
+- Revalidated installation commands, cross-platform requirements, scanner
+  behavior, secret-scan scope, sanitizer guidance, links, and live repository
+  status. Replaced absolute or dated front-page claims with scoped language and
+  pointers to dated evidence where appropriate.
+- Corrected two overstatements in the retrofit workflow: formatting is low risk,
+  not zero risk, and sanitizer findings require investigation rather than being
+  automatically classified as confirmed bugs.
+- Clarified that full Rust sanitizer coverage depends on a supported target and
+  an instrumented standard library.
+
 ## 0.2.0 — 2026-08-20
 
 ### Fixed — Bash-free Windows execution
