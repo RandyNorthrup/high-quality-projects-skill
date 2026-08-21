@@ -120,7 +120,7 @@ try {
         -Message 'PROJECT_BRIEF asset is missing its reuse decision record.'
 
     $manifest = Get-Content -LiteralPath $pluginManifest -Raw | ConvertFrom-Json
-    Confirm-Equal -Actual $manifest.version -Expected '0.4.0' `
+    Confirm-Equal -Actual $manifest.version -Expected '0.4.1' `
         -Message 'Plugin manifest version does not match the automated release.'
 
     $releaseWorkflowContent = Get-Content -LiteralPath $releaseWorkflow -Raw
@@ -136,7 +136,7 @@ try {
 
     $installationContent = Get-Content -LiteralPath $installationGuide -Raw
     foreach ($requiredInstallText in @(
-            'v0.4.0',
+            'v0.4.1',
             'SHA256SUMS.txt',
             'gh attestation verify',
             'Bash is not required on Windows'

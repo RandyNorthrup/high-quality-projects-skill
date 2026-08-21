@@ -47,7 +47,7 @@ target project is compliant merely because the files were copied.
 
 ## Installation
 
-Latest stable release: **[v0.4.0](https://github.com/RandyNorthrup/high-quality-projects-skill/releases/tag/v0.4.0)**.
+Latest stable release: **[v0.4.1](https://github.com/RandyNorthrup/high-quality-projects-skill/releases/tag/v0.4.1)**.
 
 See the complete [`installation and verification guide`](docs/INSTALLATION.md)
 for pinned Claude Code installs, signed release archives, SHA-256 checks, local
@@ -59,7 +59,7 @@ Clone or vendor the repository, then direct the agent to read the appropriate
 workflow in full:
 
 ```console
-git clone --branch v0.4.0 --depth 1 https://github.com/RandyNorthrup/high-quality-projects-skill.git
+git clone --branch v0.4.1 --depth 1 https://github.com/RandyNorthrup/high-quality-projects-skill.git
 ```
 
 - New project: [`skills/project_setup/SKILL.md`](skills/project_setup/SKILL.md)
