@@ -48,6 +48,9 @@ $grillMeReference = Join-Path -Path $repositoryRoot `
 $projectBriefAsset = Join-Path -Path $repositoryRoot `
     -ChildPath 'skills/project_setup/assets/PROJECT_BRIEF.md'
 $pluginManifest = Join-Path -Path $repositoryRoot -ChildPath '.claude-plugin/plugin.json'
+$releaseBuilder = Join-Path -Path $repositoryRoot -ChildPath 'scripts/build-release.ps1'
+$releaseWorkflow = Join-Path -Path $repositoryRoot -ChildPath '.github/workflows/release.yml'
+$installationGuide = Join-Path -Path $repositoryRoot -ChildPath 'docs/INSTALLATION.md'
 $temporaryBase = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $temporaryRoot = Join-Path -Path $temporaryBase -ChildPath (
     'high-quality-projects-skill-test-{0}' -f [Guid]::NewGuid().ToString('N')
@@ -61,7 +64,10 @@ try {
             $projectSetupSkill,
             $grillMeReference,
             $projectBriefAsset,
-            $pluginManifest
+            $pluginManifest,
+            $releaseBuilder,
+            $releaseWorkflow,
+            $installationGuide
         )) {
         Confirm-Condition -Condition (Test-Path -LiteralPath $requiredFile -PathType Leaf) `
             -Message "Required package file is missing: $requiredFile"
@@ -114,8 +120,30 @@ try {
         -Message 'PROJECT_BRIEF asset is missing its reuse decision record.'
 
     $manifest = Get-Content -LiteralPath $pluginManifest -Raw | ConvertFrom-Json
-    Confirm-Equal -Actual $manifest.version -Expected '0.3.1' `
-        -Message 'Plugin manifest version does not match the reuse-first release.'
+    Confirm-Equal -Actual $manifest.version -Expected '0.4.0' `
+        -Message 'Plugin manifest version does not match the automated release.'
+
+    $releaseWorkflowContent = Get-Content -LiteralPath $releaseWorkflow -Raw
+    foreach ($requiredReleaseText in @(
+            'uses: ./.github/workflows/cross-platform.yml',
+            './scripts/build-release.ps1',
+            'uses: actions/attest@v4',
+            'gh release create'
+        )) {
+        Confirm-Condition -Condition $releaseWorkflowContent.Contains($requiredReleaseText) `
+            -Message "Release workflow is missing required gate: $requiredReleaseText"
+    }
+
+    $installationContent = Get-Content -LiteralPath $installationGuide -Raw
+    foreach ($requiredInstallText in @(
+            'v0.4.0',
+            'SHA256SUMS.txt',
+            'gh attestation verify',
+            'Bash is not required on Windows'
+        )) {
+        Confirm-Condition -Condition $installationContent.Contains($requiredInstallText) `
+            -Message "Installation guide is missing release instruction: $requiredInstallText"
+    }
 
     [Environment]::SetEnvironmentVariable('SKILL_ROOT', $null)
     [Environment]::SetEnvironmentVariable('CLAUDE_PLUGIN_ROOT', $null)

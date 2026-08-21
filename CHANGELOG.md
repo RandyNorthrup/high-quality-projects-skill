@@ -5,6 +5,25 @@ All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.4.0 — 2026-08-20
+
+### Added — release automation and verified installs
+
+- Added a tag-triggered GitHub Release workflow. It reuses the full
+  cross-platform workflow, validates exact tag/manifest/changelog agreement,
+  builds versioned ZIP and tar.gz archives from the committed Git tree,
+  generates SHA-256 checksums and release metadata, creates signed GitHub build
+  provenance, and publishes changelog-derived notes and assets.
+- Added `scripts/build-release.ps1` plus a package smoke test covering archive
+  structure, source commit, checksums, manifest, and notes under PowerShell 7
+  and Windows PowerShell 5.1.
+- Added `docs/INSTALLATION.md` with current marketplace, pinned-tag, tagged-clone,
+  local-directory, and release-archive install paths; Windows, Linux, and macOS
+  checksum commands; provenance verification; extraction; and update behavior.
+- Made the cross-platform workflow reusable so release publication executes the
+  same gates as normal main/PR validation. Added a pinned Ruff 0.16.4 CI job and
+  removed four obsolete inline suppressions exposed by that gate.
+
 ## 0.3.1 — 2026-08-20
 
 ### Added — brand inventory and reuse-first setup

@@ -7,6 +7,7 @@ AGENTS.md                     universal entry point — any agent starts here
 .cursor/rules/                Cursor auto-discovery, points at AGENTS.md
 .github/copilot-instructions.md  Copilot auto-discovery, same
 .github/workflows/cross-platform.yml  Windows/Linux script regression tests
+.github/workflows/release.yml    tag-gated build, attestation, and publication
 .claude-plugin/               Claude Code manifests — packaging only
 skills/
   project_setup/    SKILL.md — new-project scaffolding
@@ -14,6 +15,7 @@ skills/
 scripts/
   skill-root.ps1/.sh   resolves SKILL_ROOT from anywhere, no env needed
   detect-stack.ps1/.sh workspace inventory, emits JSON
+  build-release.ps1     exact-commit archives and release metadata
   verify-format-safe.py  compares Python ASTs before and after formatting
 templates/          strict configs, copied into target projects
 docs/               philosophy and extended reference
@@ -91,6 +93,7 @@ Test with:
 ```powershell
 & .\scripts\detect-stack.ps1 . | ConvertFrom-Json | Out-Null
 & .\tests\cross-platform-smoke.ps1
+& .\tests\release-package-smoke.ps1
 ```
 
 Run the smoke test in both PowerShell 7 and Windows PowerShell 5.1 before
@@ -98,6 +101,11 @@ changing the PowerShell scripts. It covers self-location, environment override
 precedence, source counts, pruned directories, config detection, and the
 unreadable-path JSON contract. GitHub Actions repeats those checks on Windows
 and Linux, then compares the Bash and PowerShell scanner inventories on Linux.
+
+The release-package smoke test requires a clean committed tree because it
+archives `HEAD`, not uncommitted files. Run it after the release commit. It
+builds into ignored `dist/`, checks versioned archive roots, verifies every
+SHA-256 entry, and removes its test output.
 
 ## Testing changes locally
 
@@ -112,6 +120,34 @@ Then exercise both skills against real repositories: one empty directory for
 `/high-quality-projects-skill:project_setup`, one messy existing codebase for
 `/high-quality-projects-skill:quality_retrofit`. Reading the skill is not
 testing it.
+
+## Releasing
+
+Releases are tag-driven. Never upload a hand-built archive or create a GitHub
+Release before its tag workflow.
+
+1. Choose a SemVer version and update `.claude-plugin/plugin.json`.
+2. Add the matching top-level `CHANGELOG.md` section, update documented stable
+   versions, and update the manifest-version assertion in
+   `tests/cross-platform-smoke.ps1`.
+3. Commit with a clean tree, then run:
+
+   ```powershell
+   $ReleaseVersion = (Get-Content -Raw '.\.claude-plugin\plugin.json' |
+       ConvertFrom-Json).version
+   & .\tests\cross-platform-smoke.ps1
+   & .\tests\release-package-smoke.ps1
+   & .\scripts\build-release.ps1 -Version $ReleaseVersion
+   ```
+
+4. Push the commit and wait for `Cross-platform package checks` to pass.
+5. Create and push annotated tag `v<manifest version>`.
+
+The tag starts `.github/workflows/release.yml`. It reuses all cross-platform
+gates, requires exact tag/manifest/changelog agreement, builds ZIP and tar.gz
+archives from the tagged Git tree, generates checksums and metadata, creates
+GitHub provenance attestations, then publishes the GitHub Release. Verify the
+published assets using `docs/INSTALLATION.md` before calling the release done.
 
 ## Commits
 

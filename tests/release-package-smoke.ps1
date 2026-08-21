@@ -1,0 +1,119 @@
+# Build and inspect release artifacts from the current committed tree.
+
+[CmdletBinding()]
+param()
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+function Confirm-Condition {
+    param(
+        [bool]$Condition,
+        [string]$Message
+    )
+
+    if (-not $Condition) {
+        throw $Message
+    }
+}
+
+$repositoryRoot = [IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath '..'))
+$builder = Join-Path -Path $repositoryRoot -ChildPath 'scripts/build-release.ps1'
+$manifestPath = Join-Path -Path $repositoryRoot -ChildPath '.claude-plugin/plugin.json'
+$manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+$tag = 'v{0}' -f $manifest.version
+$packageBase = 'high-quality-projects-skill-{0}' -f $tag
+$distRoot = [IO.Path]::GetFullPath((Join-Path -Path $repositoryRoot -ChildPath 'dist'))
+$temporaryRoot = Join-Path -Path $distRoot -ChildPath (
+    'release-package-test-{0}' -f [Guid]::NewGuid().ToString('N')
+)
+
+try {
+    & $builder -OutputDirectory $temporaryRoot -Version $manifest.version | Out-Null
+
+    $expectedNames = @(
+        "$packageBase.zip",
+        "$packageBase.tar.gz",
+        'release-manifest.json',
+        'RELEASE_NOTES.md',
+        'SHA256SUMS.txt'
+    )
+    foreach ($expectedName in $expectedNames) {
+        $expectedPath = Join-Path -Path $temporaryRoot -ChildPath $expectedName
+        Confirm-Condition -Condition (Test-Path -LiteralPath $expectedPath -PathType Leaf) `
+            -Message "Release output is missing: $expectedName"
+    }
+
+    $releaseManifestPath = Join-Path -Path $temporaryRoot -ChildPath 'release-manifest.json'
+    $releaseManifest = Get-Content -LiteralPath $releaseManifestPath -Raw | ConvertFrom-Json
+    $head = (& git -C $repositoryRoot rev-parse HEAD).Trim()
+    Confirm-Condition -Condition ($releaseManifest.version -eq $manifest.version) `
+        -Message 'Release manifest version does not match plugin manifest.'
+    Confirm-Condition -Condition ($releaseManifest.tag -eq $tag) `
+        -Message 'Release manifest tag is wrong.'
+    Confirm-Condition -Condition ($releaseManifest.commit -eq $head) `
+        -Message 'Release manifest commit does not match HEAD.'
+
+    $checksumPath = Join-Path -Path $temporaryRoot -ChildPath 'SHA256SUMS.txt'
+    $checksumLines = @(Get-Content -LiteralPath $checksumPath)
+    Confirm-Condition -Condition ($checksumLines.Count -eq 4) `
+        -Message 'Checksum file must cover both archives, manifest, and release notes.'
+    foreach ($checksumLine in $checksumLines) {
+        Confirm-Condition -Condition ($checksumLine -match '^([0-9a-f]{64})  (.+)$') `
+            -Message "Malformed checksum line: $checksumLine"
+        $expectedHash = $Matches[1]
+        $fileName = $Matches[2]
+        $artifactPath = Join-Path -Path $temporaryRoot -ChildPath $fileName
+        Confirm-Condition -Condition (Test-Path -LiteralPath $artifactPath -PathType Leaf) `
+            -Message "Checksum references missing file: $fileName"
+        $actualHash = (Get-FileHash -LiteralPath $artifactPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        Confirm-Condition -Condition ($actualHash -eq $expectedHash) `
+            -Message "Checksum mismatch: $fileName"
+    }
+
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $zipPath = Join-Path -Path $temporaryRoot -ChildPath "$packageBase.zip"
+    $zip = [IO.Compression.ZipFile]::OpenRead($zipPath)
+    try {
+        $zipEntries = @($zip.Entries | ForEach-Object { $_.FullName })
+        foreach ($requiredEntry in @(
+                "$packageBase/README.md",
+                "$packageBase/.claude-plugin/plugin.json",
+                "$packageBase/scripts/skill-root.sh"
+            )) {
+            Confirm-Condition -Condition ($zipEntries -contains $requiredEntry) `
+                -Message "ZIP is missing package entry: $requiredEntry"
+        }
+    }
+    finally {
+        $zip.Dispose()
+    }
+
+    $tarCommand = Get-Command -Name tar -ErrorAction SilentlyContinue
+    Confirm-Condition -Condition ($null -ne $tarCommand) `
+        -Message 'tar is required to inspect the tar.gz release archive.'
+    $tarPath = Join-Path -Path $temporaryRoot -ChildPath "$packageBase.tar.gz"
+    $tarEntries = @(& $tarCommand.Source -tzf $tarPath)
+    Confirm-Condition -Condition ($LASTEXITCODE -eq 0) `
+        -Message 'Could not list tar.gz release archive.'
+    Confirm-Condition -Condition ($tarEntries -contains "$packageBase/README.md") `
+        -Message 'tar.gz is missing README.md under its versioned root.'
+
+    $releaseNotes = Get-Content -LiteralPath (
+        Join-Path -Path $temporaryRoot -ChildPath 'RELEASE_NOTES.md'
+    ) -Raw
+    Confirm-Condition -Condition ($releaseNotes -match 'Release automation') `
+        -Message 'Release notes were not extracted from the current changelog entry.'
+
+    Write-Output 'PASS: versioned release archives, manifest, notes, and checksums'
+}
+finally {
+    $resolvedTemporaryRoot = [IO.Path]::GetFullPath($temporaryRoot)
+    $safePrefix = $distRoot.TrimEnd(
+        [IO.Path]::DirectorySeparatorChar,
+        [IO.Path]::AltDirectorySeparatorChar
+    ) + [IO.Path]::DirectorySeparatorChar
+    if ($resolvedTemporaryRoot.StartsWith($safePrefix, [StringComparison]::OrdinalIgnoreCase)) {
+        Remove-Item -LiteralPath $resolvedTemporaryRoot -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}

@@ -56,6 +56,7 @@ skills/project_setup/assets/      confirmed PROJECT_BRIEF.md output template
 skills/quality_retrofit/SKILL.md  bring an existing codebase into compliance
 scripts/skill-root.{ps1,sh}       resolve SKILL_ROOT from anywhere
 scripts/detect-stack.{ps1,sh}     read-only workspace inventory, emits JSON
+scripts/build-release.ps1         exact-commit archives and release metadata
 scripts/verify-format-safe.py     compare Python ASTs before and after formatting
 templates/                        tuned strict configs per language
 docs/PHILOSOPHY.md                why the gates are set the way they are
@@ -84,6 +85,9 @@ should not need reminding, but they are the ones most often skipped:
 - **Never report a skipped or deferred gate as passing.** Say plainly what was
   not run and why.
 - **Do not modify global user or machine configuration.** Project-local only.
+- **Release only exact tagged source.** Manifest version, changelog heading, and
+  annotated tag must agree. Publish only after reusable cross-platform gates,
+  package inspection, checksums, and provenance generation pass.
 
 ## Compatibility
 

@@ -43,7 +43,7 @@ def normalized_ast(path: Path) -> str:
 def main(argv: list[str]) -> int:
     """Compare two Python files and report whether their parsed ASTs match."""
     if len(argv) != EXPECTED_ARGC:
-        print(__doc__, file=sys.stderr)  # noqa: T201 - this module is a CLI.
+        print(__doc__, file=sys.stderr)
         return EXIT_PARSE_ERROR
 
     before, after = Path(argv[1]), Path(argv[2])
@@ -52,7 +52,7 @@ def main(argv: list[str]) -> int:
         before_ast = normalized_ast(before)
         after_ast = normalized_ast(after)
     except SyntaxError as exc:
-        print(f"  PARSE ERROR: {exc}", file=sys.stderr)  # noqa: T201
+        print(f"  PARSE ERROR: {exc}", file=sys.stderr)
         return EXIT_PARSE_ERROR
 
     # Output is deliberately ASCII-only. This runs under whatever console the
@@ -60,10 +60,10 @@ def main(argv: list[str]) -> int:
     # renders a UTF-8 em dash as a replacement character — turning the one line
     # that reports the verdict into something that looks like a broken tool.
     if before_ast == after_ast:
-        print("  RESULT: AST identical - no parsed syntax change detected")  # noqa: T201
+        print("  RESULT: AST identical - no parsed syntax change detected")
         return EXIT_OK
 
-    print("  RESULT: AST DIFFERS - parsed syntax changed, review the diff")  # noqa: T201
+    print("  RESULT: AST DIFFERS - parsed syntax changed, review the diff")
     return EXIT_CHANGED
 
 

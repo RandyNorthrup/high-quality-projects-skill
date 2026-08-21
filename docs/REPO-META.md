@@ -62,8 +62,9 @@ closing the settings page.
 
 ## Also worth setting
 
-- **Version tags** — after publishing, tag the manifest version (currently
-  `v0.3.1`) if consumers need an immutable Git reference instead of `main`.
+- **Version tags and releases** — pushing an annotated manifest-version tag
+  (currently `v0.4.0`) runs the gated release workflow and publishes verified
+  archives, checksums, metadata, notes, and build provenance.
 - **Social preview image** — keep the uploaded setting synchronized with the
   tracked source above.
 - **Issues enabled**, Wiki and Projects disabled unless used. An enabled-but-

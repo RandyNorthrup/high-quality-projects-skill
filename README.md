@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <a href="#quick-start">Quick start</a> ·
+  <a href="#installation">Installation</a> ·
   <a href="#workflows">Workflows</a> ·
   <a href="#reference-tooling">Tooling</a> ·
   <a href="#design-principles">Principles</a> ·
@@ -45,7 +45,13 @@ target project is compliant merely because the files were copied.
 |---|---|---|
 | Grill the idea across users, outcomes, scope, experience, signing, distribution, operations, and release; then verify the stack and scaffold gates. | Establish a baseline, then apply formatting, lint, types, dead-code work, security, and documentation in reviewable phases. | Plain Markdown workflows, native PowerShell on Windows, and Bash on Linux/macOS. |
 
-## Quick start
+## Installation
+
+Latest stable release: **[v0.4.0](https://github.com/RandyNorthrup/high-quality-projects-skill/releases/tag/v0.4.0)**.
+
+See the complete [`installation and verification guide`](docs/INSTALLATION.md)
+for pinned Claude Code installs, signed release archives, SHA-256 checks, local
+marketplaces, and update behavior.
 
 ### Any coding agent
 
@@ -53,7 +59,7 @@ Clone or vendor the repository, then direct the agent to read the appropriate
 workflow in full:
 
 ```console
-git clone https://github.com/RandyNorthrup/high-quality-projects-skill.git
+git clone --branch v0.4.0 --depth 1 https://github.com/RandyNorthrup/high-quality-projects-skill.git
 ```
 
 - New project: [`skills/project_setup/SKILL.md`](skills/project_setup/SKILL.md)
@@ -228,6 +234,8 @@ require nightly Rust and `-Zbuild-std`. See the
 ## Documentation
 
 - [`AGENTS.md`](AGENTS.md) — shared agent entry point and non-negotiable rules
+- [`docs/INSTALLATION.md`](docs/INSTALLATION.md) — current install channels,
+  release verification, and updates
 - [`skills/project_setup/references/grill-me.md`](skills/project_setup/references/grill-me.md)
   — complete product, delivery, signing, and operations discovery coverage
 - [`skills/project_setup/assets/PROJECT_BRIEF.md`](skills/project_setup/assets/PROJECT_BRIEF.md)
