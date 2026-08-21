@@ -9,7 +9,7 @@ Keep the description concise and lead with searchable nouns rather than a
 tagline.
 
 ```
-Two vendor-neutral Markdown workflows for coding agents: scaffold projects or retrofit existing codebases with strict quality-gate guidance. Cross-platform stack detection for PowerShell and Bash; optional Claude Code plugin.
+Vendor-neutral workflows that grill new project ideas into confirmed, release-ready briefs and retrofit existing codebases with evidence-backed quality gates. Native PowerShell and Bash; optional Claude Code plugin.
 ```
 
 ## Topics
@@ -38,6 +38,7 @@ ai-agents
 coding-agent
 cursor
 vendor-neutral
+product-discovery
 ```
 
 ## Apply
@@ -45,7 +46,7 @@ vendor-neutral
 This one-line form works unchanged in PowerShell and POSIX shells:
 
 ```console
-gh repo edit RandyNorthrup/high-quality-projects-skill --description "Two vendor-neutral Markdown workflows for coding agents: scaffold projects or retrofit existing codebases with strict quality-gate guidance. Cross-platform stack detection for PowerShell and Bash; optional Claude Code plugin." --homepage "https://github.com/RandyNorthrup/high-quality-projects-skill" --add-topic claude-code --add-topic claude-code-plugin --add-topic code-quality --add-topic quality-gates --add-topic static-analysis --add-topic linting --add-topic dead-code --add-topic code-standards --add-topic technical-debt --add-topic refactoring --add-topic pre-commit --add-topic sanitizers --add-topic developer-tools --add-topic ai-coding-assistant --add-topic agents-md --add-topic ai-agents --add-topic coding-agent --add-topic cursor --add-topic vendor-neutral
+gh repo edit RandyNorthrup/high-quality-projects-skill --description "Vendor-neutral workflows that grill new project ideas into confirmed, release-ready briefs and retrofit existing codebases with evidence-backed quality gates. Native PowerShell and Bash; optional Claude Code plugin." --homepage "https://github.com/RandyNorthrup/high-quality-projects-skill" --add-topic claude-code --add-topic claude-code-plugin --add-topic code-quality --add-topic quality-gates --add-topic static-analysis --add-topic linting --add-topic dead-code --add-topic code-standards --add-topic technical-debt --add-topic refactoring --add-topic pre-commit --add-topic sanitizers --add-topic developer-tools --add-topic ai-coding-assistant --add-topic agents-md --add-topic ai-agents --add-topic coding-agent --add-topic cursor --add-topic vendor-neutral --add-topic product-discovery
 ```
 
 ## Social preview
