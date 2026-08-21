@@ -21,6 +21,8 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   automatically classified as confirmed bugs.
 - Clarified that full Rust sanitizer coverage depends on a supported target and
   an instrumented standard library.
+- Added a tracked 1280×640 social-preview image and documented how to keep the
+  repository setting synchronized with it.
 
 ## 0.2.0 — 2026-08-20
 
