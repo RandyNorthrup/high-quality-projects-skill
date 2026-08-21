@@ -20,6 +20,7 @@ jobs:
         os:
           - windows-latest
           - ubuntu-latest
+          - macos-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -62,8 +63,14 @@ jobs:
           python -m compileall -q scripts
 
   posix:
-    name: Bash and PowerShell parity
-    runs-on: ubuntu-latest
+    name: Bash and PowerShell parity (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v6

@@ -99,8 +99,9 @@ Test with:
 Run the smoke test in both PowerShell 7 and Windows PowerShell 5.1 before
 changing the PowerShell scripts. It covers self-location, environment override
 precedence, source counts, pruned directories, config detection, and the
-unreadable-path JSON contract. GitHub Actions repeats those checks on Windows
-and Linux, then compares the Bash and PowerShell scanner inventories on Linux.
+unreadable-path JSON contract. GitHub Actions repeats those checks on Windows,
+Linux, and macOS, then compares the Bash and PowerShell scanner inventories on
+both POSIX runners.
 
 The release-package smoke test requires a clean committed tree because it
 archives `HEAD`, not uncommitted files. Run it after the release commit. It
