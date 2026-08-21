@@ -62,7 +62,7 @@ closing the settings page.
 ## Also worth setting
 
 - **Version tags** — after publishing, tag the manifest version (currently
-  `v0.2.0`) if consumers need an immutable Git reference instead of `main`.
+  `v0.3.0`) if consumers need an immutable Git reference instead of `main`.
 - **Social preview image** — keep the uploaded setting synchronized with the
   tracked source above.
 - **Issues enabled**, Wiki and Projects disabled unless used. An enabled-but-

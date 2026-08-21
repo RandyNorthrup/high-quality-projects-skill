@@ -1,13 +1,14 @@
 ---
 name: project_setup
-description: Scaffold a new project to production-grade standards from the first commit — strictest practical linting, type checking, dead-code detection, sanitizers, security scanning, and CI-ready quality gates for the chosen stack. Verifies dependency compatibility against official sources rather than guessing. Creates README, CHANGELOG, and PLAN with milestone certification gates. Use when starting a new project, bootstrapping a repo, or when the user says "set up a project", "new project", "scaffold", or invokes the project_setup skill. Takes a project description as its argument. For an existing codebase that needs standards applied, use quality_retrofit instead.
+description: Scaffold a new project from product discovery through production-oriented quality gates. Runs a multi-round Grill Me interview covering users, outcomes, scope, brand and color schemes, accessibility, platforms, signing, distribution, service model, data, security, operations, and release pipeline before stack selection. Verifies dependency compatibility against official sources, creates a confirmed PROJECT_BRIEF, README, CHANGELOG, and PLAN, and configures strict practical linting, type checking, dead-code detection, security scanning, tests, and CI. Use when starting a new project, bootstrapping a repo, asking to be grilled on a project idea, or when the user says "set up a project", "new project", "scaffold", or invokes the project_setup skill. Takes a project description as its argument. For an existing codebase that needs standards applied, use quality_retrofit instead.
 ---
 
-# Project setup — production-grade from commit one
+# Project setup — discovery before commit one
 
-Scaffold a new project with the strictest practical standards for its stack.
-The argument to this skill is the **project description**. If it is missing or
-one line, ask what is being built before touching anything.
+Scaffold a new project with a confirmed product contract and the strictest
+practical standards for its stack. The argument is the initial **project
+description**. Use it to seed discovery; even a detailed description does not
+silently waive the Grill Me readiness gate.
 
 ## Communication style
 
@@ -20,9 +21,9 @@ chat only. A terse status line and a thorough `PLAN.md` are not in tension.
 
 ## Locating this package
 
-Paths below use `${SKILL_ROOT}/...` as a placeholder for the directory holding
-this package's `scripts/` and `templates/`. Resolve it once with the active
-shell. On Windows PowerShell:
+Paths below use `${SKILL_ROOT}/...` as a placeholder for this package's root,
+including its `scripts/`, `templates/`, and skill resources. Resolve it once
+with the active shell. On Windows PowerShell:
 
 ```powershell
 $SkillRoot = & 'C:\path\to\high-quality-projects-skill\scripts\skill-root.ps1'
@@ -77,23 +78,65 @@ installed on this machine. Then:
 Creating a file that already exists, with different content, is the single
 worst failure mode of this skill.
 
-## Phase 1 — resolve the stack
+## Phase 1 — Grill Me: confirm the project contract
 
-Ask before making stack-defining or irreversible decisions:
+After the successful scan, read
+`${SKILL_ROOT}/skills/project_setup/references/grill-me.md` completely. Run its
+discovery interview before choosing the framework, installing dependencies, or
+creating product code.
 
-- Application type · framework/runtime · language · package manager
-- Target deployment environment · hosting provider · CI provider
-- Database/storage · authentication · required integrations
-- UI/design system · browser and platform support
-- Testing expectations (unit / integration / e2e)
+### Interview protocol
 
-Rules:
+1. Seed a draft from the request, workspace evidence, linked material, and
+   earlier answers. Never ask the user to repeat known information.
+2. Start with who has which problem, why it matters, what the smallest useful
+   release does, and how success will be measured.
+3. Continue in focused rounds of related questions. Cover every applicable
+   domain in the guide, but never dump the whole question bank into one message.
+4. Explain material tradeoffs. When the user does not know, offer concrete
+   options and a recommended reversible default instead of demanding jargon.
+5. Classify every decision as **confirmed**, **assumed**, **open/blocking**, or
+   **N/A with reason**. Give each deferred decision an owner, due date, and
+   downstream impact.
+6. Challenge conflicts and vague goals. "Fast", "secure", "accessible", and
+   "cross-platform" need measurable targets and a named verification method.
+7. Summarize the resulting contract and ask the project owner to confirm or
+   correct it.
 
-- If the answer is already in project files or earlier instructions, use it.
-  Do not ask twice.
-- If a reasonable default exists and the choice is cheap to reverse, take the
-  default and record the assumption in `PLAN.md`.
-- Batch the questions. One round of questions, not twelve.
+Scale the interview to project risk. A local throwaway script needs less depth
+than a signed desktop app, public service, regulated system, or paid product.
+Depth may shrink; applicable critical coverage may not disappear.
+
+### Readiness gate
+
+Do not select the stack or begin implementation until the brief establishes:
+
+- primary users, problem, desired outcome, success measures, and non-goals;
+- first-release journeys and explicit scope boundaries;
+- product shape, supported environments, and service/tenant/offline model;
+- brand, color schemes, responsive targets, and accessibility evidence for UI;
+- data classes, authentication, trust boundaries, privacy, and review needs;
+- distribution, installation, updates, signing, and store/notarization needs;
+- release environments, CI gates, artifact handling, promotion, and rollback;
+- operations, observability, support, incident, backup, and retirement owners;
+- real schedule, team, budget, external approvals, and unresolved dependencies.
+
+An inapplicable item must say `N/A` and why. Never turn silence into consent for
+credential ownership, signing, distribution, telemetry, data retention, legal
+obligations, or production operations. If a critical decision remains open,
+stop and ask; neutral scaffolding is not proof that product discovery finished.
+
+### Create and confirm `PROJECT_BRIEF.md`
+
+Copy and adapt
+`${SKILL_ROOT}/skills/project_setup/assets/PROJECT_BRIEF.md` into the target
+project. Remove template guidance, fill every applicable section, and preserve
+the decision ledger. Present the concise decision summary to the project owner.
+
+Mark the brief **Confirmed** only after the owner accepts it and no open decision
+blocks stack selection. Keep it current when scope, support, security,
+distribution, signing, or release decisions change. `PROJECT_BRIEF.md` defines
+what is being built; `PLAN.md` defines how confirmed scope will be delivered.
 
 ### Verify compatibility — do not guess
 
@@ -320,6 +363,16 @@ Document security assumptions and accepted residual risk in `PLAN.md`.
 
 ## Phase 5 — required documents
 
+### `PROJECT_BRIEF.md`
+
+Confirmed product contract from the Grill Me phase: users · problem · outcomes ·
+scope and non-goals · journeys · brand and accessibility · supported platforms ·
+service and tenant model · data and trust boundaries · distribution and signing ·
+quality targets · release pipeline · operations · ownership · decision ledger.
+
+Do not duplicate the full brief in `PLAN.md`. Link to it and translate confirmed
+scope into architecture, milestones, gates, and delivery work.
+
 ### `README.md`
 Overview · stack · requirements · installation · development commands · build ·
 test · quality gate commands · environment variables · project structure ·
@@ -334,10 +387,11 @@ happened, not what was planned. Keep superseded entries. Keep a Changelog
 format, semver.
 
 ### `PLAN.md`
-Assumptions · resolved decisions · open questions · architecture notes ·
-research and version-verification notes · milestones · per-milestone tasks,
-tests, and certification gates · security gates · performance gates ·
-documentation requirements · definition of done.
+Brief reference · implementation assumptions · resolved technical decisions ·
+open non-product questions · architecture notes · research and version-
+verification notes · milestones · per-milestone tasks, tests, and certification
+gates · security gates · performance gates · documentation requirements ·
+definition of done.
 
 Each milestone carries: goal · scope · files affected · implementation steps ·
 acceptance criteria · required tests · required gates · required doc updates ·
@@ -351,7 +405,8 @@ Create project-local files for the active tooling: `AGENTS.md`, `CLAUDE.md`,
 `.cursor/rules/*`, `.github/copilot-instructions.md`.
 
 They must reinforce: code standards, quality gates, documentation rules,
-testing rules, security rules, changelog discipline, planning discipline.
+testing rules, security rules, changelog discipline, planning discipline, and
+the requirement to update `PROJECT_BRIEF.md` when the product contract changes.
 
 **Never create or modify global user memory, global IDE settings, or
 machine-wide agent instructions without explicit approval.** Project-local only.
@@ -366,21 +421,29 @@ Where applicable:
   Practices**. SEO excluded unless explicitly requested.
 - Prefer static/server-side work where the stack favors it.
 - Measurable targets, not adjectives.
+- Keyboard, focus, semantics, contrast, zoom/reflow, reduced-motion, screen-
+  reader, touch-target, and error-state checks required by the confirmed brief.
+- Responsive verification across the brief's supported widths, orientations,
+  window sizes, and input modes; no desktop-only signoff for a responsive UI.
+- Color-token and theme verification for required light, dark, high-contrast,
+  and system-theme modes.
 
 For UI projects, milestone certification includes visual verification: local
-preview instructions plus a screenshot or an explicit manual-check record. The
-`chrome-devtools` and `playwright` MCP servers can drive this when available.
+preview instructions plus screenshots or an explicit manual-check record at the
+confirmed responsive targets. Use available browser automation when possible.
 
 ## Execution
 
 1. Scan (rule zero). Report what exists.
-2. Ask the batched clarification questions.
-3. Write `PLAN.md` first — decisions and milestones before code.
-4. Scaffold structure, configs, and gates.
-5. Install dependencies. Lock them. Verify the install.
-6. Run every gate. They must pass on the empty scaffold before milestone one.
-7. Write `README.md` and `CHANGELOG.md` from what actually exists.
-8. Commit.
+2. Run the Grill Me interview in focused rounds.
+3. Write and confirm `PROJECT_BRIEF.md`; stop on critical open decisions.
+4. Verify stack and dependency compatibility against current sources.
+5. Write `PLAN.md` — architecture and milestones before code.
+6. Scaffold structure, configs, and gates.
+7. Install dependencies. Lock them. Verify the install.
+8. Run every gate. They must pass on the empty scaffold before milestone one.
+9. Write `README.md` and `CHANGELOG.md` from what actually exists.
+10. Commit.
 
 Work milestone by milestone after that. Do not skip certification gates. Do not
 write fallback, legacy, or temporary code to force progress. When blocked by a
@@ -389,11 +452,14 @@ product decision, ask.
 ## Completion report
 
 - Files created
+- Grill Me coverage and `PROJECT_BRIEF.md` confirmation status
+- Confirmed users, first-release scope, non-goals, and success measures
+- Distribution, signing, service, release, rollback, and operations decisions
 - Dependencies installed, with pinned versions
 - Quality gates configured, and the command for each
 - Commands to run
 - Assumptions made
-- Open questions
+- Open questions, with owner, due date, impact, and blocking status
 - First milestone status
 - **Gates that failed or were deferred, and why**
 - Next recommended action

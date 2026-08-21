@@ -11,7 +11,7 @@ discovery adapters around that shared content.
 
 | Workflow | Read this file | Use when |
 |---|---|---|
-| **Project setup** | [`skills/project_setup/SKILL.md`](skills/project_setup/SKILL.md) | Starting a new project. Takes a project description. |
+| **Project setup** | [`skills/project_setup/SKILL.md`](skills/project_setup/SKILL.md) | Starting a new project. Grills the idea, confirms a project brief, then scaffolds. |
 | **Quality retrofit** | [`skills/quality_retrofit/SKILL.md`](skills/quality_retrofit/SKILL.md) | An existing codebase needs standards applied. |
 
 They are plain Markdown instructions. Read the whole file before acting on it —
@@ -50,7 +50,9 @@ instructions.
 ## What is in here
 
 ```
-skills/project_setup/SKILL.md     scaffold a new project to strict standards
+skills/project_setup/SKILL.md     discover, confirm, and scaffold a new project
+skills/project_setup/references/  Grill Me product and delivery question bank
+skills/project_setup/assets/      confirmed PROJECT_BRIEF.md output template
 skills/quality_retrofit/SKILL.md  bring an existing codebase into compliance
 scripts/skill-root.{ps1,sh}       resolve SKILL_ROOT from anywhere
 scripts/detect-stack.{ps1,sh}     read-only workspace inventory, emits JSON
@@ -70,6 +72,10 @@ should not need reminding, but they are the ones most often skipped:
 - **A gate is not configured until it has been seen to fail.** Break something
   on purpose, confirm a non-zero exit, revert. Several tools in this package's
   history loaded cleanly and checked nothing.
+- **Confirm the project before choosing the stack.** `project_setup` runs its
+  Grill Me interview and confirms `PROJECT_BRIEF.md`. Critical product,
+  signing, distribution, security, operations, or release decisions cannot be
+  replaced with silent defaults.
 - **Verify the effect, not the write.** Reading back the value you just wrote
   proves the write worked, not that behaviour changed.
 - **Never report a skipped or deferred gate as passing.** Say plainly what was

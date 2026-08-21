@@ -42,6 +42,12 @@ function Confirm-Equal {
 $repositoryRoot = [IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath '..'))
 $rootScript = Join-Path -Path $repositoryRoot -ChildPath 'scripts/skill-root.ps1'
 $scanScript = Join-Path -Path $repositoryRoot -ChildPath 'scripts/detect-stack.ps1'
+$projectSetupSkill = Join-Path -Path $repositoryRoot -ChildPath 'skills/project_setup/SKILL.md'
+$grillMeReference = Join-Path -Path $repositoryRoot `
+    -ChildPath 'skills/project_setup/references/grill-me.md'
+$projectBriefAsset = Join-Path -Path $repositoryRoot `
+    -ChildPath 'skills/project_setup/assets/PROJECT_BRIEF.md'
+$pluginManifest = Join-Path -Path $repositoryRoot -ChildPath '.claude-plugin/plugin.json'
 $temporaryBase = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $temporaryRoot = Join-Path -Path $temporaryBase -ChildPath (
     'high-quality-projects-skill-test-{0}' -f [Guid]::NewGuid().ToString('N')
@@ -51,6 +57,49 @@ $originalSkillRoot = [Environment]::GetEnvironmentVariable('SKILL_ROOT')
 $originalPluginRoot = [Environment]::GetEnvironmentVariable('CLAUDE_PLUGIN_ROOT')
 
 try {
+    foreach ($requiredFile in @(
+            $projectSetupSkill,
+            $grillMeReference,
+            $projectBriefAsset,
+            $pluginManifest
+        )) {
+        Confirm-Condition -Condition (Test-Path -LiteralPath $requiredFile -PathType Leaf) `
+            -Message "Required package file is missing: $requiredFile"
+    }
+
+    $projectSetupContent = Get-Content -LiteralPath $projectSetupSkill -Raw
+    foreach ($requiredText in @(
+            '## Phase 1 — Grill Me: confirm the project contract',
+            'references/grill-me.md',
+            'assets/PROJECT_BRIEF.md',
+            '### Readiness gate'
+        )) {
+        Confirm-Condition -Condition $projectSetupContent.Contains($requiredText) `
+            -Message "project_setup is missing required discovery contract: $requiredText"
+    }
+
+    $grillMeContent = Get-Content -LiteralPath $grillMeReference -Raw
+    foreach ($requiredHeading in @(
+            '## Why and outcomes',
+            '## Experience, brand, and accessibility',
+            '## Signing and trust',
+            '## Release pipeline and supply chain',
+            '## Operations, support, and retirement'
+        )) {
+        Confirm-Condition -Condition $grillMeContent.Contains($requiredHeading) `
+            -Message "Grill Me guide is missing coverage: $requiredHeading"
+    }
+
+    $projectBriefContent = Get-Content -LiteralPath $projectBriefAsset -Raw
+    Confirm-Condition -Condition $projectBriefContent.Contains('## Decision ledger') `
+        -Message 'PROJECT_BRIEF asset is missing its decision ledger.'
+    Confirm-Condition -Condition $projectBriefContent.Contains('## Readiness confirmation') `
+        -Message 'PROJECT_BRIEF asset is missing its readiness confirmation.'
+
+    $manifest = Get-Content -LiteralPath $pluginManifest -Raw | ConvertFrom-Json
+    Confirm-Equal -Actual $manifest.version -Expected '0.3.0' `
+        -Message 'Plugin manifest version does not match the Grill Me release.'
+
     [Environment]::SetEnvironmentVariable('SKILL_ROOT', $null)
     [Environment]::SetEnvironmentVariable('CLAUDE_PLUGIN_ROOT', $null)
 
@@ -167,7 +216,7 @@ try {
     Confirm-Equal -Actual $scanError.error -Expected 'unreadable path' `
         -Message 'Unreadable path did not return JSON error contract.'
 
-    Write-Output 'PASS: PowerShell root resolution and stack detection'
+    Write-Output 'PASS: package contract, PowerShell root resolution, and stack detection'
 }
 finally {
     [Environment]::SetEnvironmentVariable('SKILL_ROOT', $originalSkillRoot)

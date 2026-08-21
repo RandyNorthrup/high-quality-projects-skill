@@ -1,12 +1,12 @@
 <h1 align="center">High-Quality Projects</h1>
 
 <p align="center">
-  Two vendor-neutral workflows for setting up quality gates in new projects<br>
-  and introducing them safely in existing codebases.
+  Turn new ideas into confirmed, release-ready project contracts<br>
+  and raise existing codebases with evidence-backed quality gates.
 </p>
 
 <p align="center">
-  <a href="https://github.com/RandyNorthrup/high-quality-projects-skill/actions/workflows/cross-platform.yml"><img alt="Cross-platform script checks" src="https://github.com/RandyNorthrup/high-quality-projects-skill/actions/workflows/cross-platform.yml/badge.svg"></a>
+  <a href="https://github.com/RandyNorthrup/high-quality-projects-skill/actions/workflows/cross-platform.yml"><img alt="Cross-platform package checks" src="https://github.com/RandyNorthrup/high-quality-projects-skill/actions/workflows/cross-platform.yml/badge.svg"></a>
   <a href="https://github.com/RandyNorthrup/high-quality-projects-skill/tags"><img alt="Latest Git tag" src="https://img.shields.io/github/v/tag/RandyNorthrup/high-quality-projects-skill?label=version"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
 </p>
@@ -42,7 +42,7 @@ target project is compliant merely because the files were copied.
 
 | New projects | Existing projects | Portable execution |
 |---|---|---|
-| Resolve the stack, verify compatibility, scaffold gates, and write an evidence-based plan. | Establish a baseline, then apply formatting, lint, types, dead-code work, security, and documentation in reviewable phases. | Plain Markdown workflows, native PowerShell on Windows, and Bash on Linux/macOS. |
+| Grill the idea across users, outcomes, scope, experience, signing, distribution, operations, and release; then verify the stack and scaffold gates. | Establish a baseline, then apply formatting, lint, types, dead-code work, security, and documentation in reviewable phases. | Plain Markdown workflows, native PowerShell on Windows, and Bash on Linux/macOS. |
 
 ## Quick start
 
@@ -94,7 +94,7 @@ From Claude Code, add this repository as a marketplace and install its plugin:
 The installed skills are namespaced:
 
 ```text
-/high-quality-projects-skill:project_setup Build a project that ...
+/high-quality-projects-skill:project_setup Grill me on a project that ...
 /high-quality-projects-skill:quality_retrofit
 ```
 
@@ -106,16 +106,21 @@ The installed skills are namespaced:
 empty project. It:
 
 1. scans the workspace and stops rather than overwriting existing choices;
-2. resolves stack-defining questions and records reversible assumptions;
-3. verifies version compatibility using current official sources or registries;
-4. creates project-local quality, security, test, and CI gates appropriate to
+2. runs a focused, multi-round **Grill Me** interview covering the who, why,
+   what, where, when, experience, accessibility, signing, distribution, service
+   model, security, operations, and release pipeline;
+3. writes a decision ledger and requires owner confirmation of
+   `PROJECT_BRIEF.md` before stack selection;
+4. verifies version compatibility using current official sources or registries;
+5. creates project-local quality, security, test, and CI gates appropriate to
    the chosen stack;
-5. writes `README.md`, `CHANGELOG.md`, and `PLAN.md` from what actually exists;
-6. runs every available gate and records anything that could not be verified.
+6. writes `README.md`, `CHANGELOG.md`, and `PLAN.md` from confirmed scope and
+   what actually exists;
+7. runs every available gate and records anything that could not be verified.
 
-The project description is the workflow argument. When required product or
-stack decisions are missing, the workflow batches the questions before making
-those decisions.
+The project description seeds discovery; it does not skip it. Questions arrive
+in focused rounds, with known answers reused and critical unknowns blocking
+irreversible choices instead of becoming silent assumptions.
 
 ### Quality retrofit
 
@@ -221,6 +226,10 @@ require nightly Rust and `-Zbuild-std`. See the
 ## Documentation
 
 - [`AGENTS.md`](AGENTS.md) — shared agent entry point and non-negotiable rules
+- [`skills/project_setup/references/grill-me.md`](skills/project_setup/references/grill-me.md)
+  — complete product, delivery, signing, and operations discovery coverage
+- [`skills/project_setup/assets/PROJECT_BRIEF.md`](skills/project_setup/assets/PROJECT_BRIEF.md)
+  — reusable decision record and readiness confirmation template
 - [`docs/PHILOSOPHY.md`](docs/PHILOSOPHY.md) — why the standards exist and when
   strictness is the wrong choice
 - [`templates/README.md`](templates/README.md) — template locations, commands,

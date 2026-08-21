@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "high-quality-projects-skill",
-  "description": "Production-grade code standards for any coding agent: scaffold new projects or retrofit existing ones with strict quality gates.",
+  "description": "Product discovery and strict quality workflows for coding agents: grill and scaffold new projects or retrofit existing ones.",
   "owner": {
     "name": "Randy Northrup",
     "url": "https://github.com/RandyNorthrup"
@@ -10,7 +10,7 @@
     {
       "name": "high-quality-projects-skill",
       "source": "./",
-      "description": "project_setup scaffolds a new project with strict practical gates. quality_retrofit brings an existing codebase into compliance.",
+      "description": "project_setup grills and confirms a new project's product and delivery contract before scaffolding strict practical gates. quality_retrofit brings an existing codebase into compliance.",
       "category": "productivity"
     }
   ]

@@ -1,4 +1,4 @@
-name: Cross-platform scripts
+name: Cross-platform package checks
 
 "on":
   push:

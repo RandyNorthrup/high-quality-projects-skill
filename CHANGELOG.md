@@ -5,7 +5,28 @@ All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 0.3.0 — 2026-08-20
+
+### Added — Grill Me project discovery
+
+- Added a mandatory, multi-round Grill Me phase to `project_setup`. It resolves
+  users, outcomes, scope, non-goals, brand and color schemes, accessibility,
+  supported environments, signing, distribution, service model, data, security,
+  operations, support, lifecycle, and release-pipeline decisions before stack
+  selection or product code.
+- Added `skills/project_setup/references/grill-me.md`, a comprehensive question
+  bank used as a coverage map. The protocol reuses known answers, asks focused
+  rounds, explains tradeoffs, challenges contradictions, and scales depth to
+  project risk instead of dumping one giant questionnaire.
+- Added a reusable `PROJECT_BRIEF.md` asset with a decision ledger and readiness
+  checklist. Decisions are tracked as confirmed, assumed, open/blocking, or N/A
+  with reason; critical unknowns now stop stack selection rather than becoming
+  silent defaults.
+- Extended UI certification to cover confirmed responsive targets, keyboard and
+  focus behavior, semantics, contrast, zoom/reflow, reduced motion, screen
+  readers, touch targets, color tokens, and required theme modes.
+- Added PowerShell 5.1/7 smoke assertions for the discovery reference, project-
+  brief asset, skill wiring, and manifest version.
 
 ### Changed — README presentation and claim audit
 
