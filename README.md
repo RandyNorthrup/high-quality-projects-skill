@@ -17,7 +17,7 @@ Covers Python, TypeScript, JavaScript, Rust, C++, C#, CSS, HTML, PowerShell, and
 
 Most "quality setup" leaves you with linters that **report findings and exit 0**. CI goes green. The bug ships anyway.
 
-```bash
+```console
 eslint .                    # 47 warnings.  exit 0.  CI passes. ✅❌
 eslint . --max-warnings=0   # 47 warnings.  exit 1.  CI fails.  ✅
 ```
@@ -44,7 +44,7 @@ Both skills wire these by default, and **report any gate they could not run** in
 
 Clone it anywhere and point your agent at it:
 
-```bash
+```console
 git clone https://github.com/RandyNorthrup/high-quality-projects-skill.git
 ```
 
@@ -55,12 +55,24 @@ with no instruction at all — all three are included and point at the same
 source.
 
 To use it against a project without cloning into it, vendor it as a submodule or
-leave it beside the project; the workflows locate their own files with
-`scripts/skill-root.sh` and never assume a working directory.
+leave it beside the project. The workflows locate their own files with
+`scripts/skill-root.ps1` on PowerShell or `scripts/skill-root.sh` on POSIX and
+never assume a working directory.
+
+Windows uses native PowerShell scripts and does not need Bash, WSL, Git Bash,
+or a Linux distribution:
+
+```powershell
+$SkillRoot = & '.\high-quality-projects-skill\scripts\skill-root.ps1'
+& "$SkillRoot\scripts\detect-stack.ps1" . | ConvertFrom-Json
+```
+
+Do not select `bash.exe` merely because Windows reports it on `PATH`: that file
+can be a WSL relay even when no distribution or `/bin/bash` exists.
 
 ### Claude Code
 
-```bash
+```console
 claude plugin marketplace add RandyNorthrup/high-quality-projects-skill
 claude plugin install high-quality-projects-skill@high-quality-projects-skill
 ```
@@ -69,7 +81,7 @@ The name appears twice because the syntax is `plugin@marketplace`, and this repo
 
 **Restart Claude Code.** Skills load at session start, so a freshly installed one is not available until you do.
 
-```bash
+```console
 claude plugin list      # high-quality-projects-skill · enabled
 ```
 
@@ -77,7 +89,11 @@ This registers `/project_setup` and `/quality_retrofit` as slash commands. It is
 
 ### Requirements
 
-`git` and `bash`. `verify-format-safe.py` needs Python 3. Everything else is per-stack and optional — the workflows detect what is installed and declare anything they had to defer rather than skipping it silently.
+`git`, plus PowerShell 5.1 or newer on Windows, or Bash and standard POSIX tools
+on Linux and macOS. Bash is not required on Windows. `verify-format-safe.py`
+needs Python 3. Everything else is per-stack and optional — the workflows
+detect what is installed and declare anything they had to defer rather than
+skipping it silently.
 
 ---
 
@@ -134,6 +150,13 @@ Formatting touches every file and changes no behavior — which makes it simulta
 
 ```bash
 git rev-parse HEAD >> .git-blame-ignore-revs
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
+
+PowerShell equivalent:
+
+```powershell
+git rev-parse HEAD | Add-Content -LiteralPath .git-blame-ignore-revs -Encoding Ascii
 git config blame.ignoreRevsFile .git-blame-ignore-revs
 ```
 

@@ -20,16 +20,24 @@ chat only. A terse status line and a thorough `PLAN.md` are not in tension.
 
 ## Locating this package
 
-Paths below are written `${SKILL_ROOT}/...` — the directory holding this
-package's `scripts/` and `templates/`. Resolve it once, first:
+Paths below use `${SKILL_ROOT}/...` as a placeholder for the directory holding
+this package's `scripts/` and `templates/`. Resolve it once with the active
+shell. On Windows PowerShell:
+
+```powershell
+$SkillRoot = & 'C:\path\to\high-quality-projects-skill\scripts\skill-root.ps1'
+```
+
+On Linux, macOS, or another POSIX environment:
 
 ```bash
 SKILL_ROOT="$(bash /path/to/high-quality-projects-skill/scripts/skill-root.sh)"
 ```
 
-`skill-root.sh` locates itself, so it works from a plain clone, a vendored copy,
-or a submodule with no environment set at all. It honours an exported
-`$SKILL_ROOT`, and `$CLAUDE_PLUGIN_ROOT` when running under Claude Code.
+Both root scripts locate themselves, so they work from a plain clone, a vendored
+copy, or a submodule with no environment set. They honour `SKILL_ROOT`, then
+`CLAUDE_PLUGIN_ROOT` under Claude Code. Do not invoke Windows `bash.exe`: it can
+exist as a WSL relay even when `/bin/bash` does not.
 
 Nothing here is specific to one vendor. If your agent cannot run shell commands,
 read the files directly out of the repository — the templates are plain config
@@ -38,6 +46,12 @@ files and the phases below are plain instructions.
 ## Rule zero: scan before you create
 
 Run this before anything else, even when the directory looks empty:
+
+```powershell
+$Scan = & "$SkillRoot\scripts\detect-stack.ps1" . | ConvertFrom-Json
+```
+
+Or from a POSIX shell:
 
 ```bash
 "${SKILL_ROOT}/scripts/detect-stack.sh" .
@@ -218,6 +232,19 @@ instrumented and you get false negatives without rebuilding it:
 
 ```bash
 RUSTFLAGS="-Zsanitizer=address" cargo +nightly test -Zbuild-std --target x86_64-unknown-linux-gnu
+```
+
+PowerShell equivalent:
+
+```powershell
+$PreviousRustFlags = $env:RUSTFLAGS
+try {
+    $env:RUSTFLAGS = '-Zsanitizer=address'
+    cargo +nightly test -Zbuild-std --target x86_64-unknown-linux-gnu
+}
+finally {
+    $env:RUSTFLAGS = $PreviousRustFlags
+}
 ```
 
 MSan is clang-only and needs an instrumented libc++ to be usable on real C++.

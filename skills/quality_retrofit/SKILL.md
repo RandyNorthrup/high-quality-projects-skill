@@ -19,22 +19,36 @@ risk notes.
 
 ## Locating this package
 
-Paths below are written `${SKILL_ROOT}/...` — the directory holding this
-package's `scripts/` and `templates/`. Resolve it once, first:
+Paths below use `${SKILL_ROOT}/...` as a placeholder for the directory holding
+this package's `scripts/` and `templates/`. Resolve it once with the active
+shell. On Windows PowerShell:
+
+```powershell
+$SkillRoot = & 'C:\path\to\high-quality-projects-skill\scripts\skill-root.ps1'
+```
+
+On Linux, macOS, or another POSIX environment:
 
 ```bash
 SKILL_ROOT="$(bash /path/to/high-quality-projects-skill/scripts/skill-root.sh)"
 ```
 
-`skill-root.sh` locates itself, so it works from a plain clone, a vendored copy,
-or a submodule with no environment set at all. It honours an exported
-`$SKILL_ROOT`, and `$CLAUDE_PLUGIN_ROOT` when running under Claude Code.
+Both root scripts locate themselves, so they work from a plain clone, a vendored
+copy, or a submodule with no environment set. They honour `SKILL_ROOT`, then
+`CLAUDE_PLUGIN_ROOT` under Claude Code. Do not invoke Windows `bash.exe`: it can
+exist as a WSL relay even when `/bin/bash` does not.
 
 Nothing here is specific to one vendor. If your agent cannot run shell commands,
 read the files directly out of the repository — the templates are plain config
 files and the phases below are plain instructions.
 
 ## Rule zero: scan, report, then ask
+
+```powershell
+$Scan = & "$SkillRoot\scripts\detect-stack.ps1" . | ConvertFrom-Json
+```
+
+Or from a POSIX shell:
 
 ```bash
 "${SKILL_ROOT}/scripts/detect-stack.sh" .
@@ -88,7 +102,7 @@ Special cases:
 
 Before the first modification:
 
-```bash
+```console
 git status --porcelain     # must be clean, or stop and ask
 git rev-parse HEAD         # record for rollback
 ```
@@ -140,6 +154,22 @@ done
 git status --porcelain    # must match what it printed before the baseline
 ```
 
+PowerShell equivalent:
+
+```powershell
+$Caches = @('.ruff_cache', '.mypy_cache', '.pytest_cache', '.tox', 'htmlcov')
+$PreExistingCaches = @($Caches | Where-Object { Test-Path -LiteralPath $_ })
+
+# ... run the baseline gates ...
+
+foreach ($Cache in $Caches) {
+    if ((Test-Path -LiteralPath $Cache) -and $Cache -notin $PreExistingCaches) {
+        Remove-Item -LiteralPath $Cache -Recurse -Force
+    }
+}
+git status --porcelain    # must match what it printed before the baseline
+```
+
 A cache that was already there is the user's, regenerable or not, and is not
 yours to delete. Anything still listed afterwards is a gap in `.gitignore` —
 close it in phase 2, do not clean it by hand every phase.
@@ -162,6 +192,16 @@ ruff format target.py
 "${SKILL_ROOT}/scripts/verify-format-safe.py" /tmp/before.py target.py
 ```
 
+PowerShell equivalent; use the interpreter selected by the initial scan:
+
+```powershell
+$BeforeFile = Join-Path ([IO.Path]::GetTempPath()) 'before.py'
+Copy-Item -LiteralPath target.py -Destination $BeforeFile
+ruff format target.py
+$PythonBin = $Scan.python_runtime.bin
+& $PythonBin "$SkillRoot\scripts\verify-format-safe.py" $BeforeFile target.py
+```
+
 Exit 0 means semantically identical. **This tool belongs to phase 1 only** —
 phases 3 onward change the AST on purpose (removing an unused import deletes a
 node), so a difference there is expected, not a failure.
@@ -173,6 +213,14 @@ Then add the commit to `.git-blame-ignore-revs`:
 
 ```bash
 git rev-parse HEAD >> .git-blame-ignore-revs
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
+
+PowerShell equivalent uses explicit ASCII encoding so Windows PowerShell 5.1
+does not create a UTF-16 file:
+
+```powershell
+git rev-parse HEAD | Add-Content -LiteralPath .git-blame-ignore-revs -Encoding Ascii
 git config blame.ignoreRevsFile .git-blame-ignore-revs
 ```
 
@@ -298,6 +346,17 @@ Delete build and environment directories first, or name the files explicitly:
 
 ```bash
 rm -rf .venv .mypy_cache .ruff_cache __pycache__
+# then scope the request: "review only src/foo.py and the diff A..B"
+```
+
+PowerShell equivalent:
+
+```powershell
+foreach ($Directory in @('.venv', '.mypy_cache', '.ruff_cache', '__pycache__')) {
+    if (Test-Path -LiteralPath $Directory) {
+        Remove-Item -LiteralPath $Directory -Recurse -Force
+    }
+}
 # then scope the request: "review only src/foo.py and the diff A..B"
 ```
 

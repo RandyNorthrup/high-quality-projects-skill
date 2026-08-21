@@ -7,12 +7,13 @@ production standards.
 - **Applying standards to existing code** → follow `skills/quality_retrofit/SKILL.md`
 
 Read the whole workflow file before acting on it. Both begin with a mandatory
-read-only scan (`scripts/detect-stack.sh`) that must run before anything is
-created or modified, and both extend existing configuration rather than
-replacing it.
+read-only scan (`scripts/detect-stack.ps1` on PowerShell or
+`scripts/detect-stack.sh` on POSIX) that must run before anything is created or
+modified, and both extend existing configuration rather than replacing it.
 
 Paths inside those files are written `${SKILL_ROOT}/...`, meaning this
-repository's root. Resolve it with `bash scripts/skill-root.sh`.
+repository's root. Resolve it with `& '.\scripts\skill-root.ps1'` on
+PowerShell or `bash scripts/skill-root.sh` on POSIX.
 
 The full contract, including the rules that are most often skipped, is in
 [`AGENTS.md`](../AGENTS.md).

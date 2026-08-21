@@ -10,9 +10,17 @@ standards. Both are plain Markdown and work with any agent.
 - **Existing codebase** → read `skills/quality_retrofit/SKILL.md`
 
 Read the whole file before acting. Both open with a mandatory read-only scan
-(`scripts/detect-stack.sh`) that must run before anything is created or changed.
+(`scripts/detect-stack.ps1` on PowerShell or `scripts/detect-stack.sh` on
+POSIX) that must run before anything is created or changed.
 
-Paths inside those files are written `${SKILL_ROOT}/...`. Resolve with:
+Paths inside those files use `${SKILL_ROOT}/...` as a placeholder. On
+PowerShell, resolve with:
+
+```powershell
+$SkillRoot = & '.\scripts\skill-root.ps1'
+```
+
+On POSIX, resolve with:
 
 ```bash
 SKILL_ROOT="$(bash scripts/skill-root.sh)"

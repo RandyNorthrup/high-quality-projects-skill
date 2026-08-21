@@ -7,6 +7,20 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed — Bash-free Windows execution
+
+- Added native `scripts/skill-root.ps1` and `scripts/detect-stack.ps1`
+  counterparts. Both run on Windows PowerShell 5.1 and PowerShell 7, preserve
+  the existing JSON contract, probe importable Python tools, prune large vendor
+  trees, and exit 0 with JSON for unreadable paths.
+- Updated both workflows and every agent auto-discovery entry point to select
+  scripts by active shell. Windows no longer invokes the `bash.exe` WSL relay,
+  which fails with `execvpe(/bin/bash) failed` when WSL has no installed Linux
+  distribution.
+- Added `tests/cross-platform-smoke.ps1` covering root resolution, environment
+  override precedence, language counts, directory pruning, config detection,
+  and error JSON. Verified under PowerShell 7 and Windows PowerShell 5.1.
+
 ### Changed — the workflows are now vendor-neutral
 
 They were not. The instructions referenced `${CLAUDE_PLUGIN_ROOT}` in six

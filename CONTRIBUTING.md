@@ -11,8 +11,8 @@ skills/
   project_setup/    SKILL.md — new-project scaffolding
   quality_retrofit/ SKILL.md — existing-codebase compliance
 scripts/
-  skill-root.sh     resolves SKILL_ROOT from anywhere, no env needed
-  detect-stack.sh   workspace inventory, emits JSON
+  skill-root.ps1/.sh   resolves SKILL_ROOT from anywhere, no env needed
+  detect-stack.ps1/.sh workspace inventory, emits JSON
   verify-format-safe.py  AST comparison, proves a reformat was neutral
 templates/          strict configs, copied into target projects
 docs/               philosophy and extended reference
@@ -28,11 +28,11 @@ that layout, and because the directory name becomes the slash command. The
 `name:` in each `SKILL.md` frontmatter must match its directory exactly or the
 plugin will not load. This is the one place a vendor constraint shows through.
 
-Paths inside the workflows use `${SKILL_ROOT}`, resolved by
-`scripts/skill-root.sh`, which locates itself. Never reintroduce
-`${CLAUDE_PLUGIN_ROOT}` in a workflow file — it is unset for every other agent,
-so the path silently becomes `/scripts/...` and the command fails or, worse,
-reads the wrong file.
+Paths inside the workflows use `${SKILL_ROOT}` as a placeholder, resolved by the
+native `scripts/skill-root.ps1` or `scripts/skill-root.sh`. Both locate
+themselves. Never reintroduce `${CLAUDE_PLUGIN_ROOT}` as the only path source in
+a workflow file — it is unset for every other agent, so the path silently points
+at the wrong place.
 
 The three auto-discovery files (`AGENTS.md`, `.cursor/rules/`,
 `.github/copilot-instructions.md`) are thin pointers on purpose. Put content in
@@ -68,9 +68,9 @@ code and confirm it still fires. A config that silently stops catching things is
 worse than no config — see the false-green argument in
 [`docs/PHILOSOPHY.md`](docs/PHILOSOPHY.md).
 
-## Editing detect-stack.sh
+## Editing the detect-stack scripts
 
-It must:
+Both implementations must return the same JSON contract. Each must:
 
 - Exit 0 always. A scan that finds nothing is not an error.
 - Emit valid JSON on stdout, unconditionally. Both skills parse it.
@@ -83,10 +83,20 @@ Test with:
 ./scripts/detect-stack.sh . | jq -e . >/dev/null && echo ok
 ```
 
+```powershell
+& .\scripts\detect-stack.ps1 . | ConvertFrom-Json | Out-Null
+& .\tests\cross-platform-smoke.ps1
+```
+
+Run the smoke test in both PowerShell 7 and Windows PowerShell 5.1 before
+changing the PowerShell scripts. It covers self-location, environment override
+precedence, source counts, pruned directories, config detection, and the
+unreadable-path JSON contract.
+
 ## Testing changes locally
 
-```bash
-claude plugin marketplace add ~/path/to/high-quality-projects-skill
+```console
+claude plugin marketplace add /absolute/path/to/high-quality-projects-skill
 claude plugin install high-quality-projects-skill@high-quality-projects-skill
 # restart Claude Code — skills load at session start
 claude plugin list
@@ -112,4 +122,5 @@ actually happened — never list planned work as done.
 ## Reporting a bug
 
 Include: the skill invoked, what it did, what you expected, and the output of
-`./scripts/detect-stack.sh` in the affected workspace.
+`scripts/detect-stack.ps1` on PowerShell or `scripts/detect-stack.sh` on POSIX
+in the affected workspace.
