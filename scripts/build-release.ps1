@@ -133,12 +133,21 @@ $archivePrefix = "$packageBase/"
 $zipPath = Join-Path -Path $resolvedOutput -ChildPath "$packageBase.zip"
 $tarPath = Join-Path -Path $resolvedOutput -ChildPath "$packageBase.tar.gz"
 
-Invoke-Git -ArgumentList @(
-    'archive', '--format=zip', "--prefix=$archivePrefix", "--output=$zipPath", 'HEAD'
-) | Out-Null
-Invoke-Git -ArgumentList @(
-    'archive', '--format=tar.gz', "--prefix=$archivePrefix", "--output=$tarPath", 'HEAD'
-) | Out-Null
+$originalGitTimezone = [Environment]::GetEnvironmentVariable('TZ', 'Process')
+try {
+    # Git writes ZIP timestamps in the active timezone. Pin UTC so identical
+    # tagged source produces byte-identical archives on every supported host.
+    [Environment]::SetEnvironmentVariable('TZ', 'UTC', 'Process')
+    Invoke-Git -ArgumentList @(
+        'archive', '--format=zip', "--prefix=$archivePrefix", "--output=$zipPath", 'HEAD'
+    ) | Out-Null
+    Invoke-Git -ArgumentList @(
+        'archive', '--format=tar.gz', "--prefix=$archivePrefix", "--output=$tarPath", 'HEAD'
+    ) | Out-Null
+}
+finally {
+    [Environment]::SetEnvironmentVariable('TZ', $originalGitTimezone, 'Process')
+}
 
 foreach ($archivePath in @($zipPath, $tarPath)) {
     if (-not (Test-Path -LiteralPath $archivePath -PathType Leaf)) {

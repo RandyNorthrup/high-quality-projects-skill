@@ -27,9 +27,19 @@ $distRoot = [IO.Path]::GetFullPath((Join-Path -Path $repositoryRoot -ChildPath '
 $temporaryRoot = Join-Path -Path $distRoot -ChildPath (
     'release-package-test-{0}' -f [Guid]::NewGuid().ToString('N')
 )
+$comparisonRoot = "${temporaryRoot}-comparison"
+$originalTimezone = [Environment]::GetEnvironmentVariable('TZ', 'Process')
 
 try {
+    [Environment]::SetEnvironmentVariable('TZ', 'America/Los_Angeles', 'Process')
     & $builder -OutputDirectory $temporaryRoot -Version $manifest.version | Out-Null
+    Confirm-Condition -Condition ($env:TZ -eq 'America/Los_Angeles') `
+        -Message 'Release builder did not restore the caller timezone.'
+
+    [Environment]::SetEnvironmentVariable('TZ', 'Asia/Tokyo', 'Process')
+    & $builder -OutputDirectory $comparisonRoot -Version $manifest.version | Out-Null
+    Confirm-Condition -Condition ($env:TZ -eq 'Asia/Tokyo') `
+        -Message 'Release builder did not restore the comparison timezone.'
 
     $expectedNames = @(
         "$packageBase.zip",
@@ -42,6 +52,14 @@ try {
         $expectedPath = Join-Path -Path $temporaryRoot -ChildPath $expectedName
         Confirm-Condition -Condition (Test-Path -LiteralPath $expectedPath -PathType Leaf) `
             -Message "Release output is missing: $expectedName"
+
+        $comparisonPath = Join-Path -Path $comparisonRoot -ChildPath $expectedName
+        Confirm-Condition -Condition (Test-Path -LiteralPath $comparisonPath -PathType Leaf) `
+            -Message "Comparison output is missing: $expectedName"
+        $primaryHash = (Get-FileHash -LiteralPath $expectedPath -Algorithm SHA256).Hash
+        $comparisonHash = (Get-FileHash -LiteralPath $comparisonPath -Algorithm SHA256).Hash
+        Confirm-Condition -Condition ($primaryHash -eq $comparisonHash) `
+            -Message "Release output changes with ambient timezone: $expectedName"
     }
 
     $releaseManifestPath = Join-Path -Path $temporaryRoot -ChildPath 'release-manifest.json'
@@ -108,12 +126,15 @@ try {
     Write-Output 'PASS: versioned release archives, manifest, notes, and checksums'
 }
 finally {
-    $resolvedTemporaryRoot = [IO.Path]::GetFullPath($temporaryRoot)
+    [Environment]::SetEnvironmentVariable('TZ', $originalTimezone, 'Process')
     $safePrefix = $distRoot.TrimEnd(
         [IO.Path]::DirectorySeparatorChar,
         [IO.Path]::AltDirectorySeparatorChar
     ) + [IO.Path]::DirectorySeparatorChar
-    if ($resolvedTemporaryRoot.StartsWith($safePrefix, [StringComparison]::OrdinalIgnoreCase)) {
-        Remove-Item -LiteralPath $resolvedTemporaryRoot -Recurse -Force -ErrorAction SilentlyContinue
+    foreach ($testRoot in @($temporaryRoot, $comparisonRoot)) {
+        $resolvedTestRoot = [IO.Path]::GetFullPath($testRoot)
+        if ($resolvedTestRoot.StartsWith($safePrefix, [StringComparison]::OrdinalIgnoreCase)) {
+            Remove-Item -LiteralPath $resolvedTestRoot -Recurse -Force -ErrorAction SilentlyContinue
+        }
     }
 }

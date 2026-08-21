@@ -105,8 +105,9 @@ both POSIX runners.
 
 The release-package smoke test requires a clean committed tree because it
 archives `HEAD`, not uncommitted files. Run it after the release commit. It
-builds into ignored `dist/`, checks versioned archive roots, verifies every
-SHA-256 entry, and removes its test output.
+builds into ignored `dist/` under conflicting ambient time zones, requires
+byte-identical output, checks versioned archive roots, verifies every SHA-256
+entry, and removes its test output.
 
 ## Testing changes locally
 

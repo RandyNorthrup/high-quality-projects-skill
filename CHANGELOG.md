@@ -5,6 +5,16 @@ All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Fixed — cross-host release reproducibility
+
+- The release builder now pins Git archive timestamp handling to UTC and
+  restores the caller's original `TZ` value, making all five generated release
+  files byte-identical across supported host time zones for the same commit.
+- The release-package smoke test now builds under conflicting Pacific and Asia
+  time zones and fails if any archive or metadata file changes.
+
 ## 0.4.0 — 2026-08-20
 
 ### Added — release automation and verified installs
