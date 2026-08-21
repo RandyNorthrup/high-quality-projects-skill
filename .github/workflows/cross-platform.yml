@@ -1,0 +1,68 @@
+name: Cross-platform scripts
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  powershell:
+    name: PowerShell (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-latest
+          - ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Run PowerShell smoke tests
+        shell: pwsh
+        run: ./tests/cross-platform-smoke.ps1
+
+  windows-powershell:
+    name: Windows PowerShell 5.1
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Run Windows PowerShell smoke tests
+        shell: powershell
+        run: .\tests\cross-platform-smoke.ps1
+
+  posix:
+    name: Bash and PowerShell parity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Compare native scanner results
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(bash scripts/skill-root.sh)" = "$GITHUB_WORKSPACE"
+
+          scratch="$(mktemp -d)"
+          trap 'rm -rf "$scratch"' EXIT
+          bash scripts/detect-stack.sh . > "$scratch/bash.json"
+          pwsh -NoLogo -NoProfile -File scripts/detect-stack.ps1 . > "$scratch/powershell.json"
+
+          python - "$scratch/bash.json" "$scratch/powershell.json" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as bash_file:
+              bash_scan = json.load(bash_file)
+          with open(sys.argv[2], encoding="utf-8-sig") as powershell_file:
+              powershell_scan = json.load(powershell_file)
+
+          for section in ("languages", "existing_config"):
+              if bash_scan[section] != powershell_scan[section]:
+                  raise SystemExit(f"scanner mismatch in {section}")
+          PY

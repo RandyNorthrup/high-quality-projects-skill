@@ -20,6 +20,9 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Added `tests/cross-platform-smoke.ps1` covering root resolution, environment
   override precedence, language counts, directory pruning, config detection,
   and error JSON. Verified under PowerShell 7 and Windows PowerShell 5.1.
+- Added Windows/Linux GitHub Actions coverage for PowerShell 7, Windows
+  PowerShell 5.1, the existing Bash scripts, and Bash/PowerShell inventory
+  parity.
 
 ### Changed — the workflows are now vendor-neutral
 

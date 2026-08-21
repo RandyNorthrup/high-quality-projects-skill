@@ -6,6 +6,7 @@
 AGENTS.md                     universal entry point — any agent starts here
 .cursor/rules/                Cursor auto-discovery, points at AGENTS.md
 .github/copilot-instructions.md  Copilot auto-discovery, same
+.github/workflows/cross-platform.yml  Windows/Linux script regression tests
 .claude-plugin/               Claude Code manifests — packaging only
 skills/
   project_setup/    SKILL.md — new-project scaffolding
@@ -91,7 +92,8 @@ Test with:
 Run the smoke test in both PowerShell 7 and Windows PowerShell 5.1 before
 changing the PowerShell scripts. It covers self-location, environment override
 precedence, source counts, pruned directories, config detection, and the
-unreadable-path JSON contract.
+unreadable-path JSON contract. GitHub Actions repeats those checks on Windows
+and Linux, then compares the Bash and PowerShell scanner inventories on Linux.
 
 ## Testing changes locally
 
