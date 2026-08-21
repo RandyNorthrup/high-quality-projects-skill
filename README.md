@@ -30,7 +30,8 @@ fails CI on findings, or works with the rest of the toolchain. These workflows
 make those details explicit:
 
 - inventory the project before writing anything;
-- extend existing configuration instead of replacing it;
+- reuse or extend existing code, components, assets, documentation, and
+  configuration instead of creating parallel replacements;
 - confirm important gates can fail on a deliberate test case;
 - separate mechanical work from judgment-heavy changes;
 - report every gate as **pass**, **fail**, or **deferred**, with evidence.
@@ -105,10 +106,11 @@ The installed skills are namespaced:
 [`project_setup`](skills/project_setup/SKILL.md) is for a new or effectively
 empty project. It:
 
-1. scans the workspace and stops rather than overwriting existing choices;
+1. scans code, configuration, documentation, and brand assets, then reuses or
+   extends canonical work instead of creating duplicates;
 2. runs a focused, multi-round **Grill Me** interview covering the who, why,
-   what, where, when, experience, accessibility, signing, distribution, service
-   model, security, operations, and release pipeline;
+   what, where, when, logos, icons, favicons, colors, accessibility, signing,
+   distribution, service model, security, operations, and release pipeline;
 3. writes a decision ledger and requires owner confirmation of
    `PROJECT_BRIEF.md` before stack selection;
 4. verifies version compatibility using current official sources or registries;

@@ -43,6 +43,11 @@
 
 - Product name and brand voice:
 - Design references and prohibited directions:
+- Existing brand guidelines, editable logos/wordmarks, logo variants, app icons,
+  favicons, social/OG images, store artwork, illustrations, fonts, templates,
+  and design-system files; include path/link, format, owner/license, approved
+  use, and authoritative original:
+- Missing brand assets and creation/approval owner:
 - Color tokens; light, dark, and high-contrast behavior:
 - Typography, icons, density, and navigation model:
 - Accessibility target and required evidence:
@@ -80,6 +85,10 @@
 ## Architecture and dependencies
 
 - Architectural constraints and selected style:
+- Existing code, components, utilities, types, schemas, tests, configuration,
+  documentation, infrastructure, and assets to reuse or extend:
+- Approved new implementations and why existing work cannot satisfy the
+  confirmed contract:
 - Public APIs, schemas, events, file formats, and versioning promises:
 - Required integrations, quotas, sandboxes, and failure behavior:
 - Expected and upper-bound scale:
@@ -135,7 +144,12 @@
 - [ ] Primary user, problem, first release, success measures, and non-goals are
       confirmed.
 - [ ] Critical journeys and supported environments are confirmed.
-- [ ] UI brand, accessibility, and responsive targets are confirmed or N/A.
+- [ ] Existing branding items and authoritative originals are inventoried;
+      missing assets, accessibility, and responsive targets are confirmed or
+      N/A.
+- [ ] Existing code, components, configuration, documentation, and assets have
+      been scanned; reuse/extension decisions and justified new work are
+      recorded.
 - [ ] Service, distribution, signing, and update models are confirmed or N/A.
 - [ ] Data, authentication, security, privacy, and compliance boundaries are
       confirmed or assigned to qualified review.

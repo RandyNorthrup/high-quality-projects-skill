@@ -5,6 +5,21 @@ All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.3.1 — 2026-08-20
+
+### Added — brand inventory and reuse-first setup
+
+- Expanded Grill Me branding discovery to explicitly inventory editable logos
+  and wordmarks, logo variants, app icons, favicons, social/OG images, store
+  artwork, illustrations, fonts, templates, color tokens, and design-system
+  files, including authoritative originals, ownership, licensing, and approval.
+- Made **scan -> reuse or extend -> create only when needed** a required project
+  rule for code, components, utilities, types, schemas, tests, configuration,
+  documentation, infrastructure, and assets. Generated agent guidelines must
+  carry the same rule and reject renamed or parallel duplicates.
+- Extended `PROJECT_BRIEF.md` with brand-asset and reuse-decision inventories,
+  and added PowerShell 5.1/7 regression assertions for both contracts.
+
 ## 0.3.0 — 2026-08-20
 
 ### Added — Grill Me project discovery

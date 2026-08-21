@@ -78,6 +78,9 @@ not a script to recite.
 - What must work offline, under degraded connectivity, or without an account?
 - Which existing behavior, file formats, APIs, or compatibility promises must
   remain stable?
+- Which existing repositories, modules, components, utilities, schemas, tests,
+  configuration, documentation, and assets can be reused or extended? Which are
+  authoritative, generated, deprecated, or off-limits?
 - What migration path is needed from the current process or product?
 
 ## Where and supported environments
@@ -111,8 +114,14 @@ not a script to recite.
 
 - What product name, brand voice, emotional tone, and trust level should the
   experience communicate?
-- Are there existing brand guidelines, logos, fonts, icon systems, screenshots,
-  competitors, or reference products to follow or avoid?
+- Which existing branding items are available: brand guidelines, editable logo
+  or wordmark source files, logo variants, app icons, favicons, social/OG images,
+  store artwork, illustrations, fonts, color tokens, design-system files,
+  screenshots, or templates? Record paths or links, formats, owners, licenses,
+  approved variants, and which original is authoritative.
+- Which branding assets are missing, and who may create or approve them? Never
+  redraw, trace, recolor, or replace an existing asset without permission.
+- Which competitors or reference products should the design follow or avoid?
 - Which color schemes are required? Capture exact tokens or hex values when
   known, plus light, dark, high-contrast, and system-theme behavior.
 - What information hierarchy, navigation model, density, and interaction style

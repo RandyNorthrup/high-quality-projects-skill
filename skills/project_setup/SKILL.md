@@ -1,6 +1,6 @@
 ---
 name: project_setup
-description: Scaffold a new project from product discovery through production-oriented quality gates. Runs a multi-round Grill Me interview covering users, outcomes, scope, brand and color schemes, accessibility, platforms, signing, distribution, service model, data, security, operations, and release pipeline before stack selection. Verifies dependency compatibility against official sources, creates a confirmed PROJECT_BRIEF, README, CHANGELOG, and PLAN, and configures strict practical linting, type checking, dead-code detection, security scanning, tests, and CI. Use when starting a new project, bootstrapping a repo, asking to be grilled on a project idea, or when the user says "set up a project", "new project", "scaffold", or invokes the project_setup skill. Takes a project description as its argument. For an existing codebase that needs standards applied, use quality_retrofit instead.
+description: Scaffold a new project from product discovery through production-oriented quality gates. Runs a multi-round Grill Me interview covering users, outcomes, scope, brand assets and colors, accessibility, platforms, signing, distribution, service model, data, security, operations, and release pipeline before stack selection. Scans first and reuses or extends existing code, assets, and configuration instead of creating parallel duplicates. Creates a confirmed PROJECT_BRIEF, README, CHANGELOG, and PLAN, then configures strict practical linting, type checking, dead-code detection, security scanning, tests, and CI. Use when starting a new project, bootstrapping a repo, asking to be grilled on a project idea, or when the user says "set up a project", "new project", "scaffold", or invokes the project_setup skill. For an existing codebase that needs standards applied, use quality_retrofit instead.
 ---
 
 # Project setup — discovery before commit one
@@ -44,7 +44,7 @@ Nothing here is specific to one vendor. If your agent cannot run shell commands,
 read the files directly out of the repository — the templates are plain config
 files and the phases below are plain instructions.
 
-## Rule zero: scan before you create
+## Rule zero: scan, reuse, then create
 
 Run this before anything else, even when the directory looks empty:
 
@@ -59,12 +59,17 @@ Or from a POSIX shell:
 ```
 
 It returns JSON: languages present, config files that already exist, tools
-installed on this machine. Then:
+installed on this machine. Supplement it with a read-only search for existing
+code, components, types, schemas, tests, documentation, design-system files,
+brand assets, infrastructure, and generated-code boundaries. Then:
 
 - **The JSON contains `error`** → stop. Report the scan failure and do not
   create or overwrite anything.
 - **A config file already exists** → read it, extend it, preserve its choices.
   Never overwrite a config you did not write in this session.
+- **Reusable assets or project material already exist** → inventory their paths,
+  formats, owners, licenses, and consumers. Preserve authoritative originals;
+  adapt or derive from them instead of drawing replacements or parallel copies.
 - **Source files already exist** → this is not a new project. Say so and offer
   the `quality_retrofit` workflow instead.
 - **A tool is not installed** → do not silently skip its gate. Either install
@@ -75,8 +80,15 @@ installed on this machine. Then:
   `<python_runtime.bin> -m <module>`. Do not treat it as missing and do not
   install a second copy.
 
-Creating a file that already exists, with different content, is the single
-worst failure mode of this skill.
+Before creating any implementation or guideline, search by path, symbol,
+behavior, and responsibility. Extend the canonical implementation when one
+exists. If replacement is justified, record the reason and migration plan,
+update every consumer, prove behavior, and remove the superseded path only when
+safe. Do not create a second helper, component, model, config, asset, or document
+that performs the same role under a different name.
+
+Creating a conflicting file or parallel implementation is the single worst
+failure mode of this skill.
 
 ## Phase 1 — Grill Me: confirm the project contract
 
@@ -114,7 +126,8 @@ Do not select the stack or begin implementation until the brief establishes:
 - primary users, problem, desired outcome, success measures, and non-goals;
 - first-release journeys and explicit scope boundaries;
 - product shape, supported environments, and service/tenant/offline model;
-- brand, color schemes, responsive targets, and accessibility evidence for UI;
+- existing brand assets, color schemes, responsive targets, and accessibility
+  evidence for UI;
 - data classes, authentication, trust boundaries, privacy, and review needs;
 - distribution, installation, updates, signing, and store/notarization needs;
 - release environments, CI gates, artifact handling, promotion, and rollback;
@@ -317,6 +330,18 @@ without a script runner (C++, C#), put the same commands in a `Makefile`,
 Enforce throughout. These are the rules the generated agent-instruction files
 must also carry.
 
+**Reuse before creation**
+- Search existing code, types, components, utilities, tests, config, docs, and
+  assets before adding anything.
+- Prefer enhancing the canonical implementation over wrappers, forks, copied
+  helpers, alternate configs, or renamed duplicates.
+- Add a new implementation only when existing work cannot satisfy the confirmed
+  contract. Record why reuse is unsafe or insufficient and how overlap is
+  prevented.
+- When replacing something, migrate consumers and tests; do not leave two active
+  paths unless the brief explicitly requires a compatibility period with an
+  owner and removal date.
+
 **Constants and literals**
 - No unexplained magic numbers, strings, booleans, or timeout values.
 - Use named constants, typed constants, enums, literal unions, config objects,
@@ -407,6 +432,9 @@ Create project-local files for the active tooling: `AGENTS.md`, `CLAUDE.md`,
 They must reinforce: code standards, quality gates, documentation rules,
 testing rules, security rules, changelog discipline, planning discipline, and
 the requirement to update `PROJECT_BRIEF.md` when the product contract changes.
+They must also require the sequence **scan -> reuse or extend -> create only when
+needed**, with explicit checks against duplicate code, components, types,
+configuration, documentation, and assets.
 
 **Never create or modify global user memory, global IDE settings, or
 machine-wide agent instructions without explicit approval.** Project-local only.

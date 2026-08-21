@@ -1,8 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "high-quality-projects-skill",
-  "version": "0.3.0",
-  "description": "Production-oriented project discovery and code standards for any coding agent. project_setup runs a multi-round Grill Me interview, confirms users, scope, brand, signing, distribution, service, security, operations and release decisions, then scaffolds strict quality gates. quality_retrofit brings existing codebases into compliance in reviewable phases. Both scan before writing and preserve existing config. The workflows are vendor-neutral Markdown; this manifest is Claude Code packaging only.",
+  "version": "0.3.1",
+  "description": "Production-oriented project discovery and code standards for any coding agent. project_setup runs a multi-round Grill Me interview, inventories branding and existing project material, confirms product and delivery decisions, then reuses or extends canonical work before scaffolding strict quality gates. quality_retrofit brings existing codebases into compliance in reviewable phases. Both scan before writing and prevent parallel config or implementation. The workflows are vendor-neutral Markdown; this manifest is Claude Code packaging only.",
   "author": {
     "name": "Randy Northrup",
     "url": "https://github.com/RandyNorthrup"

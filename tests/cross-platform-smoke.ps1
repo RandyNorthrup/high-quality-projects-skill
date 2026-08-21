@@ -69,10 +69,13 @@ try {
 
     $projectSetupContent = Get-Content -LiteralPath $projectSetupSkill -Raw
     foreach ($requiredText in @(
+            '## Rule zero: scan, reuse, then create',
             '## Phase 1 — Grill Me: confirm the project contract',
             'references/grill-me.md',
             'assets/PROJECT_BRIEF.md',
-            '### Readiness gate'
+            '### Readiness gate',
+            '**Reuse before creation**',
+            'scan -> reuse or extend -> create only when'
         )) {
         Confirm-Condition -Condition $projectSetupContent.Contains($requiredText) `
             -Message "project_setup is missing required discovery contract: $requiredText"
@@ -89,16 +92,30 @@ try {
         Confirm-Condition -Condition $grillMeContent.Contains($requiredHeading) `
             -Message "Grill Me guide is missing coverage: $requiredHeading"
     }
+    foreach ($requiredBrandingText in @(
+            'editable logo',
+            'app icons',
+            'favicons',
+            'social/OG images',
+            'which original is authoritative'
+        )) {
+        Confirm-Condition -Condition $grillMeContent.Contains($requiredBrandingText) `
+            -Message "Grill Me guide is missing branding inventory: $requiredBrandingText"
+    }
 
     $projectBriefContent = Get-Content -LiteralPath $projectBriefAsset -Raw
     Confirm-Condition -Condition $projectBriefContent.Contains('## Decision ledger') `
         -Message 'PROJECT_BRIEF asset is missing its decision ledger.'
     Confirm-Condition -Condition $projectBriefContent.Contains('## Readiness confirmation') `
         -Message 'PROJECT_BRIEF asset is missing its readiness confirmation.'
+    Confirm-Condition -Condition $projectBriefContent.Contains('Existing branding items') `
+        -Message 'PROJECT_BRIEF asset is missing its branding inventory.'
+    Confirm-Condition -Condition $projectBriefContent.Contains('to reuse or extend') `
+        -Message 'PROJECT_BRIEF asset is missing its reuse decision record.'
 
     $manifest = Get-Content -LiteralPath $pluginManifest -Raw | ConvertFrom-Json
-    Confirm-Equal -Actual $manifest.version -Expected '0.3.0' `
-        -Message 'Plugin manifest version does not match the Grill Me release.'
+    Confirm-Equal -Actual $manifest.version -Expected '0.3.1' `
+        -Message 'Plugin manifest version does not match the reuse-first release.'
 
     [Environment]::SetEnvironmentVariable('SKILL_ROOT', $null)
     [Environment]::SetEnvironmentVariable('CLAUDE_PLUGIN_ROOT', $null)

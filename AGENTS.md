@@ -66,9 +66,12 @@ docs/PHILOSOPHY.md                why the gates are set the way they are
 These are the rules the workflows themselves enforce. An agent following them
 should not need reminding, but they are the ones most often skipped:
 
-- **Scan before creating.** Both workflows open with the native
+- **Scan, reuse, then create.** Both workflows open with the native
   `detect-stack.ps1` or `detect-stack.sh`. Never overwrite a config file you did
-  not write in this session — read it and extend it.
+  not write in this session — read it and extend it. Search existing code,
+  components, types, tests, docs, and assets before adding another
+  implementation. Enhance canonical work; do not create renamed or parallel
+  duplicates.
 - **A gate is not configured until it has been seen to fail.** Break something
   on purpose, confirm a non-zero exit, revert. Several tools in this package's
   history loaded cleanly and checked nothing.
