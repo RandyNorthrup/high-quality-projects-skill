@@ -13,7 +13,9 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   restores the caller's original `TZ` value, making all five generated release
   files byte-identical across supported host time zones for the same commit.
 - The release-package smoke test now builds under conflicting Pacific and Asia
-  time zones and fails if any archive or metadata file changes.
+  time zones, fails if any archive or metadata file changes, and derives its
+  expected release notes from the manifest-matched changelog section instead
+  of stale version-specific text.
 
 ## 0.4.0 — 2026-08-20
 

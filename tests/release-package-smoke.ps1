@@ -20,6 +20,7 @@ function Confirm-Condition {
 $repositoryRoot = [IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath '..'))
 $builder = Join-Path -Path $repositoryRoot -ChildPath 'scripts/build-release.ps1'
 $manifestPath = Join-Path -Path $repositoryRoot -ChildPath '.claude-plugin/plugin.json'
+$changelogPath = Join-Path -Path $repositoryRoot -ChildPath 'CHANGELOG.md'
 $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
 $tag = 'v{0}' -f $manifest.version
 $packageBase = 'high-quality-projects-skill-{0}' -f $tag
@@ -120,8 +121,33 @@ try {
     $releaseNotes = Get-Content -LiteralPath (
         Join-Path -Path $temporaryRoot -ChildPath 'RELEASE_NOTES.md'
     ) -Raw
-    Confirm-Condition -Condition ($releaseNotes -match 'Release automation') `
-        -Message 'Release notes were not extracted from the current changelog entry.'
+    $changelogLines = @(Get-Content -LiteralPath $changelogPath)
+    $versionHeading = '^##\s+' + [regex]::Escape([string]$manifest.version) + '(?:\s|$)'
+    $notesStart = -1
+    for ($index = 0; $index -lt $changelogLines.Count; $index++) {
+        if ($changelogLines[$index] -match $versionHeading) {
+            $notesStart = $index
+            break
+        }
+    }
+    Confirm-Condition -Condition ($notesStart -ge 0) `
+        -Message 'Current manifest version is missing from CHANGELOG.md.'
+
+    $notesEnd = $changelogLines.Count
+    for ($index = $notesStart + 1; $index -lt $changelogLines.Count; $index++) {
+        if ($changelogLines[$index] -match '^##\s+') {
+            $notesEnd = $index
+            break
+        }
+    }
+    $expectedReleaseNotes = (
+        $changelogLines[($notesStart + 1)..($notesEnd - 1)] -join "`n"
+    ).Trim()
+    $actualReleaseNotes = $releaseNotes.Replace("`r`n", "`n").Trim()
+    Confirm-Condition -Condition $actualReleaseNotes.Equals(
+        $expectedReleaseNotes,
+        [StringComparison]::Ordinal
+    ) -Message 'Release notes do not exactly match the current changelog entry.'
 
     Write-Output 'PASS: versioned release archives, manifest, notes, and checksums'
 }
