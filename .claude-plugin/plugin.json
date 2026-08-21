@@ -1,8 +1,8 @@
 {
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "high-quality-projects-skill",
-  "version": "0.1.0",
-  "description": "Production-grade code standards for any coding agent. /project_setup scaffolds new projects with strict linting, type checking, dead-code detection and sanitizers. /quality_retrofit brings existing codebases into compliance in reviewable phases. Both scan before writing and extend existing config rather than replacing it. The workflows are vendor-neutral Markdown; this manifest is packaging for Claude Code only.",
+  "version": "0.2.0",
+  "description": "Production-grade code standards for any coding agent. The project_setup skill scaffolds new projects with strict linting, type checking, dead-code detection and sanitizers. The quality_retrofit skill brings existing codebases into compliance in reviewable phases. Both scan before writing and extend existing config rather than replacing it. The workflows are vendor-neutral Markdown; this manifest is packaging for Claude Code only.",
   "author": {
     "name": "Randy Northrup",
     "url": "https://github.com/RandyNorthrup"

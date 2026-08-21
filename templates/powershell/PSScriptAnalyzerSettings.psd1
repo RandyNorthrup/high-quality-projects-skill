@@ -9,7 +9,7 @@
 @{
     # Every built-in rule, including the ones off by default.
     IncludeDefaultRules = $true
-    Severity            = @('Error', 'Warning', 'Information')
+    Severity = @('Error', 'Warning', 'Information')
 
     ExcludeRules = @(
         # Fires on any function named Get-/Set-/New- that lacks ShouldProcess
@@ -24,40 +24,45 @@
 
     Rules = @{
         PSPlaceOpenBrace = @{
-            Enable             = $true
-            OnSameLine         = $true
-            NewLineAfter       = $true
+            Enable = $true
+            OnSameLine = $true
+            NewLineAfter = $true
             IgnoreOneLineBlock = $true
         }
         PSPlaceCloseBrace = @{
-            Enable             = $true
-            NewLineAfter       = $true
+            Enable = $true
+            NewLineAfter = $true
             IgnoreOneLineBlock = $true
-            NoEmptyLineBefore  = $false
+            NoEmptyLineBefore = $false
         }
         PSUseConsistentIndentation = @{
-            Enable              = $true
-            Kind                = 'space'
-            IndentationSize     = 4
+            Enable = $true
+            Kind = 'space'
+            IndentationSize = 4
             PipelineIndentation = 'IncreaseIndentationForFirstPipeline'
         }
         PSUseConsistentWhitespace = @{
-            Enable          = $true
+            Enable = $true
             CheckInnerBrace = $true
-            CheckOpenBrace  = $true
-            CheckOpenParen  = $true
-            CheckOperator   = $true
-            CheckPipe       = $true
-            CheckSeparator  = $true
+            CheckOpenBrace = $true
+            CheckOpenParen = $true
+            CheckOperator = $true
+            CheckPipe = $true
+            CheckSeparator = $true
         }
-        PSAlignAssignmentStatement = @{
-            Enable         = $true
-            CheckHashtable = $true
-        }
-        # Full cmdlet names only — no `ls`, `%`, `?` in committed scripts.
+        # Alignment pads assignments with extra spaces, which directly
+        # conflicts with PSUseConsistentWhitespace.CheckOperator.
+        PSAlignAssignmentStatement = @{ Enable = $false }
+        # Full cmdlet names only -- no `ls`, `%`, `?` in committed scripts.
         PSAvoidUsingCmdletAliases = @{ Enable = $true }
-        PSUseCorrectCasing        = @{ Enable = $true }
-        # Catches typos against the real cmdlet surface for these versions.
-        PSUseCompatibleCmdlets    = @{ Compatibility = @('core-7.4.0-linux', 'core-7.4.0-windows') }
+        PSUseCorrectCasing = @{ Enable = $true }
+        # Catches typos against the real cmdlet surface for supported hosts.
+        PSUseCompatibleCmdlets = @{
+            Compatibility = @(
+                'desktop-5.1.14393.206-windows',
+                'core-7.4.0-linux',
+                'core-7.4.0-windows'
+            )
+        }
     }
 }

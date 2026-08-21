@@ -27,6 +27,15 @@ count_ext() {
 has_file() { [ -e "$1" ] && echo true || echo false; }
 has_tool() { command -v "$1" >/dev/null 2>&1 && echo true || echo false; }
 
+is_repo=$(has_file .git)
+if [ "$is_repo" = true ]; then
+    has_remote=$(git remote 2>/dev/null | grep -q . && echo true || echo false)
+    tracked_files=$(git ls-files 2>/dev/null | wc -l)
+else
+    has_remote=false
+    tracked_files=0
+fi
+
 # ── Python tools: PATH is not the whole story ───────────────────────────
 # A Python tool installed into an unactivated venv, or on Windows where the
 # console scripts directory is frequently absent from PATH, is fully usable via
@@ -114,9 +123,9 @@ cat <<JSON
 {
   "root": "$(pwd)",
   "git": {
-    "is_repo": $(has_file .git),
-    "has_remote": $(git remote 2>/dev/null | grep -q . && echo true || echo false),
-    "tracked_files": $(git ls-files 2>/dev/null | wc -l)
+    "is_repo": $is_repo,
+    "has_remote": $has_remote,
+    "tracked_files": $tracked_files
   },
   "languages": {
     "python": $py,

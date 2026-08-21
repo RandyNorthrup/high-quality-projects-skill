@@ -1,6 +1,6 @@
 name: Cross-platform scripts
 
-on:
+"on":
   push:
     branches:
       - main
@@ -62,7 +62,13 @@ jobs:
           with open(sys.argv[2], encoding="utf-8-sig") as powershell_file:
               powershell_scan = json.load(powershell_file)
 
-          for section in ("languages", "existing_config"):
+          for section in (
+              "git",
+              "languages",
+              "existing_config",
+              "tools_installed",
+              "python_runtime",
+          ):
               if bash_scan[section] != powershell_scan[section]:
                   raise SystemExit(f"scanner mismatch in {section}")
           PY

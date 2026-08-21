@@ -5,11 +5,11 @@ after the repo exists, or paste into the repo settings page.
 
 ## Description
 
-GitHub truncates around 350 characters and indexes this text for search, so it
-leads with the searchable nouns rather than a tagline.
+Keep the description concise and lead with searchable nouns rather than a
+tagline.
 
 ```
-Two vendor-neutral workflows for production-grade code standards: project_setup scaffolds new projects with strict linting, types, dead-code detection, and sanitizers; quality_retrofit brings existing codebases into compliance in reviewable phases. Cross-platform on Windows, Linux, and macOS.
+Two vendor-neutral Markdown workflows for coding agents: scaffold projects or retrofit existing codebases with strict quality-gate guidance. Cross-platform stack detection for PowerShell and Bash; optional Claude Code plugin.
 ```
 
 ## Topics
@@ -21,7 +21,6 @@ the specific tool names they might search by.
 ```
 claude-code
 claude-code-plugin
-claude-code-skill
 code-quality
 quality-gates
 static-analysis
@@ -32,13 +31,13 @@ technical-debt
 refactoring
 pre-commit
 sanitizers
-addresssanitizer
-eslint
-ruff
-clang-tidy
-clippy
 developer-tools
 ai-coding-assistant
+agents-md
+ai-agents
+coding-agent
+cursor
+vendor-neutral
 ```
 
 ## Apply
@@ -46,14 +45,14 @@ ai-coding-assistant
 This one-line form works unchanged in PowerShell and POSIX shells:
 
 ```console
-gh repo edit RandyNorthrup/high-quality-projects-skill --description "Two vendor-neutral workflows for production-grade code standards: project_setup scaffolds new projects with strict linting, types, dead-code detection, and sanitizers; quality_retrofit brings existing codebases into compliance in reviewable phases. Cross-platform on Windows, Linux, and macOS." --homepage "https://github.com/RandyNorthrup/high-quality-projects-skill" --add-topic claude-code --add-topic claude-code-plugin --add-topic claude-code-skill --add-topic code-quality --add-topic quality-gates --add-topic static-analysis --add-topic linting --add-topic dead-code --add-topic code-standards --add-topic technical-debt --add-topic refactoring --add-topic pre-commit --add-topic sanitizers --add-topic addresssanitizer --add-topic eslint --add-topic ruff --add-topic clang-tidy --add-topic clippy --add-topic developer-tools --add-topic ai-coding-assistant
+gh repo edit RandyNorthrup/high-quality-projects-skill --description "Two vendor-neutral Markdown workflows for coding agents: scaffold projects or retrofit existing codebases with strict quality-gate guidance. Cross-platform stack detection for PowerShell and Bash; optional Claude Code plugin." --homepage "https://github.com/RandyNorthrup/high-quality-projects-skill" --add-topic claude-code --add-topic claude-code-plugin --add-topic code-quality --add-topic quality-gates --add-topic static-analysis --add-topic linting --add-topic dead-code --add-topic code-standards --add-topic technical-debt --add-topic refactoring --add-topic pre-commit --add-topic sanitizers --add-topic developer-tools --add-topic ai-coding-assistant --add-topic agents-md --add-topic ai-agents --add-topic coding-agent --add-topic cursor --add-topic vendor-neutral
 ```
 
 ## Also worth setting
 
-- **Releases** — tag `v0.1.0` so the plugin can be pinned to a version rather
-  than tracking `main`.
-- **Social preview image** — repos with one get noticeably more clicks from
-  search and social embeds.
+- **Version tags** — after publishing, tag the manifest version (currently
+  `v0.2.0`) if consumers need an immutable Git reference instead of `main`.
+- **Social preview image** — set one if the repository is shared through social
+  embeds.
 - **Issues enabled**, Wiki and Projects disabled unless used. An enabled-but-
   empty wiki tab reads as abandoned.

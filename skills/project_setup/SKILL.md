@@ -1,6 +1,6 @@
 ---
 name: project_setup
-description: Scaffold a new project to production-grade standards from the first commit — strictest practical linting, type checking, dead-code detection, sanitizers, security scanning, and CI-ready quality gates for the chosen stack. Verifies dependency compatibility against official sources rather than guessing. Creates README, CHANGELOG, and PLAN with milestone certification gates. Use when starting a new project, bootstrapping a repo, or when the user says "set up a project", "new project", "scaffold", or runs /project_setup. Takes a project description as its argument. For an existing codebase that needs standards applied, use quality_retrofit instead.
+description: Scaffold a new project to production-grade standards from the first commit — strictest practical linting, type checking, dead-code detection, sanitizers, security scanning, and CI-ready quality gates for the chosen stack. Verifies dependency compatibility against official sources rather than guessing. Creates README, CHANGELOG, and PLAN with milestone certification gates. Use when starting a new project, bootstrapping a repo, or when the user says "set up a project", "new project", "scaffold", or invokes the project_setup skill. Takes a project description as its argument. For an existing codebase that needs standards applied, use quality_retrofit instead.
 ---
 
 # Project setup — production-grade from commit one
@@ -60,10 +60,12 @@ Or from a POSIX shell:
 It returns JSON: languages present, config files that already exist, tools
 installed on this machine. Then:
 
+- **The JSON contains `error`** → stop. Report the scan failure and do not
+  create or overwrite anything.
 - **A config file already exists** → read it, extend it, preserve its choices.
   Never overwrite a config you did not write in this session.
 - **Source files already exist** → this is not a new project. Say so and offer
-  `/quality_retrofit` instead.
+  the `quality_retrofit` workflow instead.
 - **A tool is not installed** → do not silently skip its gate. Either install
   it or record it in `PLAN.md` under deferred gates with the reason.
 - **A Python tool is listed in `python_runtime.module_only_tools`** → it is
@@ -99,26 +101,28 @@ Before installing anything, confirm versions actually work together. Check
 official docs, release notes, peer dependencies, or a published compatibility
 matrix.
 
-`context7` MCP is the fastest source for current library docs when available.
-`npm info <pkg> peerDependencies`, `cargo info`, and `dotnet list package
---outdated` all work offline against the real registry.
+Prefer official documentation and registries. `context7` can help locate current
+library docs when available. `npm info <pkg> peerDependencies`, `cargo info`,
+and `dotnet list package --outdated` query real package metadata and normally
+need network access unless the required metadata is already cached.
 
 Record every version decision and its source in `PLAN.md`. "Latest" is not a
 version; pin what you install.
 
-**Worked example — the trap this step exists to catch.** As of 2026-07-26,
-`npm info typescript version` reports `7.0.2`, but:
+**Worked example — the trap this step exists to catch.** Checked against npm on
+2026-08-20, `npm info typescript version` reports `7.0.2`, while
+`typescript-eslint@8.67.0` reports:
 
 ```
 $ npm info typescript-eslint peerDependencies
 { eslint: '^8.57.0 || ^9.0.0 || ^10.0.0', typescript: '>=4.8.4 <6.1.0' }
 ```
 
-Installing the latest TypeScript would succeed, and then silently cost the
-project every type-aware lint rule — `no-floating-promises`,
-`no-misused-promises`, `await-thenable`, the whole `no-unsafe-*` family. Those
-need the type checker and cannot be approximated syntactically. The right call
-is to pin `typescript@6.0.3` and record why.
+Installing TypeScript 7 alone succeeds, but a normal install with current
+typescript-eslint should reject the unsupported peer range. Do not bypass that
+error: `no-floating-promises`, `no-misused-promises`, `await-thenable`, and the
+`no-unsafe-*` family need a supported type checker. The compatible choice at
+the check date is `typescript@6.0.3`; verify again before pinning it.
 
 Check whether this is still true rather than trusting the paragraph above. The
 general lesson holds regardless: **the newest version of a language toolchain is
@@ -127,9 +131,9 @@ Peer ranges are the cheapest place to find that out.
 
 Two more that recur in JS/TS setups:
 
-- `madge` declares `peerOptional typescript@^5.4.4` and cannot be installed
-  beside TypeScript 6+. npm will suggest `--legacy-peer-deps`; that means
-  accepting a resolution npm has just called incorrect. Use `dpdm` instead.
+- `madge@8.0.0` declares optional peer `typescript@^5.4.4`. Normal npm
+  resolution rejects that beside TypeScript 6; `--legacy-peer-deps` bypasses
+  the declared compatibility constraint. Use `dpdm` instead.
 - knip 6 rejects unknown config keys, so the knip 5 `"//": [...]` comment
   convention is a hard error. Use `knip.jsonc`, which takes real comments.
 
@@ -151,8 +155,9 @@ and each documents its own deliberate loosenings.
 | PowerShell | PSScriptAnalyzer | PSScriptAnalyzer | — | — | — | Pester |
 | Shell | shfmt | shellcheck | — | — | gitleaks | bats |
 
-Cross-cutting regardless of stack: `gitleaks` (secrets, scans history),
-`semgrep` (multi-language SAST), `jscpd` (copy-paste detection).
+Cross-cutting regardless of stack: `gitleaks` (secrets; use `gitleaks git` for
+reachable checked-out history), `semgrep` (multi-language SAST), and `jscpd`
+(copy-paste detection).
 
 ### The flags that make a linter a gate
 
@@ -168,7 +173,7 @@ ruff check          (nonzero by default)
 mypy                (nonzero by default)
 <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>   ← C#, else IDE-only
 <TreatWarningsAsErrors>true</TreatWarningsAsErrors>       ← C#
--fno-sanitize-recover=all        ← UBSan, else prints and continues
+-fno-sanitize-recover=all        ← make recoverable UBSan findings halt
 ```
 
 ### Prove each gate fires before relying on it
@@ -298,10 +303,11 @@ must also carry.
 ## Phase 4 — security
 
 - Dependency vulnerability scanning wired into `security:audit`.
-- Secret scanning (`gitleaks`) in pre-commit **and** CI. Note: gitleaks
-  allowlists well-known example keys such as `AKIAIOSFODNN7EXAMPLE`, so a clean
-  run is not proof the scanner is working — verify with a real-shaped test
-  secret once, then delete it.
+- Secret scanning (`gitleaks`) in pre-commit **and** CI. The pre-commit hook
+  scans staged changes; use `gitleaks git --redact` in CI and fetch full history
+  before claiming a full-history scan. Gitleaks allowlists well-known example
+  keys such as `AKIAIOSFODNN7EXAMPLE`, so verify the gate once with a randomized,
+  real-shaped canary and delete it immediately.
 - Environment variable validation at startup, schema-checked where the stack
   supports it.
 - `.env.example` documents every required variable with no real values.

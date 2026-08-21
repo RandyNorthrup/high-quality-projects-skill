@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""Prove a Python formatting pass changed nothing semantic.
+"""Check whether a Python formatting pass preserved the parsed AST.
 
 Formatters do more than move whitespace. `ruff format` and `black` also add
 magic trailing commas, normalize quote characters, and rewrite string prefixes.
-Those change the file's bytes while leaving behavior identical, so a naive
-byte- or whitespace-diff reports a false alarm.
+Those change the file's bytes while often leaving its parsed syntax identical,
+so a naive byte- or whitespace-diff reports a false alarm.
 
-Comparing the parsed AST is the correct test: it ignores formatting entirely
-and fails only if a token that affects behavior actually moved.
+Comparing parsed ASTs ignores formatting and detects syntax-structure changes.
+It does not replace review of comments, generated files, or the full diff.
 
     verify-format-safe.py BEFORE.py AFTER.py
 
-Exit 0 = semantically identical. Exit 1 = real change, review before committing.
+Exit 0 = parsed AST identical. Exit 1 = AST changed; review before committing.
 Exit 2 = a file failed to parse.
 """
 
@@ -32,8 +32,8 @@ EXPECTED_ARGC = 3
 def normalized_ast(path: Path) -> str:
     """Return a formatting-independent dump of the file's syntax tree.
 
-    Line and column attributes are excluded — those legitimately change during
-    reformatting and carry no semantic weight.
+    Line and column attributes are excluded because they legitimately change
+    during reformatting and are not part of the syntax structure compared here.
     """
     source = path.read_text(encoding="utf-8")
     tree = ast.parse(source, filename=str(path))
@@ -41,9 +41,9 @@ def normalized_ast(path: Path) -> str:
 
 
 def main(argv: list[str]) -> int:
-    """Compare two Python files and report whether they are semantically equal."""
+    """Compare two Python files and report whether their parsed ASTs match."""
     if len(argv) != EXPECTED_ARGC:
-        print(__doc__, file=sys.stderr)
+        print(__doc__, file=sys.stderr)  # noqa: T201 - this module is a CLI.
         return EXIT_PARSE_ERROR
 
     before, after = Path(argv[1]), Path(argv[2])
@@ -52,7 +52,7 @@ def main(argv: list[str]) -> int:
         before_ast = normalized_ast(before)
         after_ast = normalized_ast(after)
     except SyntaxError as exc:
-        print(f"  PARSE ERROR: {exc}", file=sys.stderr)
+        print(f"  PARSE ERROR: {exc}", file=sys.stderr)  # noqa: T201
         return EXIT_PARSE_ERROR
 
     # Output is deliberately ASCII-only. This runs under whatever console the
@@ -60,10 +60,10 @@ def main(argv: list[str]) -> int:
     # renders a UTF-8 em dash as a replacement character — turning the one line
     # that reports the verdict into something that looks like a broken tool.
     if before_ast == after_ast:
-        print("  RESULT: AST identical - formatting was semantically neutral")
+        print("  RESULT: AST identical - no parsed syntax change detected")  # noqa: T201
         return EXIT_OK
 
-    print("  RESULT: AST DIFFERS - formatter changed behavior, review the diff")
+    print("  RESULT: AST DIFFERS - parsed syntax changed, review the diff")  # noqa: T201
     return EXIT_CHANGED
 
 

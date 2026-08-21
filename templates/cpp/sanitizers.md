@@ -1,7 +1,9 @@
 # Sanitizers
 
-All verified 2026-07-26 against deliberately-broken programs — each one below
-actually trapped its bug on this machine.
+Historical verification snapshot: on 2026-07-26, the listed sanitizer examples
+trapped deliberately planted defects on the tested machine. Compiler support,
+runtime behavior, and overhead vary by platform and release; rerun the canaries
+in the target toolchain before treating a sanitizer as a gate.
 
 Sanitizers are **runtime** tools. They find bugs on code paths your tests
 actually execute; they prove nothing about paths you never run. Pair with
@@ -14,7 +16,7 @@ coverage.
 | ASan | yes | yes | yes | use-after-free, buffer overflow, double-free |
 | LSan | yes | yes | yes | memory leaks (bundled into ASan) |
 | UBSan | yes | yes | — | UB: overflow, bad shift, misaligned, null deref |
-| TSan | yes | yes | yes | data races, lock-order inversion |
+| TSan | yes | yes | yes | data races |
 | MSan | **no** | yes | yes | reads of uninitialized memory |
 | Integer | no | yes | — | unsigned wraparound, lossy truncation |
 
@@ -36,11 +38,12 @@ clang++ -fsanitize=memory -fsanitize-memory-track-origins=2 \
         -fPIE -pie -fno-omit-frame-pointer -g -O1 prog.cpp -o prog
 ```
 
-`-fno-sanitize-recover=all` is what makes UBSan **abort** instead of printing
-and continuing. Without it a UBSan finding does not fail your test run.
+`-fno-sanitize-recover=all` makes recoverable UBSan checks **abort** instead of
+reporting and continuing. Some checks are already non-recoverable; this flag
+makes the gate behavior consistent.
 
-`-O1` and `-fno-omit-frame-pointer` give usable stack traces. `-O0` works but
-runs slower; `-O2`+ inlines away frames you want to see.
+`-O1` and `-fno-omit-frame-pointer` commonly improve stack traces. Higher
+optimization can inline frames, so measure and inspect the target build.
 
 ## Runtime options
 
@@ -51,7 +54,8 @@ export TSAN_OPTIONS=halt_on_error=1:second_deadlock_stack=1
 export LSAN_OPTIONS=suppressions=.lsan-suppressions.txt
 ```
 
-`detect_stack_use_after_return=1` catches a whole bug class off by default.
+`detect_stack_use_after_return=1` enables stack-use-after-return detection on
+toolchains where it is not already the runtime default.
 
 ## CMake preset
 
@@ -68,16 +72,16 @@ Then `cmake -DENABLE_SANITIZERS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo ..`
 
 ## Rust
 
-Needs nightly (installed) plus `-Zbuild-std`, because the shipped `std` is not
-instrumented and you get false negatives without rebuilding it.
+Needs a compatible nightly toolchain plus `-Zbuild-std`, because the shipped
+`std` is not instrumented by this command.
 
 ```bash
 RUSTFLAGS="-Zsanitizer=address" \
   cargo +nightly test -Zbuild-std --target x86_64-unknown-linux-gnu
 ```
 
-Swap `address` for `thread`, `memory`, or `leak`. The explicit `--target` is
-required — `-Zbuild-std` is ignored on the host triple without it.
+Swap `address` for `thread`, `memory`, or `leak`. Keep the explicit `--target`
+so `-Zbuild-std` rebuilds for the intended instrumented target.
 
 ## Caveats
 
@@ -91,11 +95,11 @@ required — `-Zbuild-std` is ignored on the host triple without it.
   UBSan + valgrind is the practical set.
 - **Sanitizers change timing.** TSan in particular can hide or expose races
   differently from production. A clean TSan run is evidence, not proof.
-- **Memory cost**: ASan ~3x RAM and ~2x slowdown; TSan ~5-10x RAM. Size CI
-  runners accordingly.
-- **valgrind vs ASan**: valgrind (installed) needs no rebuild and catches some
-  things ASan misses, but is ~20x slower. ASan is the default choice when you
-  control the build; valgrind for third-party binaries you cannot recompile.
-- **`.NET` and Python have no equivalent.** For C# use the built-in analyzers
-  plus `dotnet-counters`/`dotnet-dump`; for Python, `tracemalloc` and
+- **Resource cost**: sanitizer overhead depends on the program, toolchain, and
+  enabled checks. Measure the target workload before sizing CI runners.
+- **valgrind vs ASan**: valgrind needs no sanitizer rebuild and can complement
+  ASan, but is commonly slower. Prefer measured results for the target binary.
+- **Managed-code diagnostics differ.** Ordinary C# and Python projects do not
+  use these C/C++ compiler sanitizer flags directly. For C#, consider built-in
+  analyzers plus `dotnet-counters`/`dotnet-dump`; for Python, `tracemalloc` and
   `faulthandler`.

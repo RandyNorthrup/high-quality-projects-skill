@@ -5,10 +5,10 @@
 // @eslint/js is imported below and is a separate package from eslint itself —
 // omitting it fails at config load, not at lint time.
 //
-// PIN TYPESCRIPT TO 6.x. Every published typescript-eslint, canary included,
-// declares peerDependencies.typescript ">=4.8.4 <6.1.0". TypeScript 7 installs
-// fine and then silently costs you every type-aware rule below — the whole
-// point of this config. Verify before assuming it has changed:
+// COMPATIBILITY SNAPSHOT (2026-08-20): typescript-eslint 8.67.0 declares
+// peerDependencies.typescript ">=4.8.4 <6.1.0". Use TypeScript 6.0.3 unless a
+// newer typescript-eslint release expands that range; normal npm resolution
+// should reject TypeScript 7 beside this version. Verify before pinning:
 //   npm info typescript-eslint peerDependencies
 //
 // Keep the .mjs extension. This file uses ESM `import`, and naming it

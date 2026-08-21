@@ -75,7 +75,7 @@ try {
             'src/app.py', 'src/app.ts', 'src/view.tsx', 'src/browser.js',
             'src/lib.rs', 'src/App.cs', 'src/native.cpp', 'src/module.psm1',
             'src/style.scss', 'src/index.html', 'src/run.sh', 'src/main.go',
-            'README.md', 'node_modules/ignored.py'
+            'README.md', '.prettierrc', 'node_modules/ignored.py'
         )) {
         $filePath = Join-Path -Path $workspace -ChildPath $relativeFile
         Set-Content -LiteralPath $filePath -Value '' -Encoding Ascii
@@ -105,6 +105,8 @@ try {
         -Message 'README configuration detection failed.'
     Confirm-Condition -Condition $scan.existing_config.github_workflows `
         -Message 'GitHub workflow directory detection failed.'
+    Confirm-Condition -Condition $scan.existing_config.prettierrc `
+        -Message '.prettierrc configuration detection failed.'
     Confirm-Condition -Condition (-not $scan.git.is_repo) `
         -Message 'Non-repository workspace reported as a Git repository.'
     Confirm-Condition -Condition ($null -ne $scan.python_runtime.module_only_tools) `
@@ -112,6 +114,38 @@ try {
     if ($null -ne (Get-Command -Name python -ErrorAction SilentlyContinue)) {
         Confirm-Condition -Condition (-not [string]::IsNullOrWhiteSpace($scan.python_runtime.bin)) `
             -Message 'Available Python runtime was not selected.'
+
+        $pythonExecutable = (Get-Command -Name python -ErrorAction Stop).Source
+        $isolatedPythonRoot = Join-Path -Path $temporaryRoot -ChildPath 'isolated-python'
+        & $pythonExecutable -m venv --without-pip $isolatedPythonRoot
+        Confirm-Equal -Actual $LASTEXITCODE -Expected 0 `
+            -Message 'Could not create isolated Python runtime for scanner regression test.'
+
+        $isolatedPythonBin = if (
+            [Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT
+        ) {
+            Join-Path -Path $isolatedPythonRoot -ChildPath 'Scripts'
+        }
+        else {
+            Join-Path -Path $isolatedPythonRoot -ChildPath 'bin'
+        }
+
+        $originalPath = $env:PATH
+        try {
+            $env:PATH = $isolatedPythonBin
+            $isolatedScanJson = & $scanScript $workspace
+        }
+        finally {
+            $env:PATH = $originalPath
+        }
+
+        $isolatedScan = $isolatedScanJson | ConvertFrom-Json
+        Confirm-Equal -Actual $isolatedScan.root -Expected ([IO.Path]::GetFullPath($workspace)) `
+            -Message 'Scanner failed when Python had no optional tools installed.'
+        Confirm-Condition -Condition (-not $isolatedScan.tools_installed.pytest) `
+            -Message 'Isolated Python runtime unexpectedly reported pytest.'
+        Confirm-Equal -Actual $isolatedScan.python_runtime.module_only_tools.Count -Expected 0 `
+            -Message 'Zero-module Python runtime did not return an empty tool list.'
     }
 
     $overrideRoot = Join-Path -Path $temporaryRoot -ChildPath 'override root'

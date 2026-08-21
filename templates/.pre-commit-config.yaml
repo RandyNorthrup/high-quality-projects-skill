@@ -8,7 +8,6 @@
 # stays enabled must pass, so an unused block is pure friction.
 
 fail_fast: false
-default_install_hook_types: [pre-commit, commit-msg]
 
 repos:
   # ── universal hygiene ───────────────────────────────────────────────
@@ -30,25 +29,26 @@ repos:
       - id: check-toml
       - id: detect-private-key
 
-  # ── secrets: scans full history, not just the diff ──────────────────
+  # ── secrets: scans staged changes; run `gitleaks git` separately for history
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.30.1
+    # v8.30.1 is an orphaned tag that `pre-commit autoupdate` cannot follow.
+    # v8.30.0 was verified with a randomized, real-shape GitHub PAT canary.
+    rev: v8.30.0
     hooks:
       - id: gitleaks
 
   # ── Python ──────────────────────────────────────────────────────────
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.0
+    rev: v0.16.4
     hooks:
       - id: ruff-check
         args: [--fix, --exit-non-zero-on-fix]
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v2.3.0
+    rev: v2.3.1
     hooks:
       - id: mypy
-        args: [--strict, --ignore-missing-imports]
         additional_dependencies: [types-requests, types-PyYAML]
 
   - repo: https://github.com/jendrikseipp/vulture
@@ -60,8 +60,6 @@ repos:
     rev: 1.9.4
     hooks:
       - id: bandit
-        args: [-c, pyproject.toml]
-        additional_dependencies: ['bandit[toml]']
 
   # ── Shell ───────────────────────────────────────────────────────────
   - repo: https://github.com/koalaman/shellcheck-precommit
@@ -71,22 +69,22 @@ repos:
         args: [--severity=style, --enable=all]
 
   - repo: https://github.com/scop/pre-commit-shfmt
-    rev: v3.13.0-1
+    rev: v3.13.1-1
     hooks:
       - id: shfmt
         args: [-i, '4', -ci, -sr, -d]
 
   # ── C / C++ ─────────────────────────────────────────────────────────
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v21.1.8
+    rev: v22.1.8
     hooks:
       - id: clang-format
         types_or: [c, c++, cuda]
 
-  # ── local: tools already installed globally on this machine ─────────
+  # ── local: tools installed in the target project's environment ──────
   # `language: system` means pre-commit calls the binary on PATH instead of
-  # building its own isolated env. Faster, and guarantees the same version
-  # you get in the terminal.
+  # building an isolated env. Install these as project-local dev dependencies
+  # or otherwise pin them in the project's toolchain before enabling the hooks.
   - repo: local
     hooks:
       - id: eslint
@@ -151,6 +149,8 @@ repos:
 
       - id: psscriptanalyzer
         name: PSScriptAnalyzer (strict)
+        # `pwsh` is the cross-platform host. On a Windows-only project that
+        # supports only Windows PowerShell 5.1, replace it with `powershell`.
         entry: pwsh -NoProfile -Command "Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit"
         language: system
         files: \.(ps1|psm1|psd1)$

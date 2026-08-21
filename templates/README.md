@@ -9,7 +9,17 @@ and confirm the tool exits non-zero. That discipline is not decoration — three
 separate tools have been found here that loaded cleanly, reported nothing, and
 checked nothing (see Gotchas).
 
-Installed 2026-07-26.
+Compatibility last reviewed 2026-08-20. Re-check tool versions and deliberately
+trigger each enabled gate in the target project; these files do not install
+their own dependencies.
+
+That review loaded the configs with Ruff 0.16.4, mypy 2.3.1, ESLint 10.8.1,
+`@eslint/js` 10.0.1, typescript-eslint 8.67.0, TypeScript 6.0.3,
+eslint-plugin-unicorn 73.0.0, Stylelint 17.14.1,
+stylelint-config-standard 40.0.0, knip 6.32.2, .NET SDK
+10.0.400, cargo/clippy 1.96.0, and PSScriptAnalyzer 1.25.0. These are dated
+compatibility observations, not permanent minimums or automatic dependency
+pins.
 
 ## Layout
 
@@ -25,51 +35,90 @@ Installed 2026-07-26.
 | `csharp/Directory.Build.props` | solution root | C# compiler + analyzers |
 | `rust/clippy-strict.toml` | see file — two parts | Rust lint |
 | `powershell/PSScriptAnalyzerSettings.psd1` | project root | PowerShell |
-| `.pre-commit-config.yaml` | project root | wires all of the above |
+| `.pre-commit-config.yaml` | project root | representative pre-commit hooks |
 
 ## Quick start
 
+POSIX shell:
+
 ```bash
 cd your-project
-cp <plugin-root>/templates/.pre-commit-config.yaml .
-# delete the language blocks you don't use, then:
+SKILL_ROOT=/absolute/path/to/high-quality-projects-skill
+cp "$SKILL_ROOT/templates/.pre-commit-config.yaml" .
+# Copy each relevant language config to the location in the table above,
+# delete language blocks you do not use, install/pin remaining system tools,
+# then:
+pre-commit install
+pre-commit run --all-files
+```
+
+PowerShell:
+
+```powershell
+Set-Location your-project
+$SkillRoot = 'C:\absolute\path\to\high-quality-projects-skill'
+Copy-Item "$SkillRoot\templates\.pre-commit-config.yaml" .
+# Copy each relevant language config to the location in the table above,
+# delete language blocks you do not use, install/pin remaining system tools,
+# then:
 pre-commit install
 pre-commit run --all-files
 ```
 
 ## Running gates by hand
 
-```bash
+Run these as separate commands in the active shell so the first failure remains
+visible. Commands still require the corresponding project-local tools.
+
+```console
 # Python
-ruff check . && ruff format --check . && mypy . && vulture . && bandit -r . && pip-audit
+ruff check .
+ruff format --check .
+mypy .
+vulture .
+bandit -r .
+pip-audit
 
 # TypeScript / JS
-tsc --noEmit && eslint . --max-warnings=0 && knip --strict && prettier --check .
+tsc --noEmit
+eslint . --max-warnings=0
+knip --strict
+prettier --check .
 
 # CSS / HTML
-stylelint "**/*.css" --max-warnings=0 && htmlhint .
+stylelint "**/*.css" --max-warnings=0
+htmlhint .
 
 # C++
 cppcheck --enable=all --error-exitcode=1 --std=c++23 --suppress=missingIncludeSystem src/
 clang-tidy src/*.cpp -- -std=c++23        # .clang-tidy sets WarningsAsErrors: '*'
 
 # Rust
-cargo fmt --all -- --check && cargo clippy --all-targets --all-features -- -D warnings
-cargo machete && cargo audit && cargo deny check
+cargo fmt --all -- --check
+cargo clippy --all-targets --all-features -- -D warnings
+cargo machete
+cargo audit
+cargo deny check
 
 # C#
-dotnet format --verify-no-changes --severity info && dotnet build -warnaserror && roslynator analyze
+dotnet format --verify-no-changes --severity info
+dotnet build -warnaserror
+roslynator analyze
 
-# PowerShell
-pwsh -c "Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit"
-
-# Shell
-shellcheck --severity=style --enable=all **/*.sh && shfmt -i 4 -ci -sr -d .
+# PowerShell (run inside PowerShell 5.1+)
+Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit
 
 # Cross-cutting
-gitleaks detect --redact          # secrets, scans git history
+gitleaks git --redact             # secrets in reachable git history
 semgrep --config=auto             # multi-language SAST
 jscpd .                           # copy-paste detection
+```
+
+Shell-project gates use POSIX filename expansion:
+
+```bash
+find . -type f -name '*.sh' ! -path './.git/*' -exec shellcheck --severity=style --enable=all {} +
+find . -type f -name '*.sh' ! -path './.git/*' -exec shfmt -i 4 -ci -sr -d {} +
 ```
 
 ## What each dead-code gate actually sees
@@ -89,8 +138,8 @@ real holes.
   suppresses that one rule because per-file invocation cannot see cross-TU
   callers and it false-positives constantly. Run cppcheck over the whole `src/`
   tree without the suppression to use it properly.
-- **`cargo machete`** — unused `Cargo.toml` deps. `cargo-udeps` is more precise
-  but needs nightly, so it is not installed.
+- **`cargo machete`** — unused `Cargo.toml` deps. `cargo-udeps` is another
+  nightly-only option; it is not wired into this template.
 - **Roslyn IDE0051/IDE0052** — unused C# private members, via
   `EnforceCodeStyleInBuild` in `Directory.Build.props`.
 
@@ -103,6 +152,9 @@ Places where "strictest" is the wrong call, and why:
 - **`disallow_any_explicit = false`** (mypy) — banning explicit `Any` forces
   `object` + casts through JSON and `**kwargs` plumbing; reads worse than the
   problem it solves.
+- **`CPY001`** (Ruff) — requiring a copyright header in every Python file is a
+  project policy, not a universal correctness rule. Use `LICENSE` and package
+  metadata unless the target project explicitly requires headers.
 - **`-cppcoreguidelines-avoid-magic-numbers`** (clang-tidy) — too noisy to gate
   on. Enable per-project once the codebase is clean.
 - **`CS1591` in `NoWarn`** (C#) — an XML doc comment on every public member is
@@ -111,6 +163,9 @@ Places where "strictest" is the wrong call, and why:
   transitive duplicate versions.
 - **`PSUseShouldProcessForStateChangingFunctions`** excluded — fires on any
   `Get-`/`Set-`/`New-` function regardless of actual side effects.
+- **`PSAlignAssignmentStatement`** disabled — its required padding conflicts
+  with `PSUseConsistentWhitespace.CheckOperator`; enabling both makes one style
+  fail whichever alignment is chosen.
 
 Each is a single-line revert in its config file.
 
@@ -127,7 +182,11 @@ Each is a single-line revert in its config file.
 - **Clippy lint *levels* go in `Cargo.toml`, not `clippy.toml`.** `clippy.toml`
   only tunes thresholds. See `rust/clippy-strict.toml` — it holds both halves.
 - **gitleaks allowlists well-known example keys** (e.g.
-  `AKIAIOSFODNN7EXAMPLE`). A clean run does not prove the scanner is off.
+  `AKIAIOSFODNN7EXAMPLE`). Verify with a randomized, real-shape canary, remove
+  it immediately, and keep full-history `gitleaks git` separate from the
+  staged-diff pre-commit hook. The template intentionally pins v8.30.0 because
+  the v8.30.1 tag is not reachable by `pre-commit autoupdate`; re-check this on
+  the next pin refresh.
 
 ### Gates that load cleanly and check nothing
 
@@ -144,23 +203,23 @@ Found by deliberately breaking things. Each of these looked configured.
   `cycles` rule was equally silent, by default and under `--include cycles`.
   Use **`dpdm`**, which was verified in both directions:
   `dpdm --no-warning --no-tree --exit-code circular:1 src/main.ts`
-- **`madge` cannot be installed alongside TypeScript 6+.** It declares
-  `peerOptional typescript@^5.4.4`. npm will suggest `--legacy-peer-deps`;
-  taking it means accepting a resolution npm has just called incorrect.
+- **`madge` declares TypeScript `^5.4.4` as an optional peer.** Normal npm
+  resolution rejects that alongside TypeScript 6; bypassing the peer check does
+  not make the combination supported.
 - **`maxDepth: Infinity`** in any JSON-serialised rule option becomes `null`,
   which can silently disable traversal. Use a finite number.
 
-### TypeScript 7 has no type-aware linting yet
+### TypeScript 7 is outside typescript-eslint's supported range
 
-As of 2026-07-26, `typescript` latest is **7.0.2** but every published
-`typescript-eslint` — including canary — declares
+Checked against the npm registry on 2026-08-20: `typescript` latest is **7.0.2**
+and `typescript-eslint@8.67.0` declares
 `peerDependencies.typescript: ">=4.8.4 <6.1.0"`.
 
-Installing TypeScript 7 therefore means **no type-aware linting at all**: no
-`no-floating-promises`, no `no-misused-promises`, no `await-thenable`, none of
-the `no-unsafe-*` family. Those rules need the type checker and cannot be
-approximated syntactically, and they are the most valuable half of
-`strictTypeChecked`.
+Installing TypeScript 7 alone succeeds, but a normal install with the current
+typescript-eslint should reject the unsupported peer range. Do not bypass that
+error: type-aware rules such as `no-floating-promises`,
+`no-misused-promises`, `await-thenable`, and the `no-unsafe-*` family depend on
+a supported type checker.
 
 Pin `typescript@6.0.3` — the highest stable release inside the supported range —
 until `typescript-eslint` ships TypeScript 7 support. Check before assuming this
@@ -176,11 +235,11 @@ npm info typescript-eslint peerDependencies
 to lowercase. With both enabled, `format` and `lint` can never both pass. The
 formatter owns formatting — disable the lint rule.
 
-`unicorn/prefer-global-this` produces a hard type error in browser-only code:
+`unicorn/prefer-global-this` can produce a hard type error in browser-only code:
 TypeScript types `window` as `Window & typeof globalThis`, while bare
 `globalThis` lacks the Window members, so obeying the rule yields
 `TS2345: ... Property 'name' is missing`. Disable it rather than reaching for a
 cast.
-- ESLint/stylelint plugin packages are installed **globally** here so the
-  templates work anywhere. Projects with CI should still add them as local
-  devDependencies — global installs are not reproducible on another machine.
+
+The templates do not install ESLint, stylelint, or their plugins. Add compatible
+versions as project-local devDependencies and commit the lockfile.

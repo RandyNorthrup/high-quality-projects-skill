@@ -14,7 +14,7 @@ skills/
 scripts/
   skill-root.ps1/.sh   resolves SKILL_ROOT from anywhere, no env needed
   detect-stack.ps1/.sh workspace inventory, emits JSON
-  verify-format-safe.py  AST comparison, proves a reformat was neutral
+  verify-format-safe.py  compares Python ASTs before and after formatting
 templates/          strict configs, copied into target projects
 docs/               philosophy and extended reference
 ```
@@ -25,9 +25,10 @@ way — no vendor-set environment variables, no assumptions about slash commands
 or a particular runner.
 
 `skills/` and the underscore directory names exist because Claude Code requires
-that layout, and because the directory name becomes the slash command. The
-`name:` in each `SKILL.md` frontmatter must match its directory exactly or the
-plugin will not load. This is the one place a vendor constraint shows through.
+that layout, and because the directory name becomes the skill segment of the
+plugin's namespaced slash command. The `name:` in each `SKILL.md` frontmatter
+must match its directory exactly or the plugin will not load. This is the one
+place a vendor constraint shows through.
 
 Paths inside the workflows use `${SKILL_ROOT}` as a placeholder, resolved by the
 native `scripts/skill-root.ps1` or `scripts/skill-root.sh`. Both locate
@@ -37,7 +38,7 @@ at the wrong place.
 
 The three auto-discovery files (`AGENTS.md`, `.cursor/rules/`,
 `.github/copilot-instructions.md`) are thin pointers on purpose. Put content in
-the workflow files, not in the pointers, so it cannot drift between them.
+the workflow files, not in the pointers, to minimize duplicated text and drift.
 
 ## Editing a skill
 
@@ -48,8 +49,8 @@ on it, so:
 - **Give the reason with the rule.** A model that knows *why* ASan and TSan
   cannot be combined will handle a case you did not anticipate. One that only
   knows the rule will not.
-- **Show the failure.** "Without `-fno-sanitize-recover=all`, UBSan prints and
-  the job still exits 0" is worth more than "use `-fno-sanitize-recover=all`."
+- **Show the failure.** "Without `-fno-sanitize-recover=all`, a recoverable
+  UBSan finding can report and continue" is worth more than "use this flag."
 - **Keep the refusals explicit.** The "Refuse to" section in
   `quality_retrofit` is load-bearing — it is what stops the skill deleting code
   it has not verified.
@@ -75,6 +76,9 @@ Both implementations must return the same JSON contract. Each must:
 
 - Exit 0 always. A scan that finds nothing is not an error.
 - Emit valid JSON on stdout, unconditionally. Both skills parse it.
+- Return `{"error":"unreadable path"}` for an invalid root and
+  `{"error":"scan failed"}` for an internal inventory failure. Exit 0 is the
+  transport contract, not proof that the scan succeeded.
 - Never write anything. It is a read-only inventory.
 - Stay fast on large trees — prune `node_modules`, `target`, `.git`, `venv`.
 
@@ -100,13 +104,14 @@ and Linux, then compares the Bash and PowerShell scanner inventories on Linux.
 ```console
 claude plugin marketplace add /absolute/path/to/high-quality-projects-skill
 claude plugin install high-quality-projects-skill@high-quality-projects-skill
-# restart Claude Code — skills load at session start
+# in an active Claude Code session, run /reload-plugins (or restart it)
 claude plugin list
 ```
 
 Then exercise both skills against real repositories: one empty directory for
-`/project_setup`, one messy existing codebase for `/quality_retrofit`. Reading
-the skill is not testing it.
+`/high-quality-projects-skill:project_setup`, one messy existing codebase for
+`/high-quality-projects-skill:quality_retrofit`. Reading the skill is not
+testing it.
 
 ## Commits
 

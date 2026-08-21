@@ -3,8 +3,9 @@
 Why these rules, and — more importantly — where "strictest" is the wrong call.
 
 A linter config nobody can live with gets disabled wholesale, which is worse
-than a moderate one that stays on. Every rule here earns its place by catching
-real defects more often than it generates noise.
+than a moderate one that stays on. Each enabled rule should earn its place by
+catching real defects more often than it generates noise; deliberate-trigger
+tests are required because configuration alone does not prove that outcome.
 
 ---
 
@@ -70,7 +71,7 @@ identical in a diff.
 
 ## Dead code: the tools are not authoritative
 
-Every dead-code detector produces false positives on the same five patterns:
+Dead-code detectors can produce false positives on these common patterns:
 
 - **Dynamic dispatch** — `getattr`, reflection, DI containers, plugin registries
 - **String-keyed lookup** — route tables, event maps, serializer registries
@@ -79,8 +80,8 @@ Every dead-code detector produces false positives on the same five patterns:
 - **Framework entry points** — invoked by the framework, never by your code
 
 So the rule is: the tool produces *candidates*, a human or an agent that has
-grepped the whole repo produces *deletions*. `/quality_retrofit` will list an
-unverified candidate in its report rather than delete it.
+grepped the whole repo produces *deletions*. The `quality_retrofit` workflow
+lists an unverified candidate in its report rather than deleting it.
 
 They also do not overlap as much as the names suggest:
 
@@ -99,11 +100,10 @@ Running one and calling it done leaves real holes.
 A retrofit that lands everything in one commit will be reverted, and the revert
 takes the good changes with it.
 
-Formatting is the clearest case. It touches every file and changes no
-behavior — which makes it both the safest change and the most destructive to
-`git blame`. It gets its own commit and an entry in `.git-blame-ignore-revs`.
-Skipping that step means every `git blame` for the rest of the repo's life
-points at the formatting commit.
+Formatting is the clearest case. It is intended to change layout only, but can
+touch most files and obscure `git blame`. It gets verification, its own commit,
+and an entry in `.git-blame-ignore-revs`. Without that entry, reformatted lines
+blame the formatting commit instead of the earlier change.
 
 Type strictness is the opposite: small diff, high risk, needs real review.
 Bundling it with a 4,000-file format commit guarantees nobody reads it.

@@ -24,10 +24,14 @@ ignore = [
     "D213",
 
     # Enforcing a docstring on every module/package is busywork on small
-    # projects. `interrogate` (installed) gives you coverage-style reporting
-    # instead, which is a better fit than a hard error.
+    # projects. `interrogate` can provide coverage-style reporting instead,
+    # which is a better fit than a hard error when the project installs it.
     "D100",
     "D104",
+
+    # Per-file copyright boilerplate is a project policy, not a universal
+    # correctness rule. Keep ownership/licensing in LICENSE and package metadata.
+    "CPY001",
 
     # `assert` is the entire point of pytest.
     "S101",

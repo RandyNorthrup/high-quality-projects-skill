@@ -1,5 +1,5 @@
 {
-  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "high-quality-projects-skill",
   "description": "Production-grade code standards for any coding agent: scaffold new projects or retrofit existing ones with strict quality gates.",
   "owner": {
@@ -10,7 +10,7 @@
     {
       "name": "high-quality-projects-skill",
       "source": "./",
-      "description": "/project_setup scaffolds a new project with the strictest practical gates. /quality_retrofit brings an existing codebase into compliance.",
+      "description": "project_setup scaffolds a new project with strict practical gates. quality_retrofit brings an existing codebase into compliance.",
       "category": "productivity"
     }
   ]

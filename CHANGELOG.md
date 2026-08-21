@@ -5,7 +5,7 @@ All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## 0.2.0 — 2026-08-20
 
 ### Fixed — Bash-free Windows execution
 
@@ -23,6 +23,42 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Added Windows/Linux GitHub Actions coverage for PowerShell 7, Windows
   PowerShell 5.1, the existing Bash scripts, and Bash/PowerShell inventory
   parity.
+- The first clean-runner CI execution exposed an empty-array bug when Python had
+  none of the optional quality modules installed. Fixed the scanner, added an
+  isolated zero-module Python regression case, and separated truthful
+  `unreadable path` and `scan failed` JSON errors.
+- Reconciled the native scanners' `existing_config.prettierrc` key and stopped
+  the Bash scanner from reporting a parent repository's Git state for a nested,
+  non-repository workspace.
+
+### Fixed — documentation and gate accuracy
+
+- Audited current instructions, manifests, repository metadata, and command
+  examples against the checkout, live npm metadata, Claude Code 2.1.140, and
+  current GitHub repository settings. Corrected Claude's namespaced skill names,
+  `/reload-plugins`, registry commands incorrectly described as offline,
+  cross-shell examples, GitHub topics, dead manifest schema URLs, nonexistent
+  release links, and overbroad verification claims.
+- Refreshed pre-commit pins with `pre-commit autoupdate` on 2026-08-20. Kept
+  gitleaks at v8.30.0 because v8.30.1 is an orphaned tag that autoupdate cannot
+  follow; both versions were checked with a randomized real-shape PAT canary.
+  Corrected the hook documentation: pre-commit scans staged changes, while
+  `gitleaks git --redact` is the explicit reachable-history gate.
+- Removed contradictory mypy and Bandit hook arguments. After the relevant
+  templates are copied to the target project root, mypy inherits that project's
+  strict config and Bandit no longer requires a nonexistent `pyproject.toml`.
+- Refreshed the Ruff template for 0.16.4. Its new `CPY001` check is deliberately
+  disabled because a mandatory copyright header in every Python file is not a
+  universal correctness requirement.
+- Loaded the Python, TypeScript, ESLint, Stylelint, knip, .NET, Rust, and
+  PowerShell templates with current compatible tool versions. Recorded the
+  dated versions in `templates/README.md` so later audits can distinguish
+  evidence from evergreen compatibility claims.
+- Disabled `PSAlignAssignmentStatement` because its padding requirement
+  conflicts with `PSUseConsistentWhitespace.CheckOperator`. The shipped
+  PSScriptAnalyzer settings now satisfy themselves and the native scripts,
+  accept one-space assignment formatting, and check Windows PowerShell 5.1 as
+  well as PowerShell 7.4 on Windows and Linux.
 
 ### Changed — the workflows are now vendor-neutral
 
@@ -48,8 +84,8 @@ description also described the package as Claude Code-only.
   convention Codex, Cursor, Aider, Zed and others already look for. Added
   `.cursor/rules/high-quality-projects.mdc` and
   `.github/copilot-instructions.md` for tools that auto-discover their own
-  formats. All three are thin pointers to the same workflow files so they cannot
-  drift.
+  formats. All three are thin pointers to the same workflow files to minimize
+  duplicated instructions and drift.
 
 - **Reframed `README.md`, both `.claude-plugin/` manifests, and `CONTRIBUTING.md`.**
   Claude Code is now presented as one packaging option rather than the product.
@@ -105,10 +141,10 @@ output was just wrong.
   line that reports the verdict looked like a broken tool. Both lines are ASCII
   now.
 
-Everything below came from running `/project_setup` end to end against a real
+Everything below came from running the `project_setup` skill end to end against a real
 project for the first time — a TypeScript canvas game, taken from empty
 directory to a published repository with green CI. The skill had only ever been
-exercised via `/quality_retrofit` before this, and the exercise found defects in
+exercised via the `quality_retrofit` workflow before this, and the exercise found defects in
 the templates that would have hit the first person to use them.
 
 ### Fixed
@@ -132,14 +168,12 @@ the templates that would have hit the first person to use them.
 
 ### Added
 
-- **A TypeScript 7 compatibility warning, in both skills and the templates.**
-  As of 2026-07-26 `typescript` latest is 7.0.2, but every published
-  `typescript-eslint` — canary included — declares
-  `peerDependencies.typescript: ">=4.8.4 <6.1.0"`. Taking the latest TypeScript
-  installs cleanly and silently removes every type-aware lint rule:
-  `no-floating-promises`, `no-misused-promises`, `await-thenable`, and the whole
-  `no-unsafe-*` family. This is now a worked example under "Verify compatibility
-  — do not guess", since it is exactly the failure that section exists to catch.
+- **A TypeScript compatibility warning, in both skills and the templates.**
+  The checked typescript-eslint peer range excludes TypeScript 7. Current npm
+  resolution should reject that combination; bypassing the peer check creates
+  an unsupported toolchain for type-aware rules such as `no-floating-promises`
+  and the `no-unsafe-*` family. The worked example now carries a check date and
+  requires re-querying registry metadata before pinning.
 
 - **"Prove each gate fires before relying on it"**, a new section in
   `project_setup`, and the equivalent guidance in `quality_retrofit`'s dead-code
@@ -151,8 +185,9 @@ the templates that would have hit the first person to use them.
     correctly flagged their cases in the same run.
   - knip 6's `cycles` rule was equally silent, by default and under
     `--include cycles`.
-  - `madge` cannot be installed alongside TypeScript 6+ at all, because it
-    declares `peerOptional typescript@^5.4.4`.
+  - `madge@8.0.0` declares optional peer `typescript@^5.4.4`, so normal npm
+    resolution rejects it alongside TypeScript 6; bypassing the check does not
+    make that combination supported.
 
   `dpdm` is now the recommended cycle detector, verified in both directions:
   exit 1 on a real cycle, exit 0 once removed.
@@ -193,24 +228,23 @@ the templates that would have hit the first person to use them.
   template, which did not load at all under knip 6. Replaced with the discipline
   itself, stated as a requirement on the reader.
 
-## [0.1.0] — 2026-07-26
+## 0.1.0 — 2026-07-26
 
 Initial release.
 
 ### Added
 
-- **`/project_setup <description>`** — scaffolds a new project to production
-  standards. Scans before creating, batches clarification questions, verifies
-  dependency compatibility against official sources rather than guessing,
-  writes `PLAN.md` before code, and proves every gate passes on the empty
-  scaffold before milestone one.
+- **`project_setup`** — instructs an agent to scaffold a new project toward
+  production standards. It scans before creating, batches clarification
+  questions, verifies dependency compatibility against official sources,
+  writes `PLAN.md` before code, and requires every runnable gate to pass on the
+  empty scaffold before milestone one.
 
-- **`/quality_retrofit`** — brings an existing codebase into compliance across
-  nine phases (baseline, formatting, config, autofix lint, types, dead code,
-  literals, security/sanitizers, docs). Each phase is independently reviewable
-  and revertible. Refuses to modify a dirty working tree, bulk-modify
-  unversioned code, delete unverified code, or rewrite history to scrub a
-  leaked secret.
+- **`quality_retrofit`** — instructs an agent to bring an existing codebase
+  toward compliance across nine phases (baseline, formatting, config, autofix
+  lint, types, dead code, literals, security/sanitizers, docs). It requires
+  reviewable phases and tells the agent to refuse dirty-tree work, bulk changes
+  to unversioned code, unverified deletion, and unprompted history rewrites.
 
 - **`scripts/detect-stack.sh`** — workspace inventory emitting JSON: languages
   by file count, existing quality config, and which required tools are present
@@ -230,12 +264,8 @@ Initial release.
 
 ### Notes
 
-Templates were validated by running each gate against deliberately broken code
-and confirming it fired — ruff, vulture, bandit, cppcheck, clang-tidy, eslint,
-tsc, stylelint, shellcheck, PSScriptAnalyzer, and gitleaks all caught their
-planted defects. Sanitizers were verified trapping real use-after-free, leak,
-UB, data-race, and uninitialized-read bugs on gcc 15, clang 21, and Rust
-nightly.
-
-[Unreleased]: https://github.com/RandyNorthrup/high-quality-projects-skill/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/RandyNorthrup/high-quality-projects-skill/releases/tag/v0.1.0
+The initial release recorded deliberately broken-program checks for ruff,
+vulture, bandit, cppcheck, clang-tidy, eslint, tsc, stylelint, shellcheck,
+PSScriptAnalyzer, gitleaks, and sanitizer examples. These were dated,
+machine-specific observations, not continuing certification; later entries
+record the knip exception and other audit corrections.

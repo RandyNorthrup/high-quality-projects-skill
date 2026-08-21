@@ -1,11 +1,11 @@
 # AGENTS.md
 
-Entry point for **any** coding agent. `AGENTS.md` is the cross-vendor
-convention — Codex, Cursor, Aider, Zed, Jules, Continue, and others read it, and
-Claude Code reads it too.
+Entry point for coding agents that support `AGENTS.md`, or for any agent
+explicitly directed to this file.
 
-This package holds two workflows and the configuration they install. Nothing in
-it is specific to one vendor.
+This package holds two vendor-neutral workflows and the configuration they
+install. The Claude Code, Cursor, and Copilot files are optional packaging and
+discovery adapters around that shared content.
 
 ## The two workflows
 
@@ -54,7 +54,7 @@ skills/project_setup/SKILL.md     scaffold a new project to strict standards
 skills/quality_retrofit/SKILL.md  bring an existing codebase into compliance
 scripts/skill-root.{ps1,sh}       resolve SKILL_ROOT from anywhere
 scripts/detect-stack.{ps1,sh}     read-only workspace inventory, emits JSON
-scripts/verify-format-safe.py     prove a reformat did not change the AST
+scripts/verify-format-safe.py     compare Python ASTs before and after formatting
 templates/                        tuned strict configs per language
 docs/PHILOSOPHY.md                why the gates are set the way they are
 ```
@@ -83,6 +83,10 @@ Linux and macOS. Bash is not required on Windows. `verify-format-safe.py` needs
 Python 3. Individual gates need their own tools, and the native `detect-stack`
 script reports which are present — it never installs anything and always exits
 0.
+
+Always inspect the returned JSON for an `error` property. Exit 0 means the
+scanner returned its JSON contract; it does not turn `unreadable path` or
+`scan failed` into a successful inventory.
 
 Python tools are detected by importability, not by `PATH`, because an
 unactivated venv or a Windows install leaves them runnable as

@@ -1,6 +1,6 @@
 ---
 name: quality_retrofit
-description: Scan an existing codebase and bring it into compliance with strict quality standards — style, formatting, linting, type checking, dead-code removal, magic-number and literal extraction, sanitizer wiring, secret scanning, and CI-ready gates. Extends existing configuration rather than replacing it, and lands changes in reviewable phases with tests green between each. Use when the user says "retrofit", "clean up this codebase", "add quality gates", "enforce standards", "fix lint", "remove dead code", or runs /quality_retrofit. For a brand-new project with no source files, use project_setup instead.
+description: Scan an existing codebase and bring it into compliance with strict quality standards — style, formatting, linting, type checking, dead-code removal, magic-number and literal extraction, sanitizer wiring, secret scanning, and CI-ready gates. Extends existing configuration rather than replacing it, and lands changes in reviewable phases with tests green between each. Use when the user says "retrofit", "clean up this codebase", "add quality gates", "enforce standards", "fix lint", "remove dead code", or invokes the quality_retrofit skill. For a brand-new project with no source files, use project_setup instead.
 ---
 
 # Quality retrofit — bring an existing codebase into compliance
@@ -62,6 +62,9 @@ change anything yet.** Report:
 - Required tools that are missing from this machine
 - Estimated blast radius: how many findings, in how many files. Run the
   strict template against the tree to get a real number — do not guess
+
+If the JSON contains `error`, stop and report it. Do not modify the target
+workspace after a failed inventory.
 
 A Python tool counts as present when it is **importable**, which is not the same
 as being on `PATH` — an unactivated venv, or a Windows install without the
@@ -178,13 +181,14 @@ close it in phase 2, do not clean it by hand every phase.
 `prettier` · `ruff format` · `rustfmt` · `clang-format` · `dotnet format` ·
 `shfmt`
 
-Layout only — no behaviour change. Land it as **one isolated commit**.
+Formatting is intended to change layout only. Verify it, review the diff, and
+land it as **one isolated commit**.
 
 **Prove it before committing.** "Formatting is safe" is an assumption, not a
 fact, and a byte-diff cannot check it: `ruff format` and `black` also add magic
 trailing commas and normalize quotes, so the file legitimately changes beyond
-whitespace. Comparing the parsed AST is the correct test — it ignores layout
-entirely and fails only if something behavioural moved:
+whitespace. Comparing the parsed AST checks whether Python syntax structure
+changed while ignoring layout:
 
 ```bash
 cp target.py /tmp/before.py
@@ -202,9 +206,10 @@ $PythonBin = $Scan.python_runtime.bin
 & $PythonBin "$SkillRoot\scripts\verify-format-safe.py" $BeforeFile target.py
 ```
 
-Exit 0 means semantically identical. **This tool belongs to phase 1 only** —
-phases 3 onward change the AST on purpose (removing an unused import deletes a
-node), so a difference there is expected, not a failure.
+Exit 0 means the parsed ASTs are identical; still review non-code artifacts and
+the diff. **This tool belongs to phase 1 only** — phases 3 onward change the AST
+on purpose (removing an unused import deletes a node), so a difference there is
+expected, not a failure.
 
 For non-Python stacks the equivalent is a token-stream or AST diff; where no
 such tool exists, at minimum re-run the test suite and read the diff.
@@ -224,8 +229,8 @@ git rev-parse HEAD | Add-Content -LiteralPath .git-blame-ignore-revs -Encoding A
 git config blame.ignoreRevsFile .git-blame-ignore-revs
 ```
 
-Without that file, this commit destroys `git blame` for the whole repo. This
-step is not optional.
+Without that file, reformatted lines blame the formatting commit instead of the
+earlier change. This step is not optional.
 
 ### Phase 2 — config and gates (no code change)
 Install or extend the strict configs. Wire the gate scripts. Add pre-commit.
@@ -282,9 +287,10 @@ catches it, then remove it.
 
 Three that were found reporting nothing while appearing configured:
 `import-x/no-cycle`, knip 6's `cycles` rule (both silent against a deliberately
-circular pair of modules), and `madge`, which cannot install alongside
-TypeScript 6+ at all because it declares `peerOptional typescript@^5.4.4`. Use
-`dpdm` for cycles; it was verified to exit 1 on a real cycle and 0 once removed.
+circular pair of modules), and `madge@8.0.0`, whose optional
+`typescript@^5.4.4` peer makes normal npm resolution reject TypeScript 6. Use
+`dpdm` for cycles; dated project evidence records exit 1 on a real cycle and 0
+once removed.
 
 Note also that knip 6 rejects unknown config keys, so a knip 5 config using the
 `"//": [...]` comment convention fails to load outright — rename to
@@ -361,14 +367,15 @@ foreach ($Directory in @('.venv', '.mypy_cache', '.ruff_cache', '__pycache__')) 
 ```
 
 ### Phase 7 — security and sanitizers
-- `gitleaks detect` over full history. **A hit here is an incident**, not a
+- `gitleaks git --redact` over reachable history. **A hit here is an incident**,
+  not a
   lint finding: the secret is in history, so rotate it first, then scrub.
   Report and stop; do not rewrite history unprompted.
 - `semgrep --config=auto`, `bandit`, `npm audit`, `pip-audit`, `cargo audit`
 - C/C++/Rust: wire sanitizer CI jobs. ASan+UBSan in one job, TSan in a
   **separate** one — they use incompatible shadow memory and cannot be combined.
-  `-fno-sanitize-recover=all` or UBSan prints and continues, and the job still
-  exits 0.
+  Use `-fno-sanitize-recover=all` so recoverable UBSan findings halt instead of
+  merely reporting and continuing.
 - Existing sanitizer findings are real bugs. Report them; do not paper over
   them to make the gate green.
 
@@ -395,7 +402,7 @@ silently omit a row.
 [ ] No commented-out legacy code
 [ ] No silent fallbacks or placeholder production code
 [ ] No unjustified any / ignore / suppression
-[ ] Secret scan clean over full history
+[ ] Secret scan clean over reachable checked-out history (full checkout if claimed)
 [ ] Dependency audit clean, or exceptions documented
 [ ] Sanitizers wired (native code) and passing
 [ ] Tests pass; coverage recorded

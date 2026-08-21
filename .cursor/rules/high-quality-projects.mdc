@@ -3,8 +3,8 @@ description: Production-grade project setup and quality retrofit workflows
 alwaysApply: false
 ---
 
-This repository provides two workflows for holding a codebase to production
-standards. Both are plain Markdown and work with any agent.
+This repository provides two workflows for applying production-oriented code
+standards. Both are plain Markdown and can be followed outside Cursor.
 
 - **New project** → read `skills/project_setup/SKILL.md`
 - **Existing codebase** → read `skills/quality_retrofit/SKILL.md`
