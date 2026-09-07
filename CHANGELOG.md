@@ -19,6 +19,7 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   required independently of structural success.
 - Atomic plan-update helper with candidate validation, observed-digest conflict
   detection, cooperative locks, flushed writes, and idempotent replacement.
+- Executable Python entry points on POSIX, verified by the hosted lint gate.
 - Deterministic regressions and validator mutation drills, plus isolated live
   agent scenarios with independent product oracles and negative controls.
 
