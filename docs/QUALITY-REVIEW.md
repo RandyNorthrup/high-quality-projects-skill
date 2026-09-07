@@ -96,10 +96,48 @@ metadata, notes, checksums, and cross-time-zone reproducibility under both shell
   retained for adapter compatibility and checked against folders; remaining
   frontmatter/body checks were exercised on disposable copies with only the
   name normalized.
-- Skill prompt behavior still needs representative setup/retrofit trials.
-  Prompt text checks and executable tool drills do not establish that every
-  agent will follow the instructions in every project.
+- This v0.5.0 template review did not include live agent trials. The v0.6.0
+  evaluation below covers specific decisions and outcomes; prompt text checks
+  and tool drills do not establish behavior for every agent and project.
 
-Ongoing follow-up: exercise both workflows on representative projects and record
+Ongoing verification: exercise all workflows on representative projects and record
 missed behavior. Every release still requires its tagged cross-platform workflow
 and independent verification of the published artifacts.
+
+## Native delivery verification for v0.6.0
+
+The shared lifecycle, native ledger, feature-delivery entry point, structural
+validator, atomic writer, and workflow handoffs are implemented. New delivery
+and evaluation machinery is first-party Python using its standard library.
+The previous language-template evidence remains scoped as described above.
+
+Local verification currently passes 46 unittest tests, strict mypy for the ten
+delivery source files, Ruff 0.16.4 lint/format, PowerShell 5.1/7 smoke red drills,
+and reproducible archive inspection. Tests cover malformed records, coverage,
+cycles, stale input/context, false completion, actual file outcomes, artifact
+integrity, red-proof rejection, atomic conflicts, interruption, and idempotence.
+Two real validator mutations fail existing assertions, restore exact bytes,
+and return green. Independent outcome controls reject broken behavior, vacuous
+or zero tests, duplicate domain logic, premature changes, forged environment
+claims, and replayed side effects.
+
+The first hosted run found missing executable bits on the two new entry points.
+Commit `2e39813` corrected their Git modes. All twelve jobs then passed in
+[run 34164930093](https://github.com/RandyNorthrup/high-quality-projects-skill/actions/runs/34164930093):
+Python 3.12/3.14 on Windows/Linux/macOS, native PowerShell including 5.1,
+Bash/PowerShell inventory parity, and release-package checks. Final release
+source must pass the same matrix again after evidence reconciliation.
+
+The README uses the tracked warm-ivory, charcoal, and copper artwork. The
+GitHub Markdown rendering was inspected with official styles in light/dark
+themes at 375px and 1440px widths: no page overflow, one primary heading,
+loaded images with meaningful alternatives, and readable comparisons. The
+published README and saved GitHub social-preview setting were visually checked.
+This is README presentation evidence, not accessibility certification of an
+application produced by a workflow.
+
+Live agent trials and their final evidence reconciliation are in progress under
+the [behavioral protocol](../tests/behavioral/README.md). Their acceptance is
+independent of deterministic test and hosted CI success. Exact-tag publication,
+published artifact/provenance verification, and installed discovery remain open
+until the release has actually completed.

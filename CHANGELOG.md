@@ -22,6 +22,8 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Executable Python entry points on POSIX, verified by the hosted lint gate.
 - Deterministic regressions and validator mutation drills, plus isolated live
   agent scenarios with independent product oracles and negative controls.
+- Independent trial checks re-observe runtime versions and validate current
+  closure receipts, including a negative control for fabricated versions.
 
 ### Changed
 

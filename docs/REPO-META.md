@@ -9,7 +9,7 @@ Keep the description concise and lead with searchable nouns rather than a
 tagline.
 
 ```
-Vendor-neutral workflows that grill new project ideas into confirmed, release-ready briefs and retrofit existing codebases with evidence-backed quality gates. Native PowerShell and Bash; optional Claude Code plugin.
+Vendor-neutral project discovery, feature delivery, and quality retrofit. Scan and enhance canonical code, prove tests with red drills, and resume from current evidence. First-party Python delivery helpers; native PowerShell and Bash.
 ```
 
 ## Topics
@@ -46,7 +46,7 @@ product-discovery
 This one-line form works unchanged in PowerShell and POSIX shells:
 
 ```console
-gh repo edit RandyNorthrup/high-quality-projects-skill --description "Vendor-neutral workflows that grill new project ideas into confirmed, release-ready briefs and retrofit existing codebases with evidence-backed quality gates. Native PowerShell and Bash; optional Claude Code plugin." --homepage "https://github.com/RandyNorthrup/high-quality-projects-skill" --add-topic claude-code --add-topic claude-code-plugin --add-topic code-quality --add-topic quality-gates --add-topic static-analysis --add-topic linting --add-topic dead-code --add-topic code-standards --add-topic technical-debt --add-topic refactoring --add-topic pre-commit --add-topic sanitizers --add-topic developer-tools --add-topic ai-coding-assistant --add-topic agents-md --add-topic ai-agents --add-topic coding-agent --add-topic cursor --add-topic vendor-neutral --add-topic product-discovery
+gh repo edit RandyNorthrup/high-quality-projects-skill --description "Vendor-neutral project discovery, feature delivery, and quality retrofit. Scan and enhance canonical code, prove tests with red drills, and resume from current evidence. First-party Python delivery helpers; native PowerShell and Bash." --homepage "https://github.com/RandyNorthrup/high-quality-projects-skill" --add-topic claude-code --add-topic claude-code-plugin --add-topic code-quality --add-topic quality-gates --add-topic static-analysis --add-topic linting --add-topic dead-code --add-topic code-standards --add-topic technical-debt --add-topic refactoring --add-topic pre-commit --add-topic sanitizers --add-topic developer-tools --add-topic ai-coding-assistant --add-topic agents-md --add-topic ai-agents --add-topic coding-agent --add-topic cursor --add-topic vendor-neutral --add-topic product-discovery
 ```
 
 ## Social preview
@@ -56,6 +56,8 @@ The tracked upload source is
 It is an opaque 1774×887 PNG (2:1), 1,013,540 bytes. Warm ivory, charcoal, and
 restrained copper replace the previous purple/blue artwork. The README uses
 this tracked image directly and includes a meaningful text alternative.
+The repository setting was uploaded and visually verified on 2026-09-07 using
+[GitHub's social-preview controls](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/customizing-your-repositorys-social-media-preview).
 
 Git does not apply this setting. Upload the file under **Settings → General →
 Social preview → Edit → Upload an image**, then verify the preview before

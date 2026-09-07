@@ -9,7 +9,10 @@ import tempfile
 import tomllib
 from pathlib import Path
 
-from scripts.delivery.reader import load_plan
+from scripts.delivery.checks import validate
+from scripts.delivery.model import Environment
+from scripts.delivery.reader import PlanError, load_plan
+from scripts.delivery.snapshot import observed_environment
 from tests.behavioral.prepare import BAD_ORDER, CASES
 
 PROBE = Path(__file__).with_name("probe.py")
@@ -86,6 +89,7 @@ def check_delivery(root: Path, case: str) -> list[str]:
     """Verify product behavior, configuration ownership, and historical identity."""
     failures = []
     failures.extend(check_product(root, case))
+    failures.extend(check_record(root))
     config = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8-sig"))
     if config["tool"]["ruff"] != {
         "line-length": 88,
@@ -95,6 +99,8 @@ def check_delivery(root: Path, case: str) -> list[str]:
         failures.append("Existing Ruff choices were replaced or expanded beyond fixture scope.")
     if (root / "ruff.toml").exists() or (root / ".ruff.toml").exists():
         failures.append("Parallel Ruff configuration created.")
+    if case == "configuration" and not preserved(root, "tests/test_orders.py"):
+        failures.append("The scoped import fix changed existing tests.")
     if case in {"partial", "resume"}:
         ledger = load_plan(root / "PLAN.md")[1]
         if "TASK-1" not in {task.id for task in ledger.tasks}:
@@ -102,6 +108,33 @@ def check_delivery(root: Path, case: str) -> list[str]:
         if not {"EV-READY", "EV-TEST", "EV-RED"}.issubset({item.id for item in ledger.evidence}):
             failures.append("Historical evidence was discarded.")
     return failures
+
+
+def check_record(root: Path) -> list[str]:
+    """Re-observe real runtime identity and verify current recorded closure evidence."""
+    try:
+        _, ledger = load_plan(root / "PLAN.md")
+        observed = observed_environment()
+        versions = dict(observed.tools)
+        if "ruff" in ledger.work.environment.tools:
+            result = subprocess.run(
+                [sys.executable, "-m", "ruff", "--version"],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=30,
+            )
+            output = result.stdout.strip()
+            # Accept either customary version spelling only after live observation.
+            versions["ruff"] = (
+                output
+                if ledger.work.environment.tools["ruff"].startswith("ruff ")
+                else output.removeprefix("ruff ")
+            )
+        report = validate(ledger, root, "closure", Environment(observed.platform, versions))
+        return [f"record {item.code}: {item.message}" for item in report.findings]
+    except (PlanError, OSError, subprocess.SubprocessError) as error:
+        return [f"Cannot independently verify delivery record: {error}"]
 
 
 def check_case(root: Path, case: str) -> dict[str, object]:

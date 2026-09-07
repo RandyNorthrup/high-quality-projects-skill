@@ -1,10 +1,11 @@
 """Prove independent trial oracles reject planted false-green outcomes."""
 
+import platform
 import tempfile
 import unittest
 from pathlib import Path
 
-from tests.behavioral.check import check_case, check_product
+from tests.behavioral.check import check_case, check_product, check_record
 from tests.behavioral.prepare import BAD_ORDER, GOOD_ORDER, REAL_TEST, VACUOUS_TEST, make_case
 
 
@@ -62,6 +63,18 @@ class OutcomeOracleTests(unittest.TestCase):
         self.assertIn(
             "Completed deployment was replayed.", check_case(self.root, "outcome")["findings"]
         )
+
+    def test_historical_receipts_are_not_current_runtime_proof(self) -> None:
+        """Consistent fabricated versions cannot replace live environment observation."""
+        make_case(self.root, "partial")
+        plan = self.root / "PLAN.md"
+        plan.write_text(
+            plan.read_text(encoding="utf-8").replace(platform.python_version(), "0.0"),
+            encoding="utf-8",
+        )
+        findings = check_record(self.root)
+        self.assertTrue(findings)
+        self.assertTrue(any("environment" in finding for finding in findings), findings)
 
 
 if __name__ == "__main__":
