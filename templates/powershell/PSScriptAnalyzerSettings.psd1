@@ -12,11 +12,6 @@
     Severity = @('Error', 'Warning', 'Information')
 
     ExcludeRules = @(
-        # Fires on any function named Get-/Set-/New- that lacks ShouldProcess
-        # even when it has no side effects. Re-enable per-project once the
-        # genuinely destructive functions are annotated.
-        'PSUseShouldProcessForStateChangingFunctions',
-
         # Demands Write-Host be replaced with Write-Output everywhere. For
         # interactive CLI tools coloured Write-Host is correct.
         'PSAvoidUsingWriteHost'
@@ -56,12 +51,15 @@
         # Full cmdlet names only -- no `ls`, `%`, `?` in committed scripts.
         PSAvoidUsingCmdletAliases = @{ Enable = $true }
         PSUseCorrectCasing = @{ Enable = $true }
-        # Catches typos against the real cmdlet surface for supported hosts.
+        # These are shipped historical command inventories, not proof of current
+        # host compatibility. Select installed profiles for the support contract
+        # and execute tests on actual supported hosts. Do not invent profile IDs.
         PSUseCompatibleCmdlets = @{
             Compatibility = @(
                 'desktop-5.1.14393.206-windows',
-                'core-7.4.0-linux',
-                'core-7.4.0-windows'
+                'core-6.1.0-linux',
+                'core-6.1.0-windows',
+                'core-6.1.0-macos'
             )
         }
     }

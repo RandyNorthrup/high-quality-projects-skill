@@ -4,8 +4,9 @@ Copy-in configs for lint / format / dead-code / test / security gates, tuned to
 the strictest setting that is still *correct* rather than merely loud.
 
 **A gate is not configured until it has been seen to fail on a case it is
-supposed to catch.** Before relying on any of these, break something on purpose
-and confirm the tool exits non-zero. That discipline is not decoration — three
+supposed to catch.** Use the shared [red-drill procedure](../docs/RED-DRILLS.md)
+and [language review contract](../docs/CODE-QUALITY.md), including intended
+failure, exact restoration, and final green. That discipline is not decoration — three
 separate tools have been found here that loaded cleanly, reported nothing, and
 checked nothing (see Gotchas).
 
@@ -20,6 +21,11 @@ stylelint-config-standard 40.0.0, knip 6.32.2, .NET SDK
 10.0.400, cargo/clippy 1.96.0, and PSScriptAnalyzer 1.25.0. These are dated
 compatibility observations, not permanent minimums or automatic dependency
 pins.
+
+The 2026-09-07 source-backed review and current validation boundaries are in
+[`docs/QUALITY-REVIEW.md`](../docs/QUALITY-REVIEW.md). Preserve the older snapshot
+as history; select project runtimes explicitly rather than copying version or
+module defaults as universal choices.
 
 ## Layout
 
@@ -90,12 +96,12 @@ stylelint "**/*.css" --max-warnings=0
 htmlhint .
 
 # C++
-cppcheck --enable=all --error-exitcode=1 --std=c++23 --suppress=missingIncludeSystem src/
-clang-tidy src/*.cpp -- -std=c++23        # .clang-tidy sets WarningsAsErrors: '*'
+cppcheck --enable=all --error-exitcode=1 --project=build/compile_commands.json
+clang-tidy -p build src/example.cpp      # use the actual build/source paths
 
 # Rust
 cargo fmt --all -- --check
-cargo clippy --all-targets --all-features -- -D warnings
+cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo machete
 cargo audit
 cargo deny check
@@ -110,8 +116,8 @@ Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1
 
 # Cross-cutting
 gitleaks git --redact             # secrets in reachable git history
-semgrep --config=auto             # multi-language SAST
-jscpd .                           # copy-paste detection
+semgrep scan --error --config=auto # findings must cause a failing exit
+jscpd .                           # configure a project duplication threshold
 ```
 
 Shell-project gates use POSIX filename expansion:
@@ -161,13 +167,15 @@ Places where "strictest" is the wrong call, and why:
   busywork. Doc generation stays on so other doc warnings still fire.
 - **`multiple_crate_versions = "allow"`** (clippy) — you rarely control
   transitive duplicate versions.
-- **`PSUseShouldProcessForStateChangingFunctions`** excluded — fires on any
-  `Get-`/`Set-`/`New-` function regardless of actual side effects.
 - **`PSAlignAssignmentStatement`** disabled — its required padding conflicts
   with `PSUseConsistentWhitespace.CheckOperator`; enabling both makes one style
   fail whichever alignment is chosen.
 
 Each is a single-line revert in its config file.
+
+Tests retain type/unsafe-assignment checks. Python `assert` is permitted only
+in test paths, and PowerShell state-changing functions retain `ShouldProcess`
+checks. Domain-local numeric constants need no TypeScript file-wide exemption.
 
 ## Gotchas
 
@@ -176,8 +184,9 @@ Each is a single-line revert in its config file.
   `SyntaxError: Cannot use import statement outside a module`.
 - **`--max-warnings=0`** is what turns ESLint and stylelint into gates. Without
   it, warnings exit 0 and CI passes over them.
-- **`EnforceCodeStyleInBuild`** is what makes `dotnet format` rules fail a
-  build. Without it, `IDExxxx` diagnostics only show in the IDE.
+- **`EnforceCodeStyleInBuild`** runs supported IDE code-style analyzers during
+  build. Set diagnostic severities in `.editorconfig` and drill them; it does
+  not promote every suggestion. Keep `dotnet format --verify-no-changes` too.
 - **`-EnableExit`** is what makes PSScriptAnalyzer fail a build.
 - **Clippy lint *levels* go in `Cargo.toml`, not `clippy.toml`.** `clippy.toml`
   only tunes thresholds. See `rust/clippy-strict.toml` — it holds both halves.

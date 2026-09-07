@@ -47,7 +47,7 @@ target project is compliant merely because the files were copied.
 
 ## Installation
 
-Latest stable release: **[v0.4.1](https://github.com/RandyNorthrup/high-quality-projects-skill/releases/tag/v0.4.1)**.
+Latest stable release: **[v0.5.0](https://github.com/RandyNorthrup/high-quality-projects-skill/releases/tag/v0.5.0)**.
 
 See the complete [`installation and verification guide`](docs/INSTALLATION.md)
 for pinned Claude Code installs, signed release archives, SHA-256 checks, local
@@ -59,7 +59,7 @@ Clone or vendor the repository, then direct the agent to read the appropriate
 workflow in full:
 
 ```console
-git clone --branch v0.4.1 --depth 1 https://github.com/RandyNorthrup/high-quality-projects-skill.git
+git clone --branch v0.5.0 --depth 1 https://github.com/RandyNorthrup/high-quality-projects-skill.git
 ```
 
 - New project: [`skills/project_setup/SKILL.md`](skills/project_setup/SKILL.md)
@@ -124,7 +124,8 @@ empty project. It:
    the chosen stack;
 6. writes `README.md`, `CHANGELOG.md`, and `PLAN.md` from confirmed scope and
    what actually exists;
-7. runs every available gate and records anything that could not be verified.
+7. runs gates and repeatable red drills, records the intended failure and
+   restored green, and names anything that could not be verified.
 
 The project description seeds discovery; it does not skip it. Questions arrive
 in focused rounds, with known answers reused and critical unknowns blocking
@@ -152,6 +153,11 @@ These risk labels are planning guidance, not guarantees. The workflow requires
 tests and evidence at each boundary and does not authorize silent phase
 chaining.
 
+Every phase follows a focused scan-and-enhance approach: trace canonical code
+and its consumers, extend it, and justify any new path. Recheck for overlapping
+implementations at closeout. Both workflows require recurring red drills for
+affected tests and gates.
+
 It also refuses to:
 
 - retrofit a dirty tree or bulk-edit an unversioned codebase;
@@ -177,10 +183,15 @@ every tool applies to every project.
 | CSS / HTML | Prettier | Stylelint / HTMLHint | — | — | — | project-selected runner |
 | PowerShell | PSScriptAnalyzer | PSScriptAnalyzer | — | — | — | Pester where used |
 | Shell | shfmt | ShellCheck | — | — | — | bats where used |
+| Go | gofmt | go vet, selected Staticcheck | compiler | selected analyzer + review | govulncheck | go test; race/fuzz where supported |
 
 Cross-cutting guidance covers Gitleaks for secrets, Semgrep for multi-language
 static analysis, and jscpd for duplication. Tool availability and compatibility
 are checked in the target environment rather than assumed from this table.
+The shared [language review contract](docs/CODE-QUALITY.md) also covers ownership,
+organization, semantic HTML, asynchronous failures, resource lifetimes, and
+rejection of tautological checks and vacuous implementations. Go has guidance;
+the package does not supply a Go configuration template.
 
 ## Design principles
 
@@ -201,12 +212,33 @@ locally available tools. They do not install dependencies or modify the target
 workspace. Callers must inspect the JSON for an `error` property; the scripts
 return their JSON contract even when inventory fails.
 
+Supplement inventory with searches by responsibility and behavior, read the
+closest implementations and their callers, and record reuse decisions before
+each change. Enhance canonical code, tests, configuration, and docs. A clean
+copy-paste scan does not establish semantic uniqueness, and similar syntax does
+not require merging unrelated responsibilities.
+
 ### Prove gates can fail
 
-A clean report is useful only after the gate has been exercised against an
-input it should reject. The workflows require a deliberate failure check where
-practical, followed by removal of the test defect. This catches decorative
-configuration, wrong include paths, broken resolvers, and warning-only CI.
+A clean report is useful only after the check rejects a defect it is meant to
+catch. Every project must maintain [red drills](docs/RED-DRILLS.md): green
+baseline, intentional defect, intended failure with non-zero exit, exact
+restoration, and green again. Repeat affected drills when behavior, tests,
+configuration, or tools change, and run the maintained set at milestone/release
+verification. This catches ineffective assertions, wrong include paths, broken
+resolvers, and warning-only CI. Zero tests and unrelated crashes earn no credit.
+
+This package reuses its smoke suite for three isolated drills covering directory
+pruning, root overrides, and unreadable-path errors:
+
+```powershell
+& .\tests\cross-platform-smoke.ps1 -RedDrills
+```
+
+The command tests a temporary copy of current source, requires the expected
+failure for each mutation, verifies byte-for-byte restoration, and reruns the
+suite. CI invokes it on the supported PowerShell hosts. These drills prove the
+named checks; they do not certify all tests or agent behavior.
 
 ### Treat automatic fixes as code changes
 
@@ -242,6 +274,12 @@ require nightly Rust and `-Zbuild-std`. See the
   — reusable decision record and readiness confirmation template
 - [`docs/PHILOSOPHY.md`](docs/PHILOSOPHY.md) — why the standards exist and when
   strictness is the wrong choice
+- [`docs/RED-DRILLS.md`](docs/RED-DRILLS.md) — required failure drills, safe
+  restoration, recurring verification, and evidence contract shared by both workflows
+- [`docs/CODE-QUALITY.md`](docs/CODE-QUALITY.md) — researched common and
+  language-specific implementation/review rules with primary sources
+- [`docs/QUALITY-REVIEW.md`](docs/QUALITY-REVIEW.md) — dated template audit,
+  executable evidence, and explicit remaining verification boundaries
 - [`templates/README.md`](templates/README.md) — template locations, commands,
   deliberate loosenings, and dated compatibility evidence
 - [`templates/cpp/sanitizers.md`](templates/cpp/sanitizers.md) — C/C++ and Rust

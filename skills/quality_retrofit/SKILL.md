@@ -42,7 +42,7 @@ Nothing here is specific to one vendor. If your agent cannot run shell commands,
 read the files directly out of the repository — the templates are plain config
 files and the phases below are plain instructions.
 
-## Rule zero: scan, report, then ask
+## Rule zero: scan, enhance, then create only if needed
 
 ```powershell
 $Scan = & "$SkillRoot\scripts\detect-stack.ps1" . | ConvertFrom-Json
@@ -70,14 +70,41 @@ A Python tool counts as present when it is **importable**, which is not the same
 as being on `PATH` — an unactivated venv, or a Windows install without the
 scripts directory exported, routinely leaves `ruff` fully usable while
 `command -v ruff` finds nothing. Everything the scan lists under
-`python_runtime.module_only_tools` must be run as
-`<python_runtime.bin> -m <module>`; invoking it by bare name gets
-`command not found`, and a gate that works is then recorded as unavailable.
+`python_runtime.module_only_tools` needs an invocation verified for that
+interpreter, usually `<python_runtime.bin> -m <module>`. Semgrep rejects that
+form: use its installed console scripts with the selected environment's scripts
+directory on the child process PATH. A missing PATH entry or unsupported CLI
+form does not justify a duplicate installation or a false passing gate.
 
-Then get agreement on scope before writing. A retrofit that surprises someone
-is a failed retrofit.
+Supplement the inventory with a focused search by path, symbol, behavior, and
+responsibility across code, components, utilities, types, schemas, tests,
+configuration, docs, infrastructure, and assets. Read the closest matches and
+trace callers, fixtures, entry points, and generated-code boundaries. File
+counts and a clean duplication-tool report do not establish semantic uniqueness.
+
+Record canonical paths, consumers, and the reuse/extension decision in the
+existing report or `PLAN.md`. Enhance that work before adding another helper,
+wrapper, component, model, config, test harness, or document with the same role.
+If new work is necessary, record why existing work cannot satisfy the contract
+and how overlap is prevented. Similar syntax alone does not justify merging
+unrelated responsibilities into a shared abstraction.
+
+Repeat the focused scan before each change and when scope or source changes.
+For replacements, migrate callers and tests and verify preserved behavior;
+remove superseded code only after checking dynamic and public consumers. Keep
+two active paths only for an explicit compatibility need with an owner and
+removal condition. Search again for duplicates and stale callers at closeout.
+
+Confirm scope before writing, reusing authorization already given in the
+conversation. Ask only about material unresolved choices or scope expansion.
+A retrofit that surprises someone is a failed retrofit.
 
 ### Extend, never replace
+
+Read `${SKILL_ROOT}/docs/CODE-QUALITY.md` before editing: apply the common
+semantic/organization contract and the detected languages' guidance. Review for
+vacuous behavior, tautological checks, unclear ownership, and redundant layers;
+use the existing suite and red drills to prove any simplification.
 
 For every config file that already exists:
 
@@ -117,13 +144,11 @@ git rev-parse HEAD         # record for rollback
 - Establish the test baseline **before** touching anything. If tests already
   fail, record which ones. You cannot tell what you broke otherwise.
 - One phase per commit. Each commit passes the gates that existed before it.
-- **A green test suite is not evidence that the tests check anything.** An
-  inherited suite can contain assertions that cannot fail. One found this way:
-  a test pressed the arrow keys and asserted the page had not scrolled — but the
-  layout fitted the viewport, so the page could never scroll, and it passed just
-  as happily against a build with the `preventDefault` call deleted. When a test
-  guards behaviour you are about to touch, break that behaviour on purpose once
-  and confirm the test goes red before trusting it.
+- **Every project requires repeatable red drills.** Read and follow
+  `${SKILL_ROOT}/docs/RED-DRILLS.md` before trusting inherited tests or gates.
+  Break the affected behavior in isolation, require the intended assertion and
+  a non-zero exit, restore exactly, and prove green again. A green suite, code
+  coverage, or an unrelated failure does not establish test sensitivity.
 
 ## Phases
 
@@ -133,6 +158,9 @@ Stop and report between phases; do not chain them silently.
 ### Phase 0 — baseline
 Record: test results, build status, current lint/type error counts. This is the
 number every later phase is measured against. Write it into the report.
+Confirm actual test discovery and execution, then drill the tests protecting
+behavior in scope before relying on them. Record surviving mutations, unrelated
+failures, missing tests, and blocked drills as gaps; never as verified green.
 
 **Leave no trace.** Running the gates is not a read-only act: `ruff`, `mypy`,
 `pytest` and `cargo` all write cache directories, and in a repo whose
@@ -244,6 +272,10 @@ replace it.
 
 At the end, run every gate and **record the failure counts**. Those counts are
 the work list for phases 3–6.
+Add or extend a repeatable red-drill command using the existing harness. Prove
+each new/changed gate and its aggregate command propagate failures, then restore
+and rerun. Wire a deterministic drill set into CI and record broader cadence in
+the plan. Repeat affected drills after phases change behavior, tests, or tools.
 
 ### Phase 3 — autofixable lint
 `ruff check --fix` · `eslint --fix` · `cargo clippy --fix` · `stylelint --fix` ·
@@ -348,30 +380,19 @@ git, so `.gitignore` does not protect them: a `.venv/`, `node_modules/`, or
 `target/` you created during the retrofit will be crawled, burning the entire
 budget on vendored stubs before it reaches your code.
 
-Delete build and environment directories first, or name the files explicitly:
-
-```bash
-rm -rf .venv .mypy_cache .ruff_cache __pycache__
-# then scope the request: "review only src/foo.py and the diff A..B"
-```
-
-PowerShell equivalent:
-
-```powershell
-foreach ($Directory in @('.venv', '.mypy_cache', '.ruff_cache', '__pycache__')) {
-    if (Test-Path -LiteralPath $Directory) {
-        Remove-Item -LiteralPath $Directory -Recurse -Force
-    }
-}
-# then scope the request: "review only src/foo.py and the diff A..B"
-```
+Name the files explicitly, for example: "review only src/foo.py and the diff
+A..B; exclude .venv, node_modules, target, and generated output." Do not delete
+pre-existing environments or build directories to constrain a review. If the
+reviewer cannot honor scope, provide an isolated copy of only the relevant
+files. Remove only resources this workflow created, following phase 0 ownership
+checks.
 
 ### Phase 7 — security and sanitizers
 - `gitleaks git --redact` over reachable history. **A hit here is an incident**,
   not a
   lint finding: the secret is in history, so rotate it first, then scrub.
   Report and stop; do not rewrite history unprompted.
-- `semgrep --config=auto`, `bandit`, `npm audit`, `pip-audit`, `cargo audit`
+- `semgrep scan --error --config=auto`, `bandit`, `npm audit`, `pip-audit`, `cargo audit`
 - C/C++/Rust: wire sanitizer CI jobs. ASan+UBSan in one job, TSan in a
   **separate** one — they use incompatible shadow memory and cannot be combined.
   Use `-fno-sanitize-recover=all` so recoverable UBSan findings halt instead of
@@ -386,6 +407,11 @@ Now that the code is known-good, make the docs match it:
 - `CHANGELOG.md` — add a retrofit entry describing what actually changed.
 - Create `PLAN.md` if absent, recording remaining debt as tracked items.
 - Remove stale claims and obsolete instructions.
+- Extend the canonical project agent instructions with recurring scan-and-enhance
+  and red-drill rules; keep tooling adapters as pointers to that source.
+- Record canonical paths enhanced, justified new code, and the final overlap
+  check. Link red-drill recipes and green/red/restored-green evidence, including
+  any deferred cases with an owner and next action.
 
 ## Compliance checklist
 
@@ -406,6 +432,9 @@ silently omit a row.
 [ ] Dependency audit clean, or exceptions documented
 [ ] Sanitizers wired (native code) and passing
 [ ] Tests pass; coverage recorded
+[ ] Tests actually discovered/executed; affected red drills caught intended defects
+[ ] Maintained drill set passes with exact restoration and final green
+[ ] Canonical code enhanced; new paths justified; no unintended parallel implementation
 [ ] Build succeeds
 [ ] Pre-commit installed
 [ ] CI workflow runs the same gates as local
@@ -418,6 +447,8 @@ silently omit a row.
 ```
 BASELINE     tests X/Y · build ok/fail · lint N · types M
 AFTER        tests X/Y · build ok/fail · lint 0 · types 0
+RED DRILLS   command · source/runtime · mutation · expected/actual failure · restored green
+REUSE        canonical paths enhanced · new paths justified · overlap/callers checked
 
 PHASE 1 format      1,240 files · whitespace only · blame-ignore added
 PHASE 3 lint        312 auto · 47 manual
@@ -442,5 +473,8 @@ NOT DONE
 - Delete code you have not verified is unreachable.
 - Rewrite git history to remove a leaked secret without explicit instruction.
 - Weaken an existing rule that is already stricter than the template.
+- Create a parallel implementation without scanning and evaluating canonical work.
+- Count surviving mutations, unrelated errors, zero tests, or unverified cleanup
+  as successful red drills.
 - Report a gate as passing when it was skipped, deferred, or its tool is
   missing. A false green is worse than a red.

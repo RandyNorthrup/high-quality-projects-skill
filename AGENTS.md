@@ -60,6 +60,8 @@ scripts/build-release.ps1         exact-commit archives and release metadata
 scripts/verify-format-safe.py     compare Python ASTs before and after formatting
 templates/                        tuned strict configs per language
 docs/PHILOSOPHY.md                why the gates are set the way they are
+docs/RED-DRILLS.md                shared test/gate failure-verification procedure
+docs/CODE-QUALITY.md              language-specific semantic and organization rules
 ```
 
 ## Non-negotiables when using this package
@@ -72,16 +74,24 @@ should not need reminding, but they are the ones most often skipped:
   not write in this session — read it and extend it. Search existing code,
   components, types, tests, docs, and assets before adding another
   implementation. Enhance canonical work; do not create renamed or parallel
-  duplicates.
-- **A gate is not configured until it has been seen to fail.** Break something
-  on purpose, confirm a non-zero exit, revert. Several tools in this package's
-  history loaded cleanly and checked nothing.
+  duplicates. Repeat a focused scan before each change, trace consumers, and
+  record reuse or justified new work in the existing plan. Inventory counts
+  alone do not prove that an implementation is unique.
+- **Every project requires red drills.** Follow
+  [`docs/RED-DRILLS.md`](docs/RED-DRILLS.md): baseline green, inject a known
+  defect, require the intended assertion/diagnostic and non-zero exit, restore
+  exactly, and prove green again. Keep repeatable drills for affected tests and
+  gates, and run the maintained set at milestone/release verification. Zero
+  tests, unrelated errors, and surviving mutations cannot count as passing.
 - **Confirm the project before choosing the stack.** `project_setup` runs its
   Grill Me interview and confirms `PROJECT_BRIEF.md`. Critical product,
   signing, distribution, security, operations, or release decisions cannot be
   replaced with silent defaults.
 - **Verify the effect, not the write.** Reading back the value you just wrote
   proves the write worked, not that behaviour changed.
+- **Useful, semantic code.** Apply [`docs/CODE-QUALITY.md`](docs/CODE-QUALITY.md)
+  for the detected stack. Reject tautological tests, vacuous success paths,
+  redundant layers, and comments that add no contract or rationale.
 - **Never report a skipped or deferred gate as passing.** Say plainly what was
   not run and why.
 - **Do not modify global user or machine configuration.** Project-local only.
@@ -101,10 +111,12 @@ Always inspect the returned JSON for an `error` property. Exit 0 means the
 scanner returned its JSON contract; it does not turn `unreadable path` or
 `scan failed` into a successful inventory.
 
-Python tools are detected by importability, not by `PATH`, because an
-unactivated venv or a Windows install leaves them runnable as
-`python -m <module>` with no console script anywhere. The scan names the
-interpreter it verified in `python_runtime.bin` and lists the tools that need
-that form in `python_runtime.module_only_tools`. Use it: calling those by bare
-name fails, and the failure looks like a missing tool rather than a wrong
-invocation.
+Python tools are detected by importability, not by `PATH`. Use the interpreter
+in `python_runtime.bin`; `python_runtime.module_only_tools` lists importable
+tools without a PATH executable. Usually `<interpreter> -m <module>` works, but
+verify the CLI rather than equating an import with an executable gate.
+
+Semgrep rejects `python -m semgrep`; run its installed console scripts with the
+selected environment's scripts directory on the child process PATH. Keep
+environment changes local and restore them; do not install a duplicate or
+change global PATH to repair an invocation.

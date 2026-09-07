@@ -7,8 +7,11 @@
 -->
 <Project>
   <PropertyGroup>
-    <LangVersion>latest</LangVersion>
-    <TargetFramework Condition="'$(TargetFramework)' == ''">net10.0</TargetFramework>
+    <!-- Keep TargetFramework/TargetFrameworks and any explicit LangVersion in
+         the owning project. Directory.Build.props is imported before project
+         properties, so a fallback TFM can break multi-targeting. Pin the SDK
+         in global.json; its TFM-aligned language default is reproducible.
+         Do not use LangVersion=latest, which varies with the installed SDK. -->
 
     <!-- Nullable reference types on, and violations are build errors.
          Without TreatWarningsAsErrors this is just advisory noise. -->
@@ -23,8 +26,10 @@
     <AnalysisMode>All</AnalysisMode>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
 
-    <!-- Without this, `dotnet format` style rules (IDExxxx) never fail CI —
-         they only show in the IDE. This makes formatting a real gate. -->
+    <!-- Run supported IDE code-style analyzers during build. Set intended
+         diagnostic severities in the existing .editorconfig: this switch does
+         not promote every suggestion to an error. Keep dotnet format's
+         --verify-no-changes check as a separate formatting gate. -->
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 
     <!-- Dead code / correctness -->
@@ -47,7 +52,9 @@
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
-  <!-- Tests: xUnit analyzers plus a relaxation for the doc rules. -->
+  <!-- Conventional test-project names: narrow naming/context relaxations.
+       This does not install a test framework or its analyzers. Projects with
+       other names must scope their own test settings after IsTestProject is set. -->
   <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Tests'))">
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CA1707;CA2007</NoWarn>

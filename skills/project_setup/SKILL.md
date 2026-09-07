@@ -77,15 +77,27 @@ brand assets, infrastructure, and generated-code boundaries. Then:
 - **A Python tool is listed in `python_runtime.module_only_tools`** → it is
   installed and importable but has no console script on `PATH`, which is the
   normal state of an unactivated venv or a Windows install. Run it as
-  `<python_runtime.bin> -m <module>`. Do not treat it as missing and do not
-  install a second copy.
+  `<python_runtime.bin> -m <module>` when that CLI form is supported, and verify
+  it executes. Semgrep requires its installed console scripts instead; use the
+  selected environment's scripts directory on the child process PATH. Do not
+  treat an invocation failure as a missing dependency or install a second copy.
 
 Before creating any implementation or guideline, search by path, symbol,
-behavior, and responsibility. Extend the canonical implementation when one
-exists. If replacement is justified, record the reason and migration plan,
-update every consumer, prove behavior, and remove the superseded path only when
-safe. Do not create a second helper, component, model, config, asset, or document
-that performs the same role under a different name.
+behavior, and responsibility; read the closest matches and trace their callers,
+tests, and configuration. The inventory script is a starting map, not a semantic
+duplication check. Record the canonical paths, consumers, and reuse decision in
+the existing plan. Repeat this focused scan before each change and after scope
+or source changes; the initial inventory is not a permanent clearance.
+
+Extend the canonical implementation when one exists. If replacement is
+justified, record the reason and migration plan, update every consumer, prove
+behavior, and remove the superseded path only when safe. Do not create a second
+helper, component, model, config, asset, or document that performs the same role
+under a different name.
+
+Do not force unrelated responsibilities into one abstraction merely because
+their code looks similar. Document the distinct contract when separate code is
+justified. Before completion, search again for overlap and stale callers.
 
 Creating a conflicting file or parallel implementation is the single worst
 failure mode of this skill.
@@ -195,6 +207,11 @@ Two more that recur in JS/TS setups:
 
 ## Phase 2 — quality gates
 
+Read `${SKILL_ROOT}/docs/CODE-QUALITY.md`: apply its common semantic/organization
+contract and the sections for the selected languages. Carry them into canonical
+project instructions and milestone review; copying lint presets alone does not
+enforce useful behavior or prevent tautological tests and vacuous code.
+
 Set up the strictest practical gate set for the stack. Copy from
 `${SKILL_ROOT}/templates/` — those configs are pre-tuned and tested,
 and each documents its own deliberate loosenings.
@@ -210,6 +227,7 @@ and each documents its own deliberate loosenings.
 | HTML | prettier | htmlhint | — | — | — | — |
 | PowerShell | PSScriptAnalyzer | PSScriptAnalyzer | — | — | — | Pester |
 | Shell | shfmt | shellcheck | — | — | gitleaks | bats |
+| Go | gofmt | go vet, selected Staticcheck | (compiler) | selected analyzer + review | govulncheck | go test, race/fuzz where supported |
 
 Cross-cutting regardless of stack: `gitleaks` (secrets; use `gitleaks git` for
 reachable checked-out history), `semgrep` (multi-language SAST), and `jscpd`
@@ -225,6 +243,7 @@ decorative:
 eslint --max-warnings=0          stylelint --max-warnings=0
 cargo clippy -- -D warnings      cppcheck --error-exitcode=1
 knip --strict                    Invoke-ScriptAnalyzer -EnableExit
+semgrep scan --error             (findings must fail the command)
 ruff check          (nonzero by default)
 mypy                (nonzero by default)
 <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>   ← C#, else IDE-only
@@ -232,12 +251,16 @@ mypy                (nonzero by default)
 -fno-sanitize-recover=all        ← make recoverable UBSan findings halt
 ```
 
-### Prove each gate fires before relying on it
+### Required red drills for tests and gates
 
 **A gate is not configured until it has been seen to fail on a case it is
-supposed to catch.** Break something on purpose, confirm a non-zero exit, then
-revert. This costs a minute per gate and is the only thing that distinguishes a
-gate from a decoration.
+supposed to catch.** Read and follow
+`${SKILL_ROOT}/docs/RED-DRILLS.md` before configuring or trusting tests and gates.
+Every project must retain repeatable drills: baseline green, an intentional
+defect rejected by the intended assertion/diagnostic with a non-zero exit,
+exact restoration, and green again. Run affected drills when behavior, tests,
+configuration, or tools change, and the maintained set at milestone/release
+verification. Reuse the project's test runner and CI commands.
 
 The flags above are the common failure. These are worse, because the tool loads
 its config without complaint and reports nothing:
@@ -272,8 +295,9 @@ green rather than absent:
   produced the same answer, the assertion would not be distinguishing anything —
   and that is indistinguishable from a broken check.
 
-Record any gate you could not get to fire in `PLAN.md` as deferred, naming the
-tool. A gate reported as passing when it was never verified is the single
+Record drill commands and evidence in `PLAN.md`, including any gate you could
+not get to fire as deferred with its reason, owner, and next action. A gate
+reported as passing when it was never verified is the single
 failure this skill exists to prevent.
 
 ### Sanitizers (C/C++/Rust)
@@ -318,12 +342,15 @@ otherwise it reports false positives from uninstrumented library internals.
 Expose gates under conventional names so CI and humans agree:
 
 `format` · `format:check` · `lint` · `typecheck` · `test` · `test:unit` ·
-`test:integration` · `test:e2e` · `build` · `security:audit` · `deadcode` ·
+`test:integration` · `test:e2e` · `test:red` · `build` · `security:audit` · `deadcode` ·
 `quality` · `quality:ci`
 
 `quality` runs everything and **fails on any blocking issue**. For stacks
 without a script runner (C++, C#), put the same commands in a `Makefile`,
 `justfile`, or `Directory.Build.props` target and document them in `README.md`.
+Reuse an existing equivalent red-drill command instead of adding an alias with
+separate logic. `test:red` succeeds only when defects are caught as intended and
+restored-green checks pass; a surviving mutation fails it.
 
 ## Phase 3 — code standards
 
@@ -331,8 +358,8 @@ Enforce throughout. These are the rules the generated agent-instruction files
 must also carry.
 
 **Reuse before creation**
-- Search existing code, types, components, utilities, tests, config, docs, and
-  assets before adding anything.
+- Apply rule zero's scan-and-enhance approach before each change, including
+  existing code, types, components, utilities, tests, config, docs, and assets.
 - Prefer enhancing the canonical implementation over wrappers, forks, copied
   helpers, alternate configs, or renamed duplicates.
 - Add a new implementation only when existing work cannot satisfy the confirmed
@@ -359,6 +386,11 @@ must also carry.
 - No mock data outside test/dev/demo boundaries.
 - A function that cannot do its job raises or returns an explicit error. It
   does not return an empty result that reads like success.
+
+**Tests that can fail**
+- Maintain red-drill recipes and evidence using the shared package procedure.
+- Do not claim passing tests from zero discovery, skipped cases, stale builds,
+  or failures unrelated to the intended assertion.
 
 **Escape hatches**
 - No broad `any`, unchecked casts, suppressed lint rules, or ignored type
@@ -419,9 +451,9 @@ gates · security gates · performance gates · documentation requirements ·
 definition of done.
 
 Each milestone carries: goal · scope · files affected · implementation steps ·
-acceptance criteria · required tests · required gates · required doc updates ·
-required security checks · required performance checks · certification
-checklist.
+acceptance criteria · required tests and red drills · required gates · required
+doc updates · required security checks · required performance checks ·
+certification checklist.
 
 **A milestone is not complete until its certification checklist passes.**
 
@@ -435,6 +467,10 @@ the requirement to update `PROJECT_BRIEF.md` when the product contract changes.
 They must also require the sequence **scan -> reuse or extend -> create only when
 needed**, with explicit checks against duplicate code, components, types,
 configuration, documentation, and assets.
+Require a focused rescan before each change, canonical-path/reuse evidence, and
+green -> intended red -> restored green drills for affected behavior and gates.
+Keep these project rules in one canonical file; make other active-tool adapters
+point to it instead of copying policies into competing files.
 
 **Never create or modify global user memory, global IDE settings, or
 machine-wide agent instructions without explicit approval.** Project-local only.
@@ -469,7 +505,8 @@ confirmed responsive targets. Use available browser automation when possible.
 5. Write `PLAN.md` — architecture and milestones before code.
 6. Scaffold structure, configs, and gates.
 7. Install dependencies. Lock them. Verify the install.
-8. Run every gate. They must pass on the empty scaffold before milestone one.
+8. Run every applicable gate and its red drill. Record behavior-test drills as
+   pending until runnable behavior exists; zero tests is not a test pass.
 9. Write `README.md` and `CHANGELOG.md` from what actually exists.
 10. Commit.
 
@@ -485,6 +522,8 @@ product decision, ask.
 - Distribution, signing, service, release, rollback, and operations decisions
 - Dependencies installed, with pinned versions
 - Quality gates configured, and the command for each
+- Canonical work enhanced, justified new paths, and final duplication check
+- Red-drill evidence: intended failures, restoration, and remaining test gaps
 - Commands to run
 - Assumptions made
 - Open questions, with owner, due date, impact, and blocking status

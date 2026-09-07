@@ -37,16 +37,13 @@
     // type-only modules.
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
-    "skipLibCheck": true,
+    "skipLibCheck": true
     // ^ the one deliberate loosening: type-checking all of node_modules'
     //   .d.ts files is slow and fails on third-party bugs you cannot fix.
 
-    "target": "ES2023",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "declaration": true,
-    "sourceMap": true
+    // Set target, module, moduleResolution, lib, and emit options in the owning
+    // project for its runtime. Bundler resolution is not a Node default; Node
+    // projects need the matching Node module/resolution pair. Applications and
+    // published libraries also have different declaration/output requirements.
   }
 }

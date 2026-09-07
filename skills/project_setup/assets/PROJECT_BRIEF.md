@@ -99,6 +99,8 @@
 
 - Acceptance evidence for each critical journey:
 - Required test levels and supported-platform matrix:
+- Red-drill scope for critical behavior and gates; safe test environments,
+  CI/milestone/release cadence, evidence location, and owner:
 - Accessibility and visual checks:
 - Performance, resource, bundle, storage, and cost budgets:
 - Availability, durability, recovery, and graceful-degradation targets:
@@ -155,6 +157,8 @@
       confirmed or assigned to qualified review.
 - [ ] Release, promotion, rollback, operations, support, and retirement owners
       are confirmed or N/A.
+- [ ] Test evidence and red-drill scope, environments, and ownership are defined;
+      unimplemented or deferred checks remain open verification work.
 - [ ] No open decision blocks stack selection or initial implementation.
 
 **Confirmation:** [name/role, date, corrections or conditions]

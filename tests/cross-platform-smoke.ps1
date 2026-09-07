@@ -1,7 +1,9 @@
-# Smoke tests for the PowerShell-native package scripts.
+﻿# Smoke tests and isolated red drills for the PowerShell-native package scripts.
 
 [CmdletBinding()]
-param()
+param(
+    [switch] $RedDrills
+)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -39,10 +41,49 @@ function Confirm-Equal {
     }
 }
 
+function Invoke-SmokeProcess {
+    param(
+        [Parameter(Mandatory)]
+        [string] $TestPath
+    )
+
+    $startInfo = [Diagnostics.ProcessStartInfo]::new()
+    $startInfo.FileName = (Get-Process -Id $PID).Path
+    $startInfo.Arguments = '-NoLogo -NoProfile -NonInteractive -File "{0}"' -f $TestPath
+    $startInfo.WorkingDirectory = Split-Path -Parent (Split-Path -Parent $TestPath)
+    $startInfo.UseShellExecute = $false
+    $startInfo.CreateNoWindow = $true
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.RedirectStandardError = $true
+    $process = [Diagnostics.Process]::new()
+    $process.StartInfo = $startInfo
+    try {
+        [void] $process.Start()
+        $stdout = $process.StandardOutput.ReadToEndAsync()
+        $stderr = $process.StandardError.ReadToEndAsync()
+        $timeoutMilliseconds = 60000
+        if (-not $process.WaitForExit($timeoutMilliseconds)) {
+            $process.Kill()
+            $process.WaitForExit()
+            throw 'Smoke test timed out; this is not an expected red drill.'
+        }
+        return @{
+            ExitCode = $process.ExitCode
+            Output = $stdout.GetAwaiter().GetResult() + $stderr.GetAwaiter().GetResult()
+        }
+    }
+    finally {
+        $process.Dispose()
+    }
+}
+
 $repositoryRoot = [IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath '..'))
 $rootScript = Join-Path -Path $repositoryRoot -ChildPath 'scripts/skill-root.ps1'
 $scanScript = Join-Path -Path $repositoryRoot -ChildPath 'scripts/detect-stack.ps1'
 $projectSetupSkill = Join-Path -Path $repositoryRoot -ChildPath 'skills/project_setup/SKILL.md'
+$qualityRetrofitSkill = Join-Path -Path $repositoryRoot -ChildPath 'skills/quality_retrofit/SKILL.md'
+$redDrillReference = Join-Path -Path $repositoryRoot -ChildPath 'docs/RED-DRILLS.md'
+$codeQualityReference = Join-Path -Path $repositoryRoot -ChildPath 'docs/CODE-QUALITY.md'
 $grillMeReference = Join-Path -Path $repositoryRoot `
     -ChildPath 'skills/project_setup/references/grill-me.md'
 $projectBriefAsset = Join-Path -Path $repositoryRoot `
@@ -60,8 +101,89 @@ $originalSkillRoot = [Environment]::GetEnvironmentVariable('SKILL_ROOT')
 $originalPluginRoot = [Environment]::GetEnvironmentVariable('CLAUDE_PLUGIN_ROOT')
 
 try {
+    if ($RedDrills) {
+        # Copy the current source, including pending edits, without copying Git
+        # metadata, ignored environments, or build output. Never mutate the source tree.
+        $sourceFiles = @(& git -C $repositoryRoot -c core.quotepath=false ls-files --cached --others --exclude-standard)
+        Confirm-Equal -Actual $LASTEXITCODE -Expected 0 -Message 'Could not inventory drill source.'
+        [void] (New-Item -ItemType Directory -Path $temporaryRoot)
+        foreach ($relativePath in $sourceFiles) {
+            $sourcePath = Join-Path -Path $repositoryRoot -ChildPath $relativePath
+            if (-not (Test-Path -LiteralPath $sourcePath -PathType Leaf)) {
+                continue
+            }
+            $copyPath = Join-Path -Path $temporaryRoot -ChildPath $relativePath
+            [void] (New-Item -ItemType Directory -Path (Split-Path -Parent $copyPath) -Force)
+            Copy-Item -LiteralPath $sourcePath -Destination $copyPath
+        }
+        $copiedTest = Join-Path -Path $temporaryRoot -ChildPath 'tests/cross-platform-smoke.ps1'
+        $green = Invoke-SmokeProcess -TestPath $copiedTest
+        Confirm-Equal -Actual $green.ExitCode -Expected 0 -Message "Baseline failed: $($green.Output)"
+        $successMessage = 'PASS: package contract, PowerShell root resolution, and stack detection'
+        Confirm-Condition -Condition $green.Output.Contains($successMessage) `
+            -Message 'Baseline did not complete the smoke suite.'
+        Write-Output 'GREEN: existing smoke suite completed before mutations (exit 0)'
+
+        $drills = @(
+            @{
+                Name = 'generated-directory pruning'
+                Path = 'scripts/detect-stack.ps1'
+                Before = "'node_modules', '.git',"
+                After = "'.git',"
+                Diagnostic = 'Python count or directory pruning is wrong.'
+            },
+            @{
+                Name = 'explicit root override'
+                Path = 'scripts/skill-root.ps1'
+                Before = 'Write-Output (ConvertTo-AbsolutePath -Path $env:SKILL_ROOT)'
+                After = 'Write-Output (Join-Path -Path (ConvertTo-AbsolutePath -Path $env:SKILL_ROOT) -ChildPath wrong-root)'
+                Diagnostic = 'SKILL_ROOT override did not win.'
+            },
+            @{
+                Name = 'unreadable-path error contract'
+                Path = 'scripts/detect-stack.ps1'
+                Before = "Write-ScanError -Message 'unreadable path'"
+                After = "Write-ScanError -Message 'scan failed'"
+                Diagnostic = 'Unreadable path did not return JSON error contract.'
+            }
+        )
+        foreach ($drill in $drills) {
+            $targetPath = Join-Path -Path $temporaryRoot -ChildPath $drill.Path
+            $originalBytes = [IO.File]::ReadAllBytes($targetPath)
+            $originalHash = (Get-FileHash -LiteralPath $targetPath -Algorithm SHA256).Hash
+            $originalText = [IO.File]::ReadAllText($targetPath)
+            Confirm-Equal -Actual ([regex]::Matches($originalText, [regex]::Escape($drill.Before)).Count) `
+                -Expected 1 -Message "Mutation must match exactly once: $($drill.Name)"
+            try {
+                [IO.File]::WriteAllText($targetPath, $originalText.Replace($drill.Before, $drill.After))
+                $red = Invoke-SmokeProcess -TestPath $copiedTest
+                Confirm-Condition -Condition ($red.ExitCode -ne 0) `
+                    -Message "Mutation survived: $($drill.Name). $($red.Output)"
+                Confirm-Condition -Condition $red.Output.Contains($drill.Diagnostic) `
+                    -Message "Wrong failure for $($drill.Name): $($red.Output)"
+                Write-Output "RED: $($drill.Name) (exit $($red.ExitCode)): $($drill.Diagnostic)"
+            }
+            finally {
+                [IO.File]::WriteAllBytes($targetPath, $originalBytes)
+                Confirm-Equal -Actual (Get-FileHash -LiteralPath $targetPath -Algorithm SHA256).Hash `
+                    -Expected $originalHash -Message "Restoration failed: $($drill.Name)"
+            }
+            $restored = Invoke-SmokeProcess -TestPath $copiedTest
+            Confirm-Equal -Actual $restored.ExitCode -Expected 0 `
+                -Message "Restored suite failed after $($drill.Name): $($restored.Output)"
+            Confirm-Condition -Condition $restored.Output.Contains($successMessage) `
+                -Message "Restored suite did not complete after $($drill.Name)."
+            Write-Output "GREEN: $($drill.Name) restored byte-for-byte; smoke suite passed (exit 0)"
+        }
+        Write-Output "PASS: $($drills.Count) red drills caught intended defects and restored green"
+        return
+    }
+
     foreach ($requiredFile in @(
             $projectSetupSkill,
+            $qualityRetrofitSkill,
+            $redDrillReference,
+            $codeQualityReference,
             $grillMeReference,
             $projectBriefAsset,
             $pluginManifest,
@@ -73,7 +195,7 @@ try {
             -Message "Required package file is missing: $requiredFile"
     }
 
-    $projectSetupContent = Get-Content -LiteralPath $projectSetupSkill -Raw
+    $projectSetupContent = Get-Content -LiteralPath $projectSetupSkill -Raw -Encoding UTF8
     foreach ($requiredText in @(
             '## Rule zero: scan, reuse, then create',
             '## Phase 1 — Grill Me: confirm the project contract',
@@ -87,7 +209,7 @@ try {
             -Message "project_setup is missing required discovery contract: $requiredText"
     }
 
-    $grillMeContent = Get-Content -LiteralPath $grillMeReference -Raw
+    $grillMeContent = Get-Content -LiteralPath $grillMeReference -Raw -Encoding UTF8
     foreach ($requiredHeading in @(
             '## Why and outcomes',
             '## Experience, brand, and accessibility',
@@ -109,7 +231,7 @@ try {
             -Message "Grill Me guide is missing branding inventory: $requiredBrandingText"
     }
 
-    $projectBriefContent = Get-Content -LiteralPath $projectBriefAsset -Raw
+    $projectBriefContent = Get-Content -LiteralPath $projectBriefAsset -Raw -Encoding UTF8
     Confirm-Condition -Condition $projectBriefContent.Contains('## Decision ledger') `
         -Message 'PROJECT_BRIEF asset is missing its decision ledger.'
     Confirm-Condition -Condition $projectBriefContent.Contains('## Readiness confirmation') `
@@ -119,11 +241,11 @@ try {
     Confirm-Condition -Condition $projectBriefContent.Contains('to reuse or extend') `
         -Message 'PROJECT_BRIEF asset is missing its reuse decision record.'
 
-    $manifest = Get-Content -LiteralPath $pluginManifest -Raw | ConvertFrom-Json
-    Confirm-Equal -Actual $manifest.version -Expected '0.4.1' `
+    $manifest = Get-Content -LiteralPath $pluginManifest -Raw -Encoding UTF8 | ConvertFrom-Json
+    Confirm-Equal -Actual $manifest.version -Expected '0.5.0' `
         -Message 'Plugin manifest version does not match the automated release.'
 
-    $releaseWorkflowContent = Get-Content -LiteralPath $releaseWorkflow -Raw
+    $releaseWorkflowContent = Get-Content -LiteralPath $releaseWorkflow -Raw -Encoding UTF8
     foreach ($requiredReleaseText in @(
             'uses: ./.github/workflows/cross-platform.yml',
             './scripts/build-release.ps1',
@@ -134,9 +256,9 @@ try {
             -Message "Release workflow is missing required gate: $requiredReleaseText"
     }
 
-    $installationContent = Get-Content -LiteralPath $installationGuide -Raw
+    $installationContent = Get-Content -LiteralPath $installationGuide -Raw -Encoding UTF8
     foreach ($requiredInstallText in @(
-            'v0.4.1',
+            'v0.5.0',
             'SHA256SUMS.txt',
             'gh attestation verify',
             'Bash is not required on Windows'

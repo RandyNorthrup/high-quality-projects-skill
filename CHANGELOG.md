@@ -5,6 +5,66 @@ All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.5.0 — 2026-09-07
+
+### Added
+
+- A source-backed language review contract covering semantic organization,
+  meaningful abstractions, ownership, errors, resource lifetimes, asynchronous
+  work, accessible HTML/CSS, and rejection of tautological tests and vacuous
+  behavior. Both workflows require it; Go coverage is explicitly guidance-only.
+- Required repeatable red drills for tests and quality gates in both workflows,
+  with a shared green/red/restored-green procedure, intended-failure checks,
+  isolation and cleanup rules, recurring execution, and scoped evidence.
+- Red-drill scope and ownership in project discovery, the brief, generated
+  project instructions, milestone verification, and completion reports.
+- A `-RedDrills` mode in the existing PowerShell smoke suite, wired into CI,
+  that mutates directory pruning, root overrides, and unreadable-path behavior
+  in a temporary source copy and requires the existing assertions to catch them.
+
+### Changed
+
+- Removed universal runtime/module choices from TypeScript and C# quality
+  templates, retaining them in the owning project's configuration.
+- Kept domain constants local, tightened TypeScript unused-variable and test
+  checks, and added explicit self-comparison and exhaustive-switch gates.
+- Scoped Python assertion allowances to tests and retained fixture annotations;
+  removed the repository's duplicated Ruff copyright-rule exclusion.
+- Clarified Rust workspace lint inheritance and removed the duplicate unwrap
+  prohibition that defeated test-local allowances.
+- Strengthened both workflows' scan-and-enhance rules with canonical-path and
+  consumer tracing, focused rescans before changes, justified new work, migration
+  cleanup, and final duplication checks. Tooling adapters point to canonical
+  project instructions instead of creating competing policy copies.
+- Replaced retrofit reviewer guidance that deleted environments with explicit
+  file scoping or an isolated copy, preserving pre-existing resources.
+- Clarified that existing scope authorization is reused, and that zero tests,
+  surviving mutations, unrelated errors, and incomplete restoration cannot
+  establish verified gates.
+
+### Fixed
+
+- Fixed clang-tidy's owned-header filter for absolute Windows/POSIX paths,
+  restored PowerShell state-change checks, and replaced nonexistent compatibility
+  profiles with shipped inventories whose historical limits are documented.
+- Required Semgrep's `--error` flag for blocking scans and documented its console
+  entrypoint exception to the usual Python module invocation.
+- Stopped applying a C++ language standard to mixed C/C++ pre-commit inputs.
+- Routed JSONC TypeScript configuration validation to the compiler instead of
+  the strict JSON pre-commit hook.
+- Made smoke-test source and document reads explicitly UTF-8 so Windows
+  PowerShell 5.1 checks non-ASCII contracts without relying on its legacy default
+  encoding.
+
+### Adoption notes
+
+- When adopting the TypeScript or C# templates, keep runtime, module, language,
+  and framework choices explicit in the owning project. The quality bases no
+  longer choose those settings for every consumer.
+- Re-run affected gates and red drills when applying the narrower Python,
+  TypeScript, and PowerShell exceptions. Existing projects may expose findings
+  that the older templates did not report.
+
 ## 0.4.1 — 2026-08-20
 
 ### Fixed — cross-host release reproducibility

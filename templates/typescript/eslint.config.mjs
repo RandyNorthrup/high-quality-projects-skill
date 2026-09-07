@@ -5,7 +5,7 @@
 // @eslint/js is imported below and is a separate package from eslint itself —
 // omitting it fails at config load, not at lint time.
 //
-// COMPATIBILITY SNAPSHOT (2026-08-20): typescript-eslint 8.67.0 declares
+// COMPATIBILITY SNAPSHOT (2026-09-07): typescript-eslint 8.69.0 declares
 // peerDependencies.typescript ">=4.8.4 <6.1.0". Use TypeScript 6.0.3 unless a
 // newer typescript-eslint release expands that range; normal npm resolution
 // should reject TypeScript 7 beside this version. Verify before pinning:
@@ -46,11 +46,16 @@ export default tseslint.config(
 
       // --- dead code ---
       'no-unused-private-class-members': 'error',
+      // Not enabled by the recommended preset. Use Number.isNaN for NaN checks
+      // rather than self-comparison, which commonly masks a wrong operand.
+      'no-self-compare': 'error',
       '@typescript-eslint/no-unused-vars': [
         'error',
-        // Underscore prefix is the documented opt-out, e.g. (_req, res).
-        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrors: 'all' },
+        // Only required-but-unused parameters may opt out, e.g. (_req, res).
+        // Renaming a dead local to _value must not hide it.
+        { argsIgnorePattern: '^_', caughtErrors: 'all', reportUsedIgnorePattern: true },
       ],
+      '@typescript-eslint/switch-exhaustiveness-check': 'error',
 
       // --- async correctness: the most common real bug class in TS ---
       '@typescript-eslint/no-floating-promises': 'error',
@@ -82,10 +87,9 @@ export default tseslint.config(
       // halving, 100 for percentage conversion. A magic-number rule that
       // rejects `xs.length === 0` is misconfigured, not strict.
       //
-      // Pair this with a single constants module and turn the rule off for that
-      // file plus your tests — otherwise it is unsatisfiable, since the named
-      // constants have to be assigned some literal and test assertions are the
-      // expected values. See the two overrides at the bottom of this file.
+      // Keep named constants beside the domain that owns their meaning. A const
+      // initializer is allowed; no global constants bucket or file-wide escape
+      // hatch is needed. Tests retain independent literal expected values.
       '@typescript-eslint/no-magic-numbers': [
         'error',
         {
@@ -122,31 +126,21 @@ export default tseslint.config(
   },
 
   {
-    // The constants module is the one place literals belong; the rule would be
-    // unsatisfiable here. Rename this to wherever yours lives, or delete the
-    // block if you do not have one.
-    files: ['src/config.ts', 'src/constants.ts'],
-    rules: { '@typescript-eslint/no-magic-numbers': 'off' },
-  },
-
-  {
     // Test files: assertions and non-null access are idiomatic there, and the
     // expected values in an assertion *are* the meaning — naming them would
     // move the assertion into a constant and make the test a tautology.
     files: ['**/*.test.ts', '**/*.spec.ts', '**/tests/**'],
     rules: {
       '@typescript-eslint/no-non-null-assertion': 'off',
-      '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-magic-numbers': 'off',
     },
   },
 
   {
-    // This file is .mjs and so is not in the TypeScript program, which makes
-    // the type-aware rules fail with "was not found by the project service".
-    // Turning them off for .mjs is narrower than pulling JavaScript into a
-    // TypeScript-only tsconfig. The syntactic rules still apply.
-    files: ['**/*.mjs'],
+    // This tooling config is outside the application TypeScript program.
+    // Do not exempt all .mjs files: production JavaScript modules need their
+    // own allowJs/checkJs project or an explicitly scoped syntactic config.
+    files: ['eslint.config.mjs'],
     extends: [tseslint.configs.disableTypeChecked],
     rules: { '@typescript-eslint/no-magic-numbers': 'off' },
   },

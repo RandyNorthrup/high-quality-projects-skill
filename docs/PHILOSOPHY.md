@@ -29,12 +29,17 @@ Concrete examples of rules deliberately disabled:
 | `disallow_any_explicit` (mypy) | forces `object` + casts through JSON and `**kwargs`; reads worse |
 | `skipLibCheck: false` (tsc) | fails on third-party `.d.ts` bugs you cannot fix |
 | `multiple_crate_versions` (clippy) | you rarely control transitive duplicates |
-| `PSUseShouldProcessForStateChangingFunctions` | fires on any `Get-`/`Set-` regardless of side effects |
 | `unicorn/prevent-abbreviations` | renames `req`/`res`/`props` against every framework convention |
 | `CS1591` (C#) | XML doc on every public member is busywork |
 
 Each is a one-line revert. The point is that the decision was made
 deliberately and written down, not that it is permanent.
+
+The former blanket PowerShell `ShouldProcess` exclusion has been removed:
+state-changing commands need working `-WhatIf`/confirmation behavior. Rename a
+pure function with a misleading mutating verb or justify a narrow exception.
+Apply the shared [language and semantic review contract](CODE-QUALITY.md) before
+assuming that more flags alone produce better design.
 
 ---
 
@@ -117,6 +122,13 @@ when it was skipped, deferred, or its tool was never installed.
 
 A red gate gets fixed. A green gate that never ran gets trusted, and the bug it
 would have caught ships.
+
+A suite can also run every test and still accept broken behavior. Red drills
+establish sensitivity by changing the protected behavior while leaving its test
+intact. Require the intended failure, not just any non-zero exit; a missing
+dependency proves nothing about an assertion. Both workflows use the shared
+[red-drill procedure](RED-DRILLS.md) and retain evidence of restored green.
+This is a recurring project requirement, not a one-time setup demonstration.
 
 So: every gate that could not run is named in the report with the reason. "MSan
 deferred — needs instrumented libc++" is a useful sentence. Silence is not.

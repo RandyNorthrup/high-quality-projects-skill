@@ -6,13 +6,6 @@
 
 extend = "templates/python/ruff.toml"
 
-[lint]
-extend-ignore = [
-    # Copyright is asserted once in LICENSE. Per-file headers add no legal
-    # weight and go stale every January.
-    "CPY001",
-]
-
 [lint.per-file-ignores]
 # scripts/ are command-line tools. print() to stdout/stderr is their entire
 # interface — routing it through logging would make them harder to pipe.

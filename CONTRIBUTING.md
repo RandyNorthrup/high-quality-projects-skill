@@ -61,6 +61,14 @@ Skills cost context every time they load. New content should earn its tokens:
 prefer a sentence that changes behavior over a paragraph that restates a
 default.
 
+Scan by responsibility before editing, read canonical implementations and their
+consumers, and enhance them. Record why any new path cannot reuse existing work;
+check for overlap again before completion. Keep the shared red-drill procedure
+in `docs/RED-DRILLS.md` and route both workflows to it rather than copying it.
+Apply `docs/CODE-QUALITY.md` for the affected languages. Record template canary
+commands, versions, intended diagnostics, restoration, and limitations in the
+dated `docs/QUALITY-REVIEW.md` when refreshing the guidance.
+
 ## Editing a template
 
 Every rule that is **off** needs a comment saying why, right next to it. A
@@ -93,6 +101,7 @@ Test with:
 ```powershell
 & .\scripts\detect-stack.ps1 . | ConvertFrom-Json | Out-Null
 & .\tests\cross-platform-smoke.ps1
+& .\tests\cross-platform-smoke.ps1 -RedDrills
 & .\tests\release-package-smoke.ps1
 ```
 
@@ -102,6 +111,19 @@ precedence, source counts, pruned directories, config detection, and the
 unreadable-path JSON contract. GitHub Actions repeats those checks on Windows,
 Linux, and macOS, then compares the Bash and PowerShell scanner inventories on
 both POSIX runners.
+
+`-RedDrills` reuses the same smoke suite in a temporary copy of current source.
+It runs a passing baseline, separately breaks directory pruning, the explicit
+root override, and the unreadable-path error, and requires each existing
+assertion to fail with a non-zero child exit. Every mutation is restored
+byte-for-byte before a fresh green run. The parent command fails on surviving
+mutations, wrong failures, timeouts, or failed restoration. CI uses this mode,
+which includes the normal suite; run it under both PowerShell 7 and 5.1 locally.
+
+Keep mutation recipes aligned with observable contracts when implementation
+changes. A recipe that no longer applies must fail rather than silently skip.
+Behavioral drills do not replace exercising the skill on real tasks, and string
+checks on prompt wording do not prove an agent will follow the instructions.
 
 The release-package smoke test requires a clean committed tree because it
 archives `HEAD`, not uncommitted files. Run it after the release commit. It

@@ -214,6 +214,10 @@ required and treat it as a release dependency.
 - Which unit, integration, contract, end-to-end, accessibility, visual,
   compatibility, migration, recovery, load, and security tests are required?
 - What supported-platform test matrix must CI or release certification cover?
+- Which critical defects must red drills prove the tests detect? What disposable
+  environments, evidence, owners, and CI/milestone/release cadence are needed?
+  Red drills are required; establish their scope rather than asking whether to
+  omit them. Reuse existing answers and choose routine mechanics during delivery.
 - What response-time, startup-time, memory, CPU, battery, bundle-size, storage,
   throughput, and cost budgets apply?
 - What availability, durability, recovery-time, recovery-point, and graceful-

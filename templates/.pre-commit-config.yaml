@@ -25,6 +25,9 @@ repos:
       - id: check-added-large-files
         args: [--maxkb=1024]
       - id: check-json
+        # TypeScript configuration is JSONC; tsc owns its syntax validation.
+        # Keep strict JSON validation for actual JSON files.
+        exclude: '(^|/)tsconfig(?:\.[^/]+)?\.json$'
       - id: check-yaml
       - id: check-toml
       - id: detect-private-key
@@ -122,7 +125,8 @@ repos:
 
       - id: cargo-clippy
         name: cargo clippy (deny warnings)
-        entry: cargo clippy --all-targets --all-features -- -D warnings
+        # Select supported feature combinations if all-features is incompatible.
+        entry: cargo clippy --workspace --all-targets --all-features -- -D warnings
         language: system
         types: [rust]
         pass_filenames: false
@@ -136,7 +140,9 @@ repos:
 
       - id: cppcheck
         name: cppcheck (all checks)
-        entry: cppcheck --enable=all --inline-suppr --error-exitcode=1 --std=c++23 --suppress=missingIncludeSystem --suppress=unusedFunction
+        # Mixed C/C++ input must not be forced to a C++ standard. For CI use
+        # the real compile database and whole-project unused-function analysis.
+        entry: cppcheck --enable=all --inline-suppr --error-exitcode=1 --suppress=missingIncludeSystem --suppress=unusedFunction
         language: system
         types_or: [c, c++]
 

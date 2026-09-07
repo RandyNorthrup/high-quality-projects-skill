@@ -34,7 +34,9 @@ Checks: >
 #   easily-swappable-parameters — fires on any two same-typed adjacent params.
 
 WarningsAsErrors: '*'
-HeaderFilterRegex: '^(src|include|lib)/.*'
+# Clang commonly reports absolute paths. Match owned path components on both
+# Windows and POSIX, then adapt these roots to the actual compilation database.
+HeaderFilterRegex: '(^|[/\\])(src|include|lib)[/\\]'
 FormatStyle: file
 
 CheckOptions:

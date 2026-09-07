@@ -99,7 +99,9 @@ try {
         foreach ($requiredEntry in @(
                 "$packageBase/README.md",
                 "$packageBase/.claude-plugin/plugin.json",
-                "$packageBase/scripts/skill-root.sh"
+                "$packageBase/scripts/skill-root.sh",
+                "$packageBase/docs/RED-DRILLS.md",
+                "$packageBase/docs/CODE-QUALITY.md"
             )) {
             Confirm-Condition -Condition ($zipEntries -contains $requiredEntry) `
                 -Message "ZIP is missing package entry: $requiredEntry"
@@ -118,6 +120,10 @@ try {
         -Message 'Could not list tar.gz release archive.'
     Confirm-Condition -Condition ($tarEntries -contains "$packageBase/README.md") `
         -Message 'tar.gz is missing README.md under its versioned root.'
+    Confirm-Condition -Condition ($tarEntries -contains "$packageBase/docs/RED-DRILLS.md") `
+        -Message 'tar.gz is missing the shared red-drill procedure.'
+    Confirm-Condition -Condition ($tarEntries -contains "$packageBase/docs/CODE-QUALITY.md") `
+        -Message 'tar.gz is missing the shared language review contract.'
 
     $releaseNotes = Get-Content -LiteralPath (
         Join-Path -Path $temporaryRoot -ChildPath 'RELEASE_NOTES.md'
