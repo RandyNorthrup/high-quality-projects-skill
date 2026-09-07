@@ -10,3 +10,7 @@ extend = "templates/python/ruff.toml"
 # scripts/ are command-line tools. print() to stdout/stderr is their entire
 # interface — routing it through logging would make them harder to pipe.
 "scripts/*.py" = ["T201"]
+# This repository uses unittest to keep delivery validation dependency-free.
+# Pytest-specific assertion conversions would require a new test dependency.
+# Assertions in fixture builders narrow deliberately mutable malformed inputs.
+"tests/**" = ["S101", "PLR2004", "PT009", "PT027"]

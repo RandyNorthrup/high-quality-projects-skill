@@ -117,7 +117,7 @@ Bundling it with a 4,000-file format commit guarantees nobody reads it.
 
 ## A false green is the worst outcome
 
-The failure mode both skills are built to prevent: reporting a gate as passing
+The failure mode all workflows are built to prevent: reporting a gate as passing
 when it was skipped, deferred, or its tool was never installed.
 
 A red gate gets fixed. A green gate that never ran gets trusted, and the bug it
@@ -126,7 +126,7 @@ would have caught ships.
 A suite can also run every test and still accept broken behavior. Red drills
 establish sensitivity by changing the protected behavior while leaving its test
 intact. Require the intended failure, not just any non-zero exit; a missing
-dependency proves nothing about an assertion. Both workflows use the shared
+dependency proves nothing about an assertion. All workflows use the shared
 [red-drill procedure](RED-DRILLS.md) and retain evidence of restored green.
 This is a recurring project requirement, not a one-time setup demonstration.
 

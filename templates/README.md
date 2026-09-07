@@ -41,6 +41,7 @@ module defaults as universal choices.
 | `csharp/Directory.Build.props` | solution root | C# compiler + analyzers |
 | `rust/clippy-strict.toml` | see file — two parts | Rust lint |
 | `powershell/PSScriptAnalyzerSettings.psd1` | project root | PowerShell |
+| `workflow/PLAN.md` | extend the canonical project plan | native delivery ledger; Python 3.12+ |
 | `.pre-commit-config.yaml` | project root | representative pre-commit hooks |
 
 ## Quick start

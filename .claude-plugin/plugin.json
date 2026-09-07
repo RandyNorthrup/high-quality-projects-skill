@@ -1,8 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "high-quality-projects-skill",
-  "version": "0.5.0",
-  "description": "Production-oriented project discovery and code standards for any coding agent. project_setup confirms product and delivery decisions before scaffolding; quality_retrofit enhances existing codebases in reviewable phases. Both require scan-and-enhance, language-specific semantic review, and repeatable red drills that prove tests and gates reject intended defects and restore green. The workflows are vendor-neutral Markdown; this manifest is Claude Code packaging only.",
+  "version": "0.6.0",
+  "description": "Vendor-neutral project discovery, feature delivery, and quality retrofit. Three workflows scan and enhance canonical code, apply language-specific review, and require repeatable red drills. First-party Python helpers validate traceability, recorded evidence, and resume checkpoints; atomic updates preserve existing plan state. Claude Code packaging is optional.",
   "author": {
     "name": "Randy Northrup",
     "url": "https://github.com/RandyNorthrup"

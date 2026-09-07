@@ -211,6 +211,9 @@ required and treat it as a release dependency.
 ## Quality, performance, and reliability
 
 - What observable acceptance criteria exist for every critical journey?
+- Which canonical plan and existing requirement/task identities must delivery
+  preserve? How will requirements readiness be reviewed separately from evidence
+  that the implementation works? Reuse answers already established in the brief.
 - Which unit, integration, contract, end-to-end, accessibility, visual,
   compatibility, migration, recovery, load, and security tests are required?
 - What supported-platform test matrix must CI or release certification cover?

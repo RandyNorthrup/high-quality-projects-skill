@@ -3,19 +3,20 @@
 Entry point for coding agents that support `AGENTS.md`, or for any agent
 explicitly directed to this file.
 
-This package holds two vendor-neutral workflows and the configuration they
+This package holds three vendor-neutral workflows and the configuration they
 install. The Claude Code, Cursor, and Copilot files are optional packaging and
 discovery adapters around that shared content.
 
-## The two workflows
+## The workflows
 
 | Workflow | Read this file | Use when |
 |---|---|---|
 | **Project setup** | [`skills/project_setup/SKILL.md`](skills/project_setup/SKILL.md) | Starting a new project. Grills the idea, confirms a project brief, then scaffolds. |
 | **Quality retrofit** | [`skills/quality_retrofit/SKILL.md`](skills/quality_retrofit/SKILL.md) | An existing codebase needs standards applied. |
+| **Feature delivery** | [`skills/feature_delivery/SKILL.md`](skills/feature_delivery/SKILL.md) | Add or resume scoped behavior in an existing project. |
 
 They are plain Markdown instructions. Read the whole file before acting on it —
-both open with a mandatory scan step that must run before anything is created or
+all open with a mandatory scan step that must run before anything is created or
 modified.
 
 The directory is named `skills/` because Claude Code requires that layout to
@@ -54,6 +55,7 @@ skills/project_setup/SKILL.md     discover, confirm, and scaffold a new project
 skills/project_setup/references/  Grill Me product and delivery question bank
 skills/project_setup/assets/      confirmed PROJECT_BRIEF.md output template
 skills/quality_retrofit/SKILL.md  bring an existing codebase into compliance
+skills/feature_delivery/SKILL.md  deliver and reconcile scoped behavior changes
 scripts/skill-root.{ps1,sh}       resolve SKILL_ROOT from anywhere
 scripts/detect-stack.{ps1,sh}     read-only workspace inventory, emits JSON
 scripts/build-release.ps1         exact-commit archives and release metadata
@@ -62,6 +64,9 @@ templates/                        tuned strict configs per language
 docs/PHILOSOPHY.md                why the gates are set the way they are
 docs/RED-DRILLS.md                shared test/gate failure-verification procedure
 docs/CODE-QUALITY.md              language-specific semantic and organization rules
+docs/DELIVERY.md                  shared native lifecycle and evidence schema
+scripts/verify-delivery.py        read-only record, coverage, and freshness checks
+scripts/update-delivery.py        atomic plan updates with conflict detection
 ```
 
 ## Non-negotiables when using this package
@@ -69,7 +74,7 @@ docs/CODE-QUALITY.md              language-specific semantic and organization ru
 These are the rules the workflows themselves enforce. An agent following them
 should not need reminding, but they are the ones most often skipped:
 
-- **Scan, reuse, then create.** Both workflows open with the native
+- **Scan, reuse, then create.** All workflows open with the native
   `detect-stack.ps1` or `detect-stack.sh`. Never overwrite a config file you did
   not write in this session — read it and extend it. Search existing code,
   components, types, tests, docs, and assets before adding another
@@ -92,6 +97,10 @@ should not need reminding, but they are the ones most often skipped:
 - **Useful, semantic code.** Apply [`docs/CODE-QUALITY.md`](docs/CODE-QUALITY.md)
   for the detected stack. Reject tautological tests, vacuous success paths,
   redundant layers, and comments that add no contract or rationale.
+- **Trace delivery to proof.** Use [`docs/DELIVERY.md`](docs/DELIVERY.md) for
+  scoped work. Keep one canonical plan, separate requirements readiness from
+  implementation verification, reconcile missing work, and reject stale resume
+  evidence. Never overwrite a changed plan or replay an unknown external outcome.
 - **Never report a skipped or deferred gate as passing.** Say plainly what was
   not run and why.
 - **Do not modify global user or machine configuration.** Project-local only.
@@ -106,6 +115,9 @@ Linux and macOS. Bash is not required on Windows. `verify-format-safe.py` needs
 Python 3. Individual gates need their own tools, and the native `detect-stack`
 script reports which are present — it never installs anything and always exits
 0.
+
+Native delivery validation and atomic updates require Python 3.12 or newer and
+only its standard library. They do not execute commands stored in a plan.
 
 Always inspect the returned JSON for an `error` property. Exit 0 means the
 scanner returned its JSON contract; it does not turn `unreadable path` or

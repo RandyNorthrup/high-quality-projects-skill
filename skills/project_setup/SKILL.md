@@ -71,7 +71,8 @@ brand assets, infrastructure, and generated-code boundaries. Then:
   formats, owners, licenses, and consumers. Preserve authoritative originals;
   adapt or derive from them instead of drawing replacements or parallel copies.
 - **Source files already exist** → this is not a new project. Say so and offer
-  the `quality_retrofit` workflow instead.
+  `feature_delivery` for requested behavior changes or `quality_retrofit` for
+  quality-only improvements. Reuse clear existing intent without another approval round.
 - **A tool is not installed** → do not silently skip its gate. Either install
   it or record it in `PLAN.md` under deferred gates with the reason.
 - **A Python tool is listed in `python_runtime.module_only_tools`** → it is
@@ -457,6 +458,11 @@ certification checklist.
 
 **A milestone is not complete until its certification checklist passes.**
 
+For scoped implementation, use `${SKILL_ROOT}/docs/DELIVERY.md` and the native
+plan asset under `templates/workflow/PLAN.md`. Enhance the canonical plan rather
+than creating a second tracker. Keep requirements readiness distinct from code
+completion, and link acceptance to tasks and current evidence.
+
 ### Agent instruction files
 Create project-local files for the active tooling: `AGENTS.md`, `CLAUDE.md`,
 `.cursor/rules/*`, `.github/copilot-instructions.md`.
@@ -510,7 +516,10 @@ confirmed responsive targets. Use available browser automation when possible.
 9. Write `README.md` and `CHANGELOG.md` from what actually exists.
 10. Commit.
 
-Work milestone by milestone after that. Do not skip certification gates. Do not
+Hand subsequent scoped implementation to `feature_delivery`, carrying the
+confirmed brief, canonical rules, plan, and existing authorization. Do not
+restart the product interview for settled decisions. Work milestone by milestone.
+Do not skip certification gates. Do not
 write fallback, legacy, or temporary code to force progress. When blocked by a
 product decision, ask.
 

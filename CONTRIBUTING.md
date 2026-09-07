@@ -12,16 +12,20 @@ AGENTS.md                     universal entry point — any agent starts here
 skills/
   project_setup/    SKILL.md — new-project scaffolding
   quality_retrofit/ SKILL.md — existing-codebase compliance
+  feature_delivery/ SKILL.md — scoped feature delivery and safe resume
 scripts/
   skill-root.ps1/.sh   resolves SKILL_ROOT from anywhere, no env needed
   detect-stack.ps1/.sh workspace inventory, emits JSON
   build-release.ps1     exact-commit archives and release metadata
   verify-format-safe.py  compares Python ASTs before and after formatting
+  verify-delivery.py     read-only structural/evidence verification
+  update-delivery.py     atomic candidate updates with conflict detection
+  delivery/             shared first-party standard-library implementation
 templates/          strict configs, copied into target projects
 docs/               philosophy and extended reference
 ```
 
-**The workflows are vendor-neutral; only the packaging is not.** The two
+**The workflows are vendor-neutral; only the packaging is not.** The three
 `SKILL.md` files are plain Markdown that any agent can follow. Keep them that
 way — no vendor-set environment variables, no assumptions about slash commands
 or a particular runner.
@@ -64,7 +68,7 @@ default.
 Scan by responsibility before editing, read canonical implementations and their
 consumers, and enhance them. Record why any new path cannot reuse existing work;
 check for overlap again before completion. Keep the shared red-drill procedure
-in `docs/RED-DRILLS.md` and route both workflows to it rather than copying it.
+in `docs/RED-DRILLS.md` and route all workflows to it rather than copying it.
 Apply `docs/CODE-QUALITY.md` for the affected languages. Record template canary
 commands, versions, intended diagnostics, restoration, and limitations in the
 dated `docs/QUALITY-REVIEW.md` when refreshing the guidance.
@@ -85,7 +89,7 @@ worse than no config — see the false-green argument in
 Both implementations must return the same JSON contract. Each must:
 
 - Exit 0 always. A scan that finds nothing is not an error.
-- Emit valid JSON on stdout, unconditionally. Both skills parse it.
+- Emit valid JSON on stdout, unconditionally. All workflows inspect it.
 - Return `{"error":"unreadable path"}` for an invalid root and
   `{"error":"scan failed"}` for an internal inventory failure. Exit 0 is the
   transport contract, not proof that the scan succeeded.
@@ -140,10 +144,25 @@ claude plugin install high-quality-projects-skill@high-quality-projects-skill
 claude plugin list
 ```
 
-Then exercise both skills against real repositories: one empty directory for
-`/high-quality-projects-skill:project_setup`, one messy existing codebase for
-`/high-quality-projects-skill:quality_retrofit`. Reading the skill is not
-testing it.
+Exercise all three workflows against isolated realistic projects. Follow
+[the behavioral protocol](tests/behavioral/README.md): fresh agent trials,
+independent product oracles, negative controls, and semantic review of actual
+artifacts. Reading a skill or matching its wording is not behavioral testing.
+
+Delivery helpers use Python 3.12+ and the standard library. Before a change:
+
+```console
+python -m ruff check scripts tests
+python -m ruff format --check scripts tests
+python -m mypy --strict --python-version 3.12 scripts/delivery scripts/verify-delivery.py scripts/update-delivery.py
+python -m unittest discover -s tests -p "test_*.py"
+```
+
+CI runs these checks on Windows, Linux, and macOS with Python 3.12 and 3.14.
+Its two validator mutations reuse existing regression assertions. Outcome-oracle
+controls also reject broken behavior, vacuous tests, duplicated domain logic,
+premature implementation, and replayed side effects. Live agent trials are
+recorded separately; CI does not pretend to rerun a model.
 
 ## Releasing
 

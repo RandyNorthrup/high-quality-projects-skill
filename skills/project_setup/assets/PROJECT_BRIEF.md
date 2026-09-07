@@ -38,6 +38,8 @@
 - Inputs, outputs, imports, exports, and integrations:
 - Offline and degraded-mode behavior:
 - Migration and compatibility commitments:
+- Canonical scoped plans, existing requirement/task IDs, and acceptance
+  obligations to preserve during delivery:
 
 ## Experience and brand
 
@@ -98,6 +100,7 @@
 ## Quality and reliability contract
 
 - Acceptance evidence for each critical journey:
+- Requirements-readiness review owner and canonical delivery-plan location:
 - Required test levels and supported-platform matrix:
 - Red-drill scope for critical behavior and gates; safe test environments,
   CI/milestone/release cadence, evidence location, and owner:

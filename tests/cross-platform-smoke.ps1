@@ -182,6 +182,11 @@ try {
     foreach ($requiredFile in @(
             $projectSetupSkill,
             $qualityRetrofitSkill,
+            (Join-Path $repositoryRoot 'skills/feature_delivery/SKILL.md'),
+            (Join-Path $repositoryRoot 'docs/DELIVERY.md'),
+            (Join-Path $repositoryRoot 'templates/workflow/PLAN.md'),
+            (Join-Path $repositoryRoot 'scripts/verify-delivery.py'),
+            (Join-Path $repositoryRoot 'scripts/update-delivery.py'),
             $redDrillReference,
             $codeQualityReference,
             $grillMeReference,
@@ -242,7 +247,7 @@ try {
         -Message 'PROJECT_BRIEF asset is missing its reuse decision record.'
 
     $manifest = Get-Content -LiteralPath $pluginManifest -Raw -Encoding UTF8 | ConvertFrom-Json
-    Confirm-Equal -Actual $manifest.version -Expected '0.5.0' `
+    Confirm-Equal -Actual $manifest.version -Expected '0.6.0' `
         -Message 'Plugin manifest version does not match the automated release.'
 
     $releaseWorkflowContent = Get-Content -LiteralPath $releaseWorkflow -Raw -Encoding UTF8
@@ -258,7 +263,7 @@ try {
 
     $installationContent = Get-Content -LiteralPath $installationGuide -Raw -Encoding UTF8
     foreach ($requiredInstallText in @(
-            'v0.5.0',
+            'v0.6.0',
             'SHA256SUMS.txt',
             'gh attestation verify',
             'Bash is not required on Windows'

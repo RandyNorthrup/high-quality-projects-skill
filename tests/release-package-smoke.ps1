@@ -96,15 +96,12 @@ try {
     $zip = [IO.Compression.ZipFile]::OpenRead($zipPath)
     try {
         $zipEntries = @($zip.Entries | ForEach-Object { $_.FullName })
-        foreach ($requiredEntry in @(
-                "$packageBase/README.md",
-                "$packageBase/.claude-plugin/plugin.json",
-                "$packageBase/scripts/skill-root.sh",
-                "$packageBase/docs/RED-DRILLS.md",
-                "$packageBase/docs/CODE-QUALITY.md"
-            )) {
-            Confirm-Condition -Condition ($zipEntries -contains $requiredEntry) `
-                -Message "ZIP is missing package entry: $requiredEntry"
+        $trackedFiles = @(& git -C $repositoryRoot ls-tree -r --name-only HEAD)
+        Confirm-Condition -Condition ($LASTEXITCODE -eq 0 -and $trackedFiles.Count -gt 0) `
+            -Message 'Could not inventory the committed package resources.'
+        foreach ($relativePath in $trackedFiles) {
+            Confirm-Condition -Condition ($zipEntries -contains "$packageBase/$relativePath") `
+                -Message "ZIP is missing committed resource: $relativePath"
         }
     }
     finally {
@@ -118,12 +115,10 @@ try {
     $tarEntries = @(& $tarCommand.Source -tzf $tarPath)
     Confirm-Condition -Condition ($LASTEXITCODE -eq 0) `
         -Message 'Could not list tar.gz release archive.'
-    Confirm-Condition -Condition ($tarEntries -contains "$packageBase/README.md") `
-        -Message 'tar.gz is missing README.md under its versioned root.'
-    Confirm-Condition -Condition ($tarEntries -contains "$packageBase/docs/RED-DRILLS.md") `
-        -Message 'tar.gz is missing the shared red-drill procedure.'
-    Confirm-Condition -Condition ($tarEntries -contains "$packageBase/docs/CODE-QUALITY.md") `
-        -Message 'tar.gz is missing the shared language review contract.'
+    foreach ($relativePath in $trackedFiles) {
+        Confirm-Condition -Condition ($tarEntries -contains "$packageBase/$relativePath") `
+            -Message "tar.gz is missing committed resource: $relativePath"
+    }
 
     $releaseNotes = Get-Content -LiteralPath (
         Join-Path -Path $temporaryRoot -ChildPath 'RELEASE_NOTES.md'

@@ -1,96 +1,72 @@
-<h1 align="center">High-Quality Projects</h1>
+![High-Quality Projects — Build deliberately. Verify behavior.](docs/assets/github-social-preview.png)
 
 <p align="center">
-  Turn new ideas into confirmed, release-ready project contracts<br>
-  and raise existing codebases with evidence-backed quality gates.
+  <a href="https://github.com/RandyNorthrup/high-quality-projects-skill/actions/workflows/cross-platform.yml"><img alt="Cross-platform checks" src="https://github.com/RandyNorthrup/high-quality-projects-skill/actions/workflows/cross-platform.yml/badge.svg"></a>
+  <a href="https://github.com/RandyNorthrup/high-quality-projects-skill/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/RandyNorthrup/high-quality-projects-skill?color=93502f&amp;labelColor=242320"></a>
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-93502f?labelColor=242320"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/RandyNorthrup/high-quality-projects-skill/actions/workflows/cross-platform.yml"><img alt="Cross-platform package checks" src="https://github.com/RandyNorthrup/high-quality-projects-skill/actions/workflows/cross-platform.yml/badge.svg"></a>
-  <a href="https://github.com/RandyNorthrup/high-quality-projects-skill/tags"><img alt="Latest Git tag" src="https://img.shields.io/github/v/tag/RandyNorthrup/high-quality-projects-skill?label=version"></a>
-  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
-</p>
-
-<p align="center">
-  <a href="#installation">Installation</a> ·
+  <a href="#installation">Install</a> ·
   <a href="#workflows">Workflows</a> ·
+  <a href="#delivery-with-evidence">Delivery</a> ·
   <a href="#reference-tooling">Tooling</a> ·
-  <a href="#design-principles">Principles</a> ·
-  <a href="#documentation">Documentation</a>
+  <a href="#documentation">Docs</a>
 </p>
 
-> [!IMPORTANT]
-> Windows runs natively through PowerShell 5.1 or newer. Bash, WSL, and Git
-> Bash are not required on Windows. Linux and macOS use the POSIX/Bash scripts.
+# Build on what exists. Prove what works.
 
-## Why this exists
+Three vendor-neutral workflows for coding agents: discover a project, deliver a
+feature, or improve an existing codebase. Each starts with a scan, enhances the
+canonical implementation, and verifies that tests reject real defects.
 
-A quality tool being installed does not prove that it checks the intended code,
-fails CI on findings, or works with the rest of the toolchain. These workflows
-make those details explicit:
+**Readable instructions. First-party delivery tools. Project-local changes.**
+Use the whole package with your coding agent; Claude Code, Cursor, and Copilot
+adapters provide optional discovery.
 
-- inventory the project before writing anything;
-- reuse or extend existing code, components, assets, documentation, and
-  configuration instead of creating parallel replacements;
-- confirm important gates can fail on a deliberate test case;
-- separate mechanical work from judgment-heavy changes;
-- report every gate as **pass**, **fail**, or **deferred**, with evidence.
+## Workflows
 
-The package provides instructions and templates. It does not claim that a
-target project is compliant merely because the files were copied.
+| Your task | Start here |
+|---|---|
+| **Turn an idea into a project** | [`project_setup`](skills/project_setup/SKILL.md) — focused discovery, confirmed brief, stack selection, scaffolding, and quality gates. |
+| **Deliver a feature in an existing project** | [`feature_delivery`](skills/feature_delivery/SKILL.md) — scoped requirements, acceptance criteria, task ownership, implementation, red drills, and verified closeout. |
+| **Raise an existing codebase's standards** | [`quality_retrofit`](skills/quality_retrofit/SKILL.md) — baseline first, then reviewable phases for configuration, formatting, lint, types, dead code, security, and docs. |
 
-## At a glance
+### Start with intent
 
-| New projects | Existing projects | Portable execution |
-|---|---|---|
-| Grill the idea across users, outcomes, scope, experience, signing, distribution, operations, and release; then verify the stack and scaffold gates. | Establish a baseline, then apply formatting, lint, types, dead-code work, security, and documentation in reviewable phases. | Plain Markdown workflows, native PowerShell on Windows, and Bash on Linux/macOS. |
+```text
+Use project_setup. Grill me on a local invoice application before choosing its stack.
+
+Use feature_delivery. Add CSV export to the existing report flow; preserve its API.
+
+Use quality_retrofit. Strengthen the existing Python gates and prove they fail.
+```
+
+Setup reuses known answers and asks about decisions that affect the product:
+users, outcomes, scope, accessibility, brand, data, security, distribution,
+signing, operations, and release. A confirmed `PROJECT_BRIEF.md` precedes stack
+selection. Existing features use focused discovery for the requested change.
+
+Retrofit follows independently reviewable phases and preserves stricter existing
+configuration. User-authorized scope determines which phases apply; unavailable
+or deferred checks remain explicit.
 
 ## Installation
 
-Latest stable release: **[v0.5.0](https://github.com/RandyNorthrup/high-quality-projects-skill/releases/tag/v0.5.0)**.
-
-See the complete [`installation and verification guide`](docs/INSTALLATION.md)
-for pinned Claude Code installs, signed release archives, SHA-256 checks, local
-marketplaces, and update behavior.
+Stable release: **[v0.6.0](https://github.com/RandyNorthrup/high-quality-projects-skill/releases/tag/v0.6.0)**.
 
 ### Any coding agent
 
-Clone or vendor the repository, then direct the agent to read the appropriate
-workflow in full:
-
 ```console
-git clone --branch v0.5.0 --depth 1 https://github.com/RandyNorthrup/high-quality-projects-skill.git
+git clone --branch v0.6.0 --depth 1 https://github.com/RandyNorthrup/high-quality-projects-skill.git
 ```
 
-- New project: [`skills/project_setup/SKILL.md`](skills/project_setup/SKILL.md)
-- Existing project: [`skills/quality_retrofit/SKILL.md`](skills/quality_retrofit/SKILL.md)
+Point the agent at [`AGENTS.md`](AGENTS.md), then the selected workflow in full.
+Keep the repository together: skills use shared scripts, templates, references,
+and assets. See the [installation guide](docs/INSTALLATION.md) for Codex
+registration, pinned installs, archive checksums, provenance, and updates.
 
-[`AGENTS.md`](AGENTS.md) is the shared entry point for agents that support that
-convention. Thin discovery adapters are also included for Cursor and GitHub
-Copilot; agents without automatic discovery can read the workflow files
-directly.
-
-Resolve the package root with the active shell before using paths from a
-workflow.
-
-PowerShell on Windows:
-
-```powershell
-$SkillRoot = & 'C:\path\to\high-quality-projects-skill\scripts\skill-root.ps1'
-```
-
-Bash on Linux or macOS:
-
-```bash
-SKILL_ROOT="$(bash /path/to/high-quality-projects-skill/scripts/skill-root.sh)"
-```
-
-Both resolvers honor an explicit `SKILL_ROOT`, then Claude Code's optional
-`CLAUDE_PLUGIN_ROOT`, then locate the package from the script itself.
-
-### Claude Code plugin
-
-From Claude Code, add this repository as a marketplace and install its plugin:
+### Claude Code
 
 ```text
 /plugin marketplace add RandyNorthrup/high-quality-projects-skill
@@ -98,224 +74,141 @@ From Claude Code, add this repository as a marketplace and install its plugin:
 /reload-plugins
 ```
 
-The installed skills are namespaced:
+Invoke `/high-quality-projects-skill:project_setup`,
+`/high-quality-projects-skill:feature_delivery`, or
+`/high-quality-projects-skill:quality_retrofit`.
 
-```text
-/high-quality-projects-skill:project_setup Grill me on a project that ...
-/high-quality-projects-skill:quality_retrofit
-```
+<details>
+<summary><strong>Native shells and requirements</strong></summary>
 
-## Workflows
+Windows uses PowerShell 5.1 or newer; Bash and WSL are unnecessary. Linux and
+macOS use Bash and standard POSIX tools. Git supports checkout and source checks.
+Delivery helpers require **Python 3.12+**, with no additional Python packages.
+The separate Python formatting helper requires Python 3.
 
-### Project setup
-
-[`project_setup`](skills/project_setup/SKILL.md) is for a new or effectively
-empty project. It:
-
-1. scans code, configuration, documentation, and brand assets, then reuses or
-   extends canonical work instead of creating duplicates;
-2. runs a focused, multi-round **Grill Me** interview covering the who, why,
-   what, where, when, logos, icons, favicons, colors, accessibility, signing,
-   distribution, service model, security, operations, and release pipeline;
-3. writes a decision ledger and requires owner confirmation of
-   `PROJECT_BRIEF.md` before stack selection;
-4. verifies version compatibility using current official sources or registries;
-5. creates project-local quality, security, test, and CI gates appropriate to
-   the chosen stack;
-6. writes `README.md`, `CHANGELOG.md`, and `PLAN.md` from confirmed scope and
-   what actually exists;
-7. runs gates and repeatable red drills, records the intended failure and
-   restored green, and names anything that could not be verified.
-
-The project description seeds discovery; it does not skip it. Questions arrive
-in focused rounds, with known answers reused and critical unknowns blocking
-irreversible choices instead of becoming silent assumptions.
-
-### Quality retrofit
-
-[`quality_retrofit`](skills/quality_retrofit/SKILL.md) is for an existing,
-version-controlled codebase. It requires a clean working tree, records the
-baseline first, and separates work into nine independently reviewable phases.
-
-| Phase | Focus | Typical risk |
-|---:|---|---|
-| 0 | Baseline: tests, build, and finding counts | Low; commands may create caches, which the workflow tracks |
-| 1 | Formatting | Low; still requires semantic checks, tests, and diff review |
-| 2 | Configuration and gates | Low–medium; changes developer and CI behavior |
-| 3 | Autofixable lint | Medium; automated fixes can alter behavior |
-| 4 | Strict types | Medium–high; often exposes broad design debt |
-| 5 | Dead-code analysis and removal | High; dynamic entry points can look unused |
-| 6 | Literal and constant cleanup | High; unit mistakes can change behavior |
-| 7 | Security scans and native-code sanitizers | High; findings require triage and secrets may require incident response |
-| 8 | Documentation reconciliation | Low; commands and claims must match the resulting project |
-
-These risk labels are planning guidance, not guarantees. The workflow requires
-tests and evidence at each boundary and does not authorize silent phase
-chaining.
-
-Every phase follows a focused scan-and-enhance approach: trace canonical code
-and its consumers, extend it, and justify any new path. Recheck for overlapping
-implementations at closeout. Both workflows require recurring red drills for
-affected tests and gates.
-
-It also refuses to:
-
-- retrofit a dirty tree or bulk-edit an unversioned codebase;
-- delete code without checking whether it is reachable through dynamic or
-  framework-driven paths;
-- rewrite Git history for a leaked secret without explicit authorization;
-- weaken an existing rule that is stricter than the supplied template;
-- report a skipped, missing, or unverified gate as passing.
-
-## Reference tooling
-
-The workflows select tools to fit the target project. This table describes the
-reference configurations and guidance included here; it is not a promise that
-every tool applies to every project.
-
-| Stack | Format | Lint / analysis | Types | Dead code | Security | Tests |
-|---|---|---|---|---|---|---|
-| Python | Ruff | Ruff | mypy | vulture, deptry | Bandit, pip-audit | pytest |
-| TypeScript / JavaScript | Prettier | ESLint | TypeScript | knip, dpdm | npm audit, Semgrep | project-selected runner |
-| Rust | rustfmt | Clippy | compiler | cargo-machete | cargo-audit, cargo-deny | cargo test |
-| C++ | clang-format | clang-tidy, cppcheck | compiler | cppcheck | sanitizers, Valgrind where supported | CTest or project runner |
-| C# / .NET | dotnet format | .NET analyzers | nullable, warnings as errors | Roslyn diagnostics | NuGet audit | dotnet test |
-| CSS / HTML | Prettier | Stylelint / HTMLHint | — | — | — | project-selected runner |
-| PowerShell | PSScriptAnalyzer | PSScriptAnalyzer | — | — | — | Pester where used |
-| Shell | shfmt | ShellCheck | — | — | — | bats where used |
-| Go | gofmt | go vet, selected Staticcheck | compiler | selected analyzer + review | govulncheck | go test; race/fuzz where supported |
-
-Cross-cutting guidance covers Gitleaks for secrets, Semgrep for multi-language
-static analysis, and jscpd for duplication. Tool availability and compatibility
-are checked in the target environment rather than assumed from this table.
-The shared [language review contract](docs/CODE-QUALITY.md) also covers ownership,
-organization, semantic HTML, asynchronous failures, resource lifetimes, and
-rejection of tautological checks and vacuous implementations. Go has guidance;
-the package does not supply a Go configuration template.
-
-## Design principles
-
-### Scan before writing
-
-The native inventory scripts emit the same JSON shape:
+Resolve the package root before using workflow paths:
 
 ```powershell
+$SkillRoot = & 'C:\path\to\high-quality-projects-skill\scripts\skill-root.ps1'
 & "$SkillRoot\scripts\detect-stack.ps1" .
 ```
 
 ```bash
-"${SKILL_ROOT}/scripts/detect-stack.sh" .
+SKILL_ROOT="$(bash /path/to/high-quality-projects-skill/scripts/skill-root.sh)"
+bash "$SKILL_ROOT/scripts/detect-stack.sh" .
 ```
 
-They report detected languages, existing quality configuration, Git state, and
-locally available tools. They do not install dependencies or modify the target
-workspace. Callers must inspect the JSON for an `error` property; the scripts
-return their JSON contract even when inventory fails.
+The scanners inventory existing code, configuration, Git state, and available
+tools. Inspect their JSON for `error`; exit zero means the JSON contract was
+returned. Individual quality gates need their own project tools. Scanning
+installs nothing.
 
-Supplement inventory with searches by responsibility and behavior, read the
-closest implementations and their callers, and record reuse decisions before
-each change. Enhance canonical code, tests, configuration, and docs. A clean
-copy-paste scan does not establish semantic uniqueness, and similar syntax does
-not require merging unrelated responsibilities.
+</details>
 
-### Prove gates can fail
+## Delivery with evidence
 
-A clean report is useful only after the check rejects a defect it is meant to
-catch. Every project must maintain [red drills](docs/RED-DRILLS.md): green
-baseline, intentional defect, intended failure with non-zero exit, exact
-restoration, and green again. Repeat affected drills when behavior, tests,
-configuration, or tools change, and run the maintained set at milestone/release
-verification. This catches ineffective assertions, wrong include paths, broken
-resolvers, and warning-only CI. Zero tests and unrelated crashes earn no credit.
+**Discover → establish readiness → implement → verify → reconcile → resume.**
 
-This package reuses its smoke suite for three isolated drills covering directory
-pruning, root overrides, and unreadable-path errors:
+One canonical `PLAN.md` carries human-readable decisions and a versioned JSON
+ledger. Stable IDs connect requirements, acceptance criteria, tasks, and proof.
+Existing plans are extended; a second competing tracker is unnecessary.
 
-```powershell
-& .\tests\cross-platform-smoke.ps1 -RedDrills
+| Capability | What it checks |
+|---|---|
+| **Readiness** | Required decisions, acceptance coverage, task ownership, dependencies, and current review receipts. |
+| **Verification** | Recorded behavior and red-drill evidence, actual file outcomes, artifact hashes, source inputs, and environment bindings. |
+| **Reconciliation** | Unmet criteria return to their existing task owner; unchanged input does not generate duplicate work. |
+| **Resume** | Checkpoints expose changed inputs, stale evidence, and unresolved external outcomes before work continues. |
+| **Atomic updates** | Candidate validation, observed-digest preconditions, cooperative locking, and atomic replacement preserve the last complete plan. |
+
+```console
+python scripts/verify-delivery.py --observe-context
+python scripts/verify-delivery.py --root /path/to/project --plan PLAN.md --stage closure --context context.json
 ```
 
-The command tests a temporary copy of current source, requires the expected
-failure for each mutation, verifies byte-for-byte restoration, and reruns the
-suite. CI invokes it on the supported PowerShell hosts. These drills prove the
-named checks; they do not certify all tests or agent behavior.
+Run these from the package checkout. Save the observed context in the target
+project and extend it with independently observed tool versions. The
+[delivery guide](docs/DELIVERY.md) documents the complete lifecycle, schema,
+commands, and [native plan asset](templates/workflow/PLAN.md).
 
-### Treat automatic fixes as code changes
+The validator checks structure and recorded evidence. Semantic review and real
+tests establish whether the product meets its requirements. A copied template,
+a fabricated log, or a green structural report cannot establish that on its own.
+Recorded command strings are never executed by the validator or update helper.
 
-Formatting and autofix output still need review. For Python formatting,
-[`verify-format-safe.py`](scripts/verify-format-safe.py) compares parsed ASTs
-before and after formatting; tests and diff review remain necessary, especially
-for non-Python files.
+## Design principles
 
-### Keep security claims scoped
+**Scan and enhance.** Trace existing responsibilities, consumers, tests, assets,
+and configuration before adding a path. Extend canonical work; review for
+semantic duplication again at closeout.
 
-The supplied pre-commit hook checks staged changes. The explicit
-`gitleaks git --redact` workflow scans reachable checked-out Git history. A
-history finding is handled as a potential credential incident: rotate first,
-then decide whether authorized history cleanup is needed.
+**Prove the test can fail.** Every project maintains [red drills](docs/RED-DRILLS.md):
+green baseline, intentional defect, the intended nonzero failure, exact
+restoration, then green again. Repeat affected drills when code, tests, tools,
+or configuration change and run the maintained set at release verification.
+Zero tests, unrelated crashes, and warning-only output earn no credit.
 
-### Keep sanitizer builds honest
+**Verify effects.** Check observable behavior with independent expected results.
+Reject self-comparisons, assertions that merely mirror implementation, vacuous
+success paths, and placeholders presented as finished work.
 
-For C and C++, the reference uses ASan with UBSan for one debug/test build and
-TSan in a separate build. Recoverable UBSan checks need
-`-fno-sanitize-recover=all` when a finding must fail the gate. Rust sanitizer
-support depends on the target and toolchain; full standard-library coverage may
-require nightly Rust and `-Zbuild-std`. See the
-[`sanitizer reference`](templates/cpp/sanitizers.md) before wiring CI.
+**Keep evidence honest.** Distinguish implemented from verified. Record failures,
+deferred gates, scope changes, and environment limits. Preserve user edits and
+observe uncertain external outcomes before retrying an operation.
+
+**Use current language guidance.** Review ownership, resource lifetimes,
+asynchronous errors, semantics, accessibility, and organization alongside static
+gates. Automated fixes remain code changes that require review.
+
+## Reference tooling
+
+Select tools for the actual project and verify compatibility. Supplied templates
+are starting points to extend existing configuration; they do not establish
+compliance by being copied.
+
+| Language / surface | Reference gates |
+|---|---|
+| Python | Ruff, mypy, vulture, deptry, Bandit, pip-audit; project tests |
+| TypeScript / JavaScript | Prettier, ESLint, TypeScript, knip, dpdm, npm audit, Semgrep |
+| Rust | rustfmt, Clippy, compiler, cargo-machete, cargo-audit, cargo-deny, cargo test |
+| C / C++ | clang-format, clang-tidy, cppcheck, compiler, separate sanitizer builds |
+| C# / .NET | dotnet format, analyzers, nullable checks, warnings as errors, NuGet audit, dotnet test |
+| HTML / CSS | Semantic and accessibility review, HTMLHint, Stylelint, Prettier |
+| PowerShell / Shell | PSScriptAnalyzer / ShellCheck and shfmt; project tests |
+| Go | gofmt, go vet, selected Staticcheck, govulncheck, go test, race/fuzz checks where supported |
+
+Go has guidance rather than a supplied configuration template. Cross-cutting
+references cover Gitleaks, Semgrep, and jscpd. See the
+[language review contract](docs/CODE-QUALITY.md) for primary sources and the
+[template index](templates/README.md) for configuration details and compatibility.
 
 ## Documentation
 
-- [`AGENTS.md`](AGENTS.md) — shared agent entry point and non-negotiable rules
-- [`docs/INSTALLATION.md`](docs/INSTALLATION.md) — current install channels,
-  release verification, and updates
-- [`skills/project_setup/references/grill-me.md`](skills/project_setup/references/grill-me.md)
-  — complete product, delivery, signing, and operations discovery coverage
-- [`skills/project_setup/assets/PROJECT_BRIEF.md`](skills/project_setup/assets/PROJECT_BRIEF.md)
-  — reusable decision record and readiness confirmation template
-- [`docs/PHILOSOPHY.md`](docs/PHILOSOPHY.md) — why the standards exist and when
-  strictness is the wrong choice
-- [`docs/RED-DRILLS.md`](docs/RED-DRILLS.md) — required failure drills, safe
-  restoration, recurring verification, and evidence contract shared by both workflows
-- [`docs/CODE-QUALITY.md`](docs/CODE-QUALITY.md) — researched common and
-  language-specific implementation/review rules with primary sources
-- [`docs/QUALITY-REVIEW.md`](docs/QUALITY-REVIEW.md) — dated template audit,
-  executable evidence, and explicit remaining verification boundaries
-- [`templates/README.md`](templates/README.md) — template locations, commands,
-  deliberate loosenings, and dated compatibility evidence
-- [`templates/cpp/sanitizers.md`](templates/cpp/sanitizers.md) — C/C++ and Rust
-  sanitizer reference
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) — contribution and verification contract
-- [`CHANGELOG.md`](CHANGELOG.md) — released and unreleased changes
+| Read | For |
+|---|---|
+| [Agent entry point](AGENTS.md) | Workflow routing and shared invariants |
+| [Installation](docs/INSTALLATION.md) | Registration, updates, checksums, and provenance |
+| [Delivery](docs/DELIVERY.md) | Native ledger, readiness, reconciliation, and resume |
+| [Red drills](docs/RED-DRILLS.md) | Reproducible failure and restoration procedures |
+| [Code quality](docs/CODE-QUALITY.md) | Common and language-specific review rules |
+| [Discovery questions](skills/project_setup/references/grill-me.md) | Product and delivery decisions |
+| [Philosophy](docs/PHILOSOPHY.md) | Why gates exist and when strictness becomes counterproductive |
+| [Verification record](docs/QUALITY-REVIEW.md) | Dated evidence and its limits |
+| [Contributing](CONTRIBUTING.md) | Local checks, behavioral trials, and release procedure |
+| [Changelog](CHANGELOG.md) | Released changes |
 
 <details>
-<summary>Repository layout</summary>
+<summary><strong>Package layout</strong></summary>
 
 ```text
-skills/       workflow contracts
-scripts/      native inventory and path-resolution helpers
-templates/    strict, adaptable configuration examples
-tests/        cross-platform smoke and parity checks
-docs/         design rationale and repository notes
+skills/       three workflow entry points and focused resources
+scripts/      native inventory, delivery validation, atomic updates, release tools
+templates/    language configurations and the native plan asset
+tests/        deterministic checks, red drills, and isolated behavioral fixtures
+docs/         shared contracts, primary sources, and verification evidence
 ```
 
 </details>
 
-## Requirements
-
-- Git for cloning and version-control checks
-- Windows: Windows PowerShell 5.1 or newer, or PowerShell 7
-- Linux/macOS: Bash and standard POSIX command-line tools
-- Python 3 only for `scripts/verify-format-safe.py`
-
-Individual quality gates require their own project-local tools. The inventory
-scripts report availability; they do not install anything.
-
-## License
-
-[MIT](LICENSE)
-
-## Support this project
-
-If this project saves you time, you can
-[buy me a coffee](https://www.paypal.com/donate/?hosted_button_id=Q9VC7B42R7K82)
-via PayPal. Thank you!
+[MIT licensed](LICENSE). If this saves you time,
+[support the project via PayPal](https://www.paypal.com/donate/?hosted_button_id=Q9VC7B42R7K82).

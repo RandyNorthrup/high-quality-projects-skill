@@ -5,6 +5,36 @@ All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.6.0 — 2026-09-07
+
+### Added
+
+- First-party `feature_delivery` workflow for scoped behavior changes, focused
+  discovery, readiness review, implementation, reconciliation, and safe resume.
+- Shared native delivery contract and versioned plan asset linking requirements,
+  acceptance criteria, task ownership, dependencies, and current evidence.
+- Read-only Python 3.12+ validator for strict schema/coverage checks, actual file
+  outcomes, artifact/input hashes, red-drill proof, and checkpoint freshness.
+  Recorded commands remain inert data; semantic review and real tests remain
+  required independently of structural success.
+- Atomic plan-update helper with candidate validation, observed-digest conflict
+  detection, cooperative locks, flushed writes, and idempotent replacement.
+- Deterministic regressions and validator mutation drills, plus isolated live
+  agent scenarios with independent product oracles and negative controls.
+
+### Changed
+
+- Connected setup and retrofit to the shared delivery lifecycle without replacing
+  their canonical discovery, code-quality, or red-drill procedures.
+- Extended package checks to inspect every committed resource in both archives.
+  Added Python 3.12/3.14 validation, strict typing, lint, and tests across Windows,
+  Linux, and macOS using the existing CI/release pipeline.
+- Reworked README navigation, workflow routing, installation, and documentation
+  around a warm ivory, charcoal, and copper visual identity.
+- Updated agent adapters, manifests, installation guidance, and contributor docs
+  for all three workflows. Delivery code uses only Python's standard library;
+  no third-party workflow integration or copied framework code was added.
+
 ## 0.5.0 — 2026-09-07
 
 ### Added

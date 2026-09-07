@@ -11,6 +11,10 @@ The hard constraint that shapes everything below: **this code already works and
 someone depends on it.** A retrofit that lands 4,000 mechanical changes in one
 commit is unreviewable and will be reverted. Phase the work.
 
+Use this workflow for quality-only improvements. A requested feature or behavior
+change belongs to `feature_delivery`; do not turn it into an unsolicited whole-
+repository retrofit.
+
 ## Communication style
 
 Status updates: short, direct, no filler. Caveman style if that plugin is
@@ -154,6 +158,17 @@ git rev-parse HEAD         # record for rollback
 
 Run in order. Each is independently reviewable and independently revertible.
 Stop and report between phases; do not chain them silently.
+
+For scoped retrofit work, follow `${SKILL_ROOT}/docs/DELIVERY.md` for stable
+acceptance/task IDs, separate readiness and implementation proof, closeout
+reconciliation, and checkpoints. Keep the existing canonical plan and phase
+boundaries. A formatter-only change can use one compact obligation; do not invent
+feature stories or duplicate the detailed quality/red-drill procedures.
+
+On resuming a retrofit, re-observe the tree and current tool context and validate
+the checkpoint. Reopen affected work when evidence is stale, preserve user edits,
+and use the atomic update helper for native plan state. A changed rule needs an
+amendment and impact review in the canonical project rules file.
 
 ### Phase 0 — baseline
 Record: test results, build status, current lint/type error counts. This is the

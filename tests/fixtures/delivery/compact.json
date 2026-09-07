@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "work": {
+    "id": "WORK-DOC",
+    "title": "Clarify quantity validation documentation",
+    "scope_revision": 1,
+    "brief": null,
+    "brief_reason": "Scoped change to an existing order parser",
+    "rules": [
+      {
+        "path": "AGENTS.md",
+        "revision": "1"
+      }
+    ],
+    "inputs": [],
+    "environment": {
+      "platform": "fixture",
+      "tools": {
+        "python": "fixture"
+      }
+    }
+  },
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "statement": "Document the existing negative quantity error",
+      "priority": "critical",
+      "acceptance": [
+        "AC-1"
+      ],
+      "superseded_by": null
+    }
+  ],
+  "acceptance": [
+    {
+      "id": "AC-1",
+      "requirement": "REQ-1",
+      "given": "The quantity-parser documentation",
+      "when": "Its failure contract is read",
+      "then": "The negative-quantity error and boundary behavior are described accurately",
+      "checks": [
+        "manual"
+      ],
+      "manual_reason": "Documentation-only correction; executable behavior is unchanged"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "TASK-1",
+      "purpose": "Correct the canonical parser documentation",
+      "acceptance": [
+        "AC-1"
+      ],
+      "depends_on": [],
+      "changes": [
+        {
+          "path": "README.md",
+          "action": "modify"
+        }
+      ],
+      "status": "planned",
+      "evidence": [],
+      "blocker": null,
+      "superseded_by": null
+    }
+  ],
+  "evidence": [],
+  "checkpoint": null
+}

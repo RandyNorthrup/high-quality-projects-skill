@@ -53,8 +53,9 @@ gh repo edit RandyNorthrup/high-quality-projects-skill --description "Vendor-neu
 
 The tracked upload source is
 [`docs/assets/github-social-preview.png`](assets/github-social-preview.png).
-It is an opaque 1280×640 PNG under 1 MB, matching GitHub's preferred social
-preview dimensions and upload limit.
+It is an opaque 1774×887 PNG (2:1), 1,013,540 bytes. Warm ivory, charcoal, and
+restrained copper replace the previous purple/blue artwork. The README uses
+this tracked image directly and includes a meaningful text alternative.
 
 Git does not apply this setting. Upload the file under **Settings → General →
 Social preview → Edit → Upload an image**, then verify the preview before
@@ -63,7 +64,7 @@ closing the settings page.
 ## Also worth setting
 
 - **Version tags and releases** — pushing an annotated manifest-version tag
-  (currently `v0.5.0`) runs the gated release workflow and publishes verified
+  (currently `v0.6.0`) runs the gated release workflow and publishes verified
   archives, checksums, metadata, notes, and build provenance.
 - **Social preview image** — keep the uploaded setting synchronized with the
   tracked source above.

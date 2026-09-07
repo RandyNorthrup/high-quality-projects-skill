@@ -3,13 +3,14 @@ description: Production-grade project setup and quality retrofit workflows
 alwaysApply: false
 ---
 
-This repository provides two workflows for applying production-oriented code
+This repository provides three workflows for applying production-oriented code
 standards. Both are plain Markdown and can be followed outside Cursor.
 
 - **New project** → read `skills/project_setup/SKILL.md`
 - **Existing codebase** → read `skills/quality_retrofit/SKILL.md`
+- **Scoped feature or resumed delivery** → read `skills/feature_delivery/SKILL.md`
 
-Read the whole file before acting. Both open with a mandatory read-only scan
+Read the whole file before acting. All open with a mandatory read-only scan
 (`scripts/detect-stack.ps1` on PowerShell or `scripts/detect-stack.sh` on
 POSIX) that must run before anything is created or changed.
 
