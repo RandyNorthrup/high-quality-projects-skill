@@ -169,7 +169,40 @@ The installed names remain unchanged for package compatibility.
 
 The final code and expanded evidence checks passed all twelve hosted jobs in
 [run 34165497453](https://github.com/RandyNorthrup/high-quality-projects-skill/actions/runs/34165497453)
-at `40e6d12`. Exact-tag publication, published artifact/provenance verification,
-and installed discovery are the remaining release operations. Their receipts
-are recorded on main after they occur; an immutable tagged plan records the
-prerequisite boundary rather than claiming a future publication already happened.
+at `40e6d12`. The final documentation/evidence commit `b78723b` also passed all
+twelve jobs in [run 34166710142](https://github.com/RandyNorthrup/high-quality-projects-skill/actions/runs/34166710142).
+
+### Publication and installed package receipt
+
+[v0.6.0](https://github.com/RandyNorthrup/high-quality-projects-skill/releases/tag/v0.6.0)
+was published from commit `b78723b1a07833e716769678c3af0a612551617a`, annotated tag
+object `3674041d48b099e62ab3484e10c374b1ae2e2830`. All thirteen release jobs passed
+in [run 34166806043](https://github.com/RandyNorthrup/high-quality-projects-skill/actions/runs/34166806043),
+including the reused platform gates and build/attestation/publication job.
+
+All five downloaded assets matched the local exact-tag build byte-for-byte.
+Checksums, manifest version/source identity, notes, and all 76 committed files
+in both archive formats were independently verified. Archive SHA-256 values:
+
+| Archive | SHA-256 |
+|---|---|
+| ZIP | `f796d40744836035a93322d1e82bf6217b270c108425dce10173f9ae9f6b8e9f` |
+| tar.gz | `3ce31eed4b3e4746772c5f9c180b754d86bfa332430d98b38270f195e74512f6` |
+
+GitHub CLI verified both signed attestations. Their certificate and provenance
+fields identify this repository, the exact commit, `refs/tags/v0.6.0`, and
+`.github/workflows/release.yml`. A transient verifier initialization error on the
+tarball was resolved by a sequential retry; both final verifications succeeded.
+Local receipts remain under ignored `dist/verification-v0.6.0/`.
+
+The canonical installed clone was fast-forwarded to the verified release.
+All 76 installed files matched the published ZIP byte-for-byte. Existing setup
+and retrofit junctions were retained, and the feature-delivery junction was
+added. A fresh read-only Codex `skills/list` request with `forceReload` returned
+exactly one enabled result for each namespaced workflow. No model turn was
+needed for discovery verification.
+
+This post-publication receipt is maintained on main. The installed clone remains
+at exact release source; the immutable tagged plan records its prerequisite
+boundary, while this audit and the current plan record completed publication.
+No implementation or required release gate remains open.

@@ -46,6 +46,8 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   Evaluation scope and model/runtime limits are recorded in `docs/QUALITY-REVIEW.md`.
 - Desktop/mobile and light/dark README rendering, plus the saved neutral GitHub
   social-preview image, checked visually.
+- Post-publication verification confirmed five exact-build assets, both archive
+  attestations, all 76 installed files, and fresh discovery of all three workflows.
 
 ## 0.5.0 — 2026-09-07
 

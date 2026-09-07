@@ -1,6 +1,6 @@
 # Native delivery workflow implementation plan
 
-Status: **Implementation and evaluation complete. Final release and installation verification in progress.**
+Status: **Complete. Implemented, evaluated, released as v0.6.0, and installed.**
 
 Prepared: 2026-09-07. Baseline: released v0.5.0, commit
 `52fa547a598b8b50392d49924e0db3fc3268c092`.
@@ -11,12 +11,11 @@ Close the gaps in feature delivery, traceability, requirements review,
 completion checking, durable resume, and evaluation of agent behavior while
 preserving this package's scan-and-enhance and verified-quality foundations.
 
-All new workflow instructions, templates, validation logic, and fixtures will
-be authored in this repository. Spec Kit was comparative inspiration only.
-There will be no Spec Kit dependency, integration, adapter, copied code,
-copied prompts/templates, vendored files, command aliases, or compatibility
-layer. The new delivery machinery will require no additional third-party
-libraries. Existing language linters, test runners, and agent installations
+All new workflow instructions, templates, validation logic, and fixtures were
+authored in this repository. Spec Kit was comparative inspiration only.
+No Spec Kit dependency, integration, adapter, copied code, copied prompts or
+templates, vendored files, command aliases, or compatibility layer was added.
+The new delivery machinery requires no additional third-party libraries. Existing language linters, test runners, and agent installations
 remain tools selected by the target project.
 
 The owner has requested completion of all milestones, production release, and
@@ -341,10 +340,10 @@ Dependencies: M1–M6. Covers R08 and all completion claims.
       without reducing their scope or suppressing failures.
 - [x] M7-T05 Confirm all new delivery/evaluation code is first-party, no external
       framework or integration was added, and no duplicate policy/logic emerged.
-- [ ] M7-T06 Select the release version after compatibility review, push the
+- [x] M7-T06 Select the release version after compatibility review, push the
       reviewed commit through CI, publish only exact annotated-tag source, and
       independently verify published checksums, contents, and provenance.
-- [ ] M7-T07 When updating the installed package, preserve the shared clone and
+- [x] M7-T07 When updating the installed package, preserve the shared clone and
       junction layout and verify all skill entry points through fresh discovery.
 
 Acceptance: no unresolved required milestone gate, all claimed host checks
@@ -376,7 +375,7 @@ These paths own the implementation; shared procedures remain canonical.
 
 ## Delivery risks and controls
 
-| Risk | Planned control |
+| Risk | Control |
 |---|---|
 | More paperwork than value | One compact schema; scale record size to the change; no empty artifact trees |
 | New ledger duplicates existing plan truth | One canonical record; prose references IDs; derived reports do not become independent trackers |
@@ -395,11 +394,12 @@ These paths own the implementation; shared procedures remain canonical.
 - [x] Reconciliation is idempotent and resume rejects stale evidence.
 - [x] Behavioral trials pass without false-green or scope violations.
 - [x] Existing v0.5.0 gates remain effective and pass.
-- [ ] Documentation, packaging, discovery, and release verification agree.
+- [x] Documentation, packaging, discovery, and release verification agree.
 - [x] No third-party code, integration, copied workflow, or duplicate runtime added.
 
-M1–M6 are complete. M7 publication and installed-discovery receipts remain to
-be recorded after the exact-tag release. No feature implementation remains open.
+M1–M7 are complete. No feature implementation or required release gate remains
+open. The post-publication receipt in docs/QUALITY-REVIEW.md records the exact
+release, artifact/provenance checks, and installed discovery.
 
 ## Implementation evidence log
 
@@ -413,7 +413,9 @@ be recorded after the exact-tag release. No feature implementation remains open.
 - README uses neutral artwork, concise routing, and two-column comparisons.
   GitHub-rendered Markdown was checked with official styles in light/dark themes:
   375px and 1440px layouts showed no page overflow and all images loaded with alt text.
-- All twelve hosted matrix jobs passed at 40e6d12. Exact-tag publication and
-  installed discovery remain final operations; their receipts follow publication.
+- All twelve final-source matrix jobs and all thirteen release jobs passed.
+  v0.6.0 contains exact annotated-tag source at b78723b. All five published assets
+  matched the local tagged build; both archive attestations and all 76 installed
+  files verified. Fresh Codex discovery found all three workflows enabled.
 - Test-only policy exceptions retain standard-library unittest assertion style;
   narrow subprocess exceptions cover fixed trusted commands and owned fixtures.
