@@ -1,6 +1,6 @@
 # Native delivery workflow implementation plan
 
-Status: **In progress. Full implementation and production release are the active goal.**
+Status: **Implementation and evaluation complete. Final release and installation verification in progress.**
 
 Prepared: 2026-09-07. Baseline: released v0.5.0, commit
 `52fa547a598b8b50392d49924e0db3fc3268c092`.
@@ -293,19 +293,19 @@ uses blanket reset/clean operations to manufacture the recorded state.
 
 Dependencies: M3–M5. Covers R01–R08.
 
-- [ ] M6-T01 Create first-party scenario workspaces and a documented evaluation
+- [x] M6-T01 Create first-party scenario workspaces and a documented evaluation
       protocol under `tests/behavioral/`; reuse fixtures where responsibilities
       overlap with the deterministic suite.
-- [ ] M6-T02 Implement an outcome checker that inspects actual files, executes
+- [x] M6-T02 Implement an outcome checker that inspects actual files, executes
       behavioral probes, checks permitted change scope, and verifies evidence.
       Prompt wording and self-reported success are not passing criteria.
-- [ ] M6-T03 Run scenarios through an available, authorized agent harness with
+- [x] M6-T03 Run scenarios through an available, authorized agent harness with
       recorded agent/model version, starting source, commands, and limits. Do
       not add agent SDK dependencies or start paid calls in ordinary CI.
-- [ ] M6-T04 Run each core scenario three times with fresh isolated workspaces.
+- [x] M6-T04 Run each core scenario three times with fresh isolated workspaces.
       Keep individual outcomes; any false-green or scope violation blocks this
       milestone instead of being averaged into a success rate.
-- [ ] M6-T05 Re-run affected scenarios after corrections and publish a compact
+- [x] M6-T05 Re-run affected scenarios after corrections and publish a compact
       evidence report that retains unresolved failures and coverage limits.
 
 Core scenarios:
@@ -330,16 +330,16 @@ permission to report prompt text checks as behavioral verification.
 
 Dependencies: M1–M6. Covers R08 and all completion claims.
 
-- [ ] M7-T01 Reconcile README, AGENTS, CONTRIBUTING, template index, installation
+- [x] M7-T01 Reconcile README, AGENTS, CONTRIBUTING, template index, installation
       guidance, changelog, manifest/adapters, and the dated verification report.
-- [ ] M7-T02 Extend existing package checks to verify the third skill and every
+- [x] M7-T02 Extend existing package checks to verify the third skill and every
       referenced resource in both ZIP and tar.gz archives.
-- [ ] M7-T03 Add validator tests/linting to the existing CI workflow. Run the new
+- [x] M7-T03 Add validator tests/linting to the existing CI workflow. Run the new
       helper on Windows, Linux, and macOS with the documented Python minimum
       and current supported runtime; retain PowerShell 5.1/7 and Bash parity.
-- [ ] M7-T04 Run the existing smoke red drills and release reproducibility checks
+- [x] M7-T04 Run the existing smoke red drills and release reproducibility checks
       without reducing their scope or suppressing failures.
-- [ ] M7-T05 Confirm all new delivery/evaluation code is first-party, no external
+- [x] M7-T05 Confirm all new delivery/evaluation code is first-party, no external
       framework or integration was added, and no duplicate policy/logic emerged.
 - [ ] M7-T06 Select the release version after compatibility review, push the
       reviewed commit through CI, publish only exact annotated-tag source, and
@@ -389,30 +389,31 @@ These paths own the implementation; shared procedures remain canonical.
 
 ## Completion checklist
 
-- [ ] R01–R08 have implementation, positive/negative checks, and evidence.
-- [ ] No requirement or required acceptance criterion is orphaned.
-- [ ] Readiness, implementation, and verified completion remain distinguishable.
-- [ ] Reconciliation is idempotent and resume rejects stale evidence.
-- [ ] Behavioral trials pass without false-green or scope violations.
-- [ ] Existing v0.5.0 gates remain effective and pass.
+- [x] R01–R08 have implementation, positive/negative checks, and evidence.
+- [x] No requirement or required acceptance criterion is orphaned.
+- [x] Readiness, implementation, and verified completion remain distinguishable.
+- [x] Reconciliation is idempotent and resume rejects stale evidence.
+- [x] Behavioral trials pass without false-green or scope violations.
+- [x] Existing v0.5.0 gates remain effective and pass.
 - [ ] Documentation, packaging, discovery, and release verification agree.
-- [ ] No third-party code, integration, copied workflow, or duplicate runtime added.
+- [x] No third-party code, integration, copied workflow, or duplicate runtime added.
 
-M1–M5 are implemented. M6 independent behavioral trials and M7 final release
-verification are in progress. No external blocker currently prevents those checks.
+M1–M6 are complete. M7 publication and installed-discovery receipts remain to
+be recorded after the exact-tag release. No feature implementation remains open.
 
 ## Implementation evidence log
 
 - M1–M5: contract, asset, three workflows, shared validator, semantic closeout,
-  change-impact fingerprints, and atomic writer implemented. Forty-five tests
+  change-impact fingerprints, and atomic writer implemented. Forty-six tests
   pass, including two validator mutations, interrupted/stale writes, idempotence,
   and independent outcome-oracle controls. Strict mypy and Ruff pass locally.
-- Behavioral trials run in fresh agent contexts and isolated committed projects;
-  each result receives independent executable checks and semantic review.
+- All 24 core trials passed independent checks and semantic review. A separate
+  unchanged-plan trial preserved all existing artifacts with no duplicate work.
+  See docs/evaluations/v0.6.0.json and docs/QUALITY-REVIEW.md for scoped evidence.
 - README uses neutral artwork, concise routing, and two-column comparisons.
   GitHub-rendered Markdown was checked with official styles in light/dark themes:
   375px and 1440px layouts showed no page overflow and all images loaded with alt text.
-- Remote matrix, exact-tag packaging/publication, and installed discovery remain
-  required release gates. Local success does not establish those outcomes.
+- All twelve hosted matrix jobs passed at 40e6d12. Exact-tag publication and
+  installed discovery remain final operations; their receipts follow publication.
 - Test-only policy exceptions retain standard-library unittest assertion style;
   narrow subprocess exceptions cover fixed trusted commands and owned fixtures.

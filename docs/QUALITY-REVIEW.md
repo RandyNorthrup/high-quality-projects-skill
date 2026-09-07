@@ -136,8 +136,40 @@ published README and saved GitHub social-preview setting were visually checked.
 This is README presentation evidence, not accessibility certification of an
 application produced by a workflow.
 
-Live agent trials and their final evidence reconciliation are in progress under
-the [behavioral protocol](../tests/behavioral/README.md). Their acceptance is
-independent of deterministic test and hosted CI success. Exact-tag publication,
-published artifact/provenance verification, and installed discovery remain open
-until the release has actually completed.
+All 24 live core trials passed independent evaluation: three fresh attempts each
+for incomplete discovery, canonical reuse, configuration preservation,
+contradictory requirements, vacuous tests, false completion, stale resume, and
+uncertain external outcomes. The [compact evidence record](evaluations/v0.6.0.json)
+preserves individual outcomes, fixture identities, actual recorded commands,
+independent test results, and artifact hashes. Raw workspaces remain under ignored
+`dist/behavioral-v0.6.0/` on the evaluation host. No failed outcome was averaged
+away or replaced by a self-reported success statement.
+
+A twenty-fifth fresh-agent check resumed an already verified copy of `reuse-1`.
+Independent before/after hashing found zero changed existing artifacts. The plan
+remained byte-identical at SHA-256
+`7e46b9fd7f47d41d104885ba7167470954e1b01ecf23b921bdb8d241bb335164`;
+the agent also checked its unchanged modification time. It reran six tests and
+Ruff, reviewed still-current red evidence, and created no duplicate task or receipt.
+
+These trials used the supplied Codex collaboration runtime with fresh contexts
+on Windows/Python 3.14.0 and Ruff 0.15.9. Session instructions identify the GPT-6
+family; the harness does not expose an exact model build, so no build-specific
+or cross-model claim is made. Several subjects recovered from an unsupported
+PowerShell `-Path` argument by reading the scanner and using `-Root` before any
+write. Discovery trials intentionally stop for missing decisions; outcome trials
+use local fixture state and do not certify a real deployment. Full application
+scaffolding and arbitrary generated projects remain target-project verification,
+not capabilities certified by this bounded evaluation.
+
+All three skill files match their folder names. Other generic skill-validator
+checks passed on disposable copies with only underscore names normalized, using
+Python UTF-8 mode to avoid the system validator's Windows locale-dependent read.
+The installed names remain unchanged for package compatibility.
+
+The final code and expanded evidence checks passed all twelve hosted jobs in
+[run 34165497453](https://github.com/RandyNorthrup/high-quality-projects-skill/actions/runs/34165497453)
+at `40e6d12`. Exact-tag publication, published artifact/provenance verification,
+and installed discovery are the remaining release operations. Their receipts
+are recorded on main after they occur; an immutable tagged plan records the
+prerequisite boundary rather than claiming a future publication already happened.

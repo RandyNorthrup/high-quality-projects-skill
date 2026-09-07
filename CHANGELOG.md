@@ -38,6 +38,15 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   for all three workflows. Delivery code uses only Python's standard library;
   no third-party workflow integration or copied framework code was added.
 
+### Verification
+
+- 46 deterministic tests, including validator mutation drills and independent
+  outcome-oracle controls; strict typing and linting; twelve hosted matrix jobs.
+- 24 independently reviewed live core trials and one unchanged-plan trial.
+  Evaluation scope and model/runtime limits are recorded in `docs/QUALITY-REVIEW.md`.
+- Desktop/mobile and light/dark README rendering, plus the saved neutral GitHub
+  social-preview image, checked visually.
+
 ## 0.5.0 — 2026-09-07
 
 ### Added

@@ -30,11 +30,10 @@ docs/               philosophy and extended reference
 way — no vendor-set environment variables, no assumptions about slash commands
 or a particular runner.
 
-`skills/` and the underscore directory names exist because Claude Code requires
-that layout, and because the directory name becomes the skill segment of the
-plugin's namespaced slash command. The `name:` in each `SKILL.md` frontmatter
-must match its directory exactly or the plugin will not load. This is the one
-place a vendor constraint shows through.
+Claude Code uses the `skills/` layout, and each directory name becomes the skill
+segment of its namespaced command. This package preserves its established
+underscore naming convention. Keep each `name:` consistent with its directory
+and verify discovery after changes; do not rename existing entry points casually.
 
 Paths inside the workflows use `${SKILL_ROOT}` as a placeholder, resolved by the
 native `scripts/skill-root.ps1` or `scripts/skill-root.sh`. Both locate

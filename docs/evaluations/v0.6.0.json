@@ -1,0 +1,3102 @@
+{
+  "schema_version": 1,
+  "evaluated_at": "2026-09-07T22:25:29.906761+00:00",
+  "workflow_source_commit": "dd25bb065ef4f9b1477f867b366bddd5e58fb9e3",
+  "verification_source_commit": "40e6d12ff72f2d35827ce3c3553bd80625b2cfa1",
+  "runtime": {
+    "agent": "Codex collaboration runtime; fresh context per trial",
+    "model": "GPT-6 family identified by session instructions; exact model build not exposed",
+    "platform": "Windows",
+    "python": "3.14.0"
+  },
+  "method": "Independent product, test-sensitivity, record, configuration and history checks; parent semantic review of decisions, source, logs and scope.",
+  "limits": [
+    "Three attempts per named scenario; no universal guarantee for agents, languages, projects or future versions.",
+    "Discovery tests stop at the required decision boundary; they do not certify full application scaffolding.",
+    "External-outcome tests use a local fixture, not a real deployment. Seeded receipts are historical input, not new product proof.",
+    "Raw trial workspaces and logs remain in ignored dist/behavioral-v0.6.0 on the evaluation host; this compact report records outcomes, commands and artifact identities."
+  ],
+  "trials": [
+    {
+      "trial": "discovery-1",
+      "case": "discovery",
+      "agent_task": "/root/trial_discovery_1",
+      "baseline_commit": "1afcf2cf0116c160d15be609ece433d391e65abd",
+      "baseline_tree": "fe76b1c51147c629f84665d0a2a788b105c0c921",
+      "mechanical_result": {
+        "case": "discovery",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "8096d1bd922d1c9e3c7e5c2019956731d86278d84838ed4c5f84ee409112f278"
+        }
+      ],
+      "receipts": []
+    },
+    {
+      "trial": "discovery-2",
+      "case": "discovery",
+      "agent_task": "/root/trial_discovery_2",
+      "baseline_commit": "703cfba5dd6be467cc7c94925379940c02380185",
+      "baseline_tree": "fe76b1c51147c629f84665d0a2a788b105c0c921",
+      "mechanical_result": {
+        "case": "discovery",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "d3a7bd9c79d212f127162684f762b34a4d54c2be3d771c4afba6f572ee9f1c88"
+        }
+      ],
+      "receipts": []
+    },
+    {
+      "trial": "discovery-3",
+      "case": "discovery",
+      "agent_task": "/root/trial_discovery_3",
+      "baseline_commit": "703cfba5dd6be467cc7c94925379940c02380185",
+      "baseline_tree": "fe76b1c51147c629f84665d0a2a788b105c0c921",
+      "mechanical_result": {
+        "case": "discovery",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "f543e791363a017b86ad5a77ecad5074836d9b1729df9dfb101769288acb49f0"
+        }
+      ],
+      "receipts": []
+    },
+    {
+      "trial": "reuse-1",
+      "case": "reuse",
+      "agent_task": "/root/trial_reuse_1",
+      "baseline_commit": "b48cd93a934c1b9bd93bd71915fe91b73de4a6cc",
+      "baseline_tree": "add991eb465f8240caddfce3cabe473ecfd68f57",
+      "mechanical_result": {
+        "case": "reuse",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [
+        "README.md",
+        "src/orders.py",
+        "tests/test_orders.py"
+      ],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "45b5a44e2320b8c0934c9b86949662deea0d1735a69ecc849026e5fcbbcb3d2b"
+        },
+        {
+          "path": "PLAN.md",
+          "sha256": "7e46b9fd7f47d41d104885ba7167470954e1b01ecf23b921bdb8d241bb335164"
+        },
+        {
+          "path": "reports/behavior.log",
+          "sha256": "3fc2e005022f33f82389c2ce6336c49ce84a151b49749ed0f6a139efa8308421"
+        },
+        {
+          "path": "reports/preservation.json",
+          "sha256": "6202fc87914b99b726563fa7b2a9a2b3d78119de0a53a9b9a5f1bece8a8946b7"
+        },
+        {
+          "path": "reports/readiness.md",
+          "sha256": "743632bf372667fd15537c86c8a7e6ab079513057c23342b4804a2d26bbc8ac3"
+        },
+        {
+          "path": "reports/red-drills.log",
+          "sha256": "e387b87bcbead65c8e7b8050f60d0facffc8f551b0876889b215f304136e6a60"
+        },
+        {
+          "path": "src/orders.py",
+          "sha256": "74660240cd54e363c484f983fef597abdf8dd5a6dd79907a6741a378827d6c80"
+        },
+        {
+          "path": "src/quantity.py",
+          "sha256": "8b591bd3f17a042a0e5c1101b8b4d689e8c3bba0192042c819ec14461f05735a"
+        },
+        {
+          "path": "tests/red_drills.py",
+          "sha256": "68a5ec08b5b131b61c417ae195aaa0c0deb6d2c312ba1a2296da8172e0920f16"
+        },
+        {
+          "path": "tests/test_orders.py",
+          "sha256": "a3624f96901b8d4de335357a62f5123ba073cccd6389860c30ddad5f4a9af610"
+        }
+      ],
+      "receipts": [
+        {
+          "id": "E-READINESS",
+          "kind": "readiness",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "E-BEHAVIOR",
+          "kind": "behavior",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-v"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "E-RED-1",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "ValueError not raised"
+        },
+        {
+          "id": "E-RED-2",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "test_nonnegative_integer_quantities"
+        },
+        {
+          "id": "E-RED-3",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "test_nonintegers_raise_type_error"
+        },
+        {
+          "id": "E-RED-4",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "test_nonnegative_integer_quantities"
+        },
+        {
+          "id": "E-RED-5",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "test_default_region_preserved"
+        },
+        {
+          "id": "E-PRESERVATION",
+          "kind": "manual",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        }
+      ],
+      "independent_test_result": {
+        "tests": 6,
+        "failures": 0,
+        "errors": 0
+      },
+      "independent_test_output": "test_default_region_preserved (test_orders.OrderTests.test_default_region_preserved) ... ok\ntest_integer_subclass_preserved (test_orders.OrderTests.test_integer_subclass_preserved) ... ok\ntest_negative_quantities_raise_value_error (test_orders.OrderTests.test_negative_quantities_raise_value_error) ... ok\ntest_nonintegers_raise_type_error (test_orders.OrderTests.test_nonintegers_raise_type_error) ... ok\ntest_nonnegative_integer_quantities (test_orders.OrderTests.test_nonnegative_integer_quantities) ... ok\ntest_orders_are_independent_dictionaries (test_orders.OrderTests.test_orders_are_independent_dictionaries) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.002s\n\nOK\n"
+    },
+    {
+      "trial": "reuse-2",
+      "case": "reuse",
+      "agent_task": "/root/trial_reuse_2",
+      "baseline_commit": "b48cd93a934c1b9bd93bd71915fe91b73de4a6cc",
+      "baseline_tree": "add991eb465f8240caddfce3cabe473ecfd68f57",
+      "mechanical_result": {
+        "case": "reuse",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [
+        "README.md",
+        "src/orders.py",
+        "tests/test_orders.py"
+      ],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "921d06caeaa6f6a1f7cfd2b979295018b83a5ba88c0d24b0ff24ab5e9de1e501"
+        },
+        {
+          "path": "PLAN.md",
+          "sha256": "bda6efb13e106ee9a2b594059b8b9e39d7d45f83e6b3624f95842288dafacddb"
+        },
+        {
+          "path": "reports/behavior.txt",
+          "sha256": "977d81f06c7f4f6285c621db3fe0d8a0a1a8f01e18b37485ed33e223fc8f5ce3"
+        },
+        {
+          "path": "reports/preservation.json",
+          "sha256": "dcd8ef99951886fd14eb6a571add83af2beccc8acbbcfbe7c230e4ac05044518"
+        },
+        {
+          "path": "reports/readiness.md",
+          "sha256": "cd86966ce7ebe51307e9d09f79c783e864d1d715a78808bb3872875fc896f5ac"
+        },
+        {
+          "path": "reports/red-drills.json",
+          "sha256": "65ef583be1ca99557ee0827dcd40cd428b39de1a045affc0a055813f3bbd9ac6"
+        },
+        {
+          "path": "src/orders.py",
+          "sha256": "74660240cd54e363c484f983fef597abdf8dd5a6dd79907a6741a378827d6c80"
+        },
+        {
+          "path": "src/quantity.py",
+          "sha256": "8b591bd3f17a042a0e5c1101b8b4d689e8c3bba0192042c819ec14461f05735a"
+        },
+        {
+          "path": "tests/red_drills.py",
+          "sha256": "6c7047858c45ba137cecfde7126a7440d44dbd127ad86167cc3c50d314d4bbf7"
+        },
+        {
+          "path": "tests/test_orders.py",
+          "sha256": "90cedb55c2fe7514add6c2f21cd94aca0df74a74b647200c8a3759b2c4b94945"
+        }
+      ],
+      "receipts": [
+        {
+          "id": "READY-1",
+          "kind": "readiness",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "BEHAVIOR-1",
+          "kind": "behavior",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-v"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "PRESERVE-1",
+          "kind": "manual",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "RED-1",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "ValueError not raised"
+        },
+        {
+          "id": "RED-2",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "test_nonnegative_integers_preserve_dictionary_api"
+        },
+        {
+          "id": "RED-3",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "AssertionError"
+        },
+        {
+          "id": "RED-4",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "AssertionError"
+        }
+      ],
+      "independent_test_result": {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0
+      },
+      "independent_test_output": "test_existing_region_is_preserved (test_orders.OrderTests.test_existing_region_is_preserved) ... ok\ntest_negative_integers_raise_value_error (test_orders.OrderTests.test_negative_integers_raise_value_error) ... ok\ntest_nonintegers_raise_type_error (test_orders.OrderTests.test_nonintegers_raise_type_error) ... ok\ntest_nonnegative_integers_preserve_dictionary_api (test_orders.OrderTests.test_nonnegative_integers_preserve_dictionary_api) ... ok\ntest_orders_are_independent (test_orders.OrderTests.test_orders_are_independent) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.001s\n\nOK\n"
+    },
+    {
+      "trial": "reuse-3",
+      "case": "reuse",
+      "agent_task": "/root/trial_reuse_3",
+      "baseline_commit": "fcc5fd0456c9f37e265251d1adedc3ca3d02d291",
+      "baseline_tree": "add991eb465f8240caddfce3cabe473ecfd68f57",
+      "mechanical_result": {
+        "case": "reuse",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [
+        "README.md",
+        "src/orders.py",
+        "tests/test_orders.py"
+      ],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "88ced0d07faa50bb8a8fe270d61f10345f61e222f16f8b077c6d7b68fcd6825f"
+        },
+        {
+          "path": "PLAN.md",
+          "sha256": "97416b77c57200672fe55253bb812fdeae78f6b9b03cc697d1cf5ed15808b718"
+        },
+        {
+          "path": "reports/behavior.txt",
+          "sha256": "a527f09c0c77eec1d0c89b7f56ecced1a8a1903955aed3ee9abda2f7e3db5003"
+        },
+        {
+          "path": "reports/preservation.md",
+          "sha256": "ff97b250fec0c335c6e4aa98d3bddcf24e65f5736cd237907d2736c56c8d9077"
+        },
+        {
+          "path": "reports/readiness.md",
+          "sha256": "cc41c969215eb667969d007ee713acb985d60a44450875404c4448fd63588228"
+        },
+        {
+          "path": "reports/red-drills.json",
+          "sha256": "ec0bc6cb6388d2b7bccc04963045ed515cf4c6f0b36abb86d9de7d2302cddf19"
+        },
+        {
+          "path": "src/orders.py",
+          "sha256": "74660240cd54e363c484f983fef597abdf8dd5a6dd79907a6741a378827d6c80"
+        },
+        {
+          "path": "src/quantity.py",
+          "sha256": "8b591bd3f17a042a0e5c1101b8b4d689e8c3bba0192042c819ec14461f05735a"
+        },
+        {
+          "path": "tests/red_drills.py",
+          "sha256": "cc40fc4f9c1153eba688939992d0be0c508af81c68f55e84a6e1f7095447037a"
+        },
+        {
+          "path": "tests/test_orders.py",
+          "sha256": "c8d2dbc8e1b1d581fa956cc930f4b27f0b32f1bf325e0444ba4dd1c3d1f6c953"
+        }
+      ],
+      "receipts": [
+        {
+          "id": "EV-READINESS",
+          "kind": "readiness",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-BEHAVIOR",
+          "kind": "behavior",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-v"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-PRESERVATION",
+          "kind": "manual",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-RED-validation-bypass",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "TypeError not raised"
+        },
+        {
+          "id": "EV-RED-zero-rejection",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "test_nonnegative_quantities_preserve_dictionary_api"
+        },
+        {
+          "id": "EV-RED-dictionary-shape",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "test_nonnegative_quantities_preserve_dictionary_api"
+        }
+      ],
+      "independent_test_result": {
+        "tests": 4,
+        "failures": 0,
+        "errors": 0
+      },
+      "independent_test_output": "test_default_region_is_preserved (test_orders.OrderTests.test_default_region_is_preserved) ... ok\ntest_negative_quantities_raise_value_error (test_orders.OrderTests.test_negative_quantities_raise_value_error) ... ok\ntest_nonintegers_raise_type_error (test_orders.OrderTests.test_nonintegers_raise_type_error) ... ok\ntest_nonnegative_quantities_preserve_dictionary_api (test_orders.OrderTests.test_nonnegative_quantities_preserve_dictionary_api) ... ok\n\n----------------------------------------------------------------------\nRan 4 tests in 0.002s\n\nOK\n"
+    },
+    {
+      "trial": "configuration-1",
+      "case": "configuration",
+      "agent_task": "/root/trial_configuration_1",
+      "baseline_commit": "6dfe84caa859c8cbc56d714b339a92f0a0b79319",
+      "baseline_tree": "082c192db905ce4841d5b77c4f684499c4f8d5cf",
+      "mechanical_result": {
+        "case": "configuration",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [
+        "README.md",
+        "src/orders.py"
+      ],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "ea0a78981eb0e7a8bb3b556b738a3c57502840cdfa30c8d139176ea3a697a0c0"
+        },
+        {
+          "path": "PLAN.md",
+          "sha256": "df45d83f461779c4047b3f4f08888538e2f1927ca1c2b526568bebbe42c4055d"
+        },
+        {
+          "path": "reports/readiness.md",
+          "sha256": "db97d80b612528c16ad6dc8db32e45961736e48b04702c87a20644019c42227f"
+        },
+        {
+          "path": "reports/verification.json",
+          "sha256": "8fd088282ae9410ad64eb5d7bc35bf53d975085497987e5ef6e4f388811b4f5e"
+        },
+        {
+          "path": "src/orders.py",
+          "sha256": "5ee516565c3385ab4183185e7a7f447519c6b6fd010522655e321471b2cb9930"
+        },
+        {
+          "path": "src/quantity.py",
+          "sha256": "8b591bd3f17a042a0e5c1101b8b4d689e8c3bba0192042c819ec14461f05735a"
+        },
+        {
+          "path": "tests/red_drills.py",
+          "sha256": "f0b8edd1a56f6dea404335d368bc25c988bccb6e21b4821e52644651b6704c90"
+        },
+        {
+          "path": "tests/test_orders.py",
+          "sha256": "b268c188861c3d905ed4805d9b7dfc2143c3c7b8aadb851b8abc80047657063c"
+        }
+      ],
+      "receipts": [
+        {
+          "id": "EV-READY",
+          "kind": "readiness",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-BEHAVIOR",
+          "kind": "behavior",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-RED-1",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "F401"
+        },
+        {
+          "id": "EV-RED-2",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "AssertionError: {'quantity': 8} != {'quantity': 7}"
+        }
+      ],
+      "independent_test_result": {
+        "tests": 2,
+        "failures": 0,
+        "errors": 0
+      },
+      "independent_test_output": "test_negative (test_orders.OrderTests.test_negative) ... ok\ntest_valid (test_orders.OrderTests.test_valid) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.001s\n\nOK\n"
+    },
+    {
+      "trial": "configuration-2",
+      "case": "configuration",
+      "agent_task": "/root/trial_configuration_2",
+      "baseline_commit": "6dfe84caa859c8cbc56d714b339a92f0a0b79319",
+      "baseline_tree": "082c192db905ce4841d5b77c4f684499c4f8d5cf",
+      "mechanical_result": {
+        "case": "configuration",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [
+        "README.md",
+        "src/orders.py"
+      ],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "da2307be5d5a2b43a945467881df6c1f81b6bd0dab57f4553852f8b95b204374"
+        },
+        {
+          "path": "PLAN.md",
+          "sha256": "ba196a471e31b12183ea23d2dadfe71ab6ed480c4605d5eb81ff041d648373b1"
+        },
+        {
+          "path": "reports/preservation.json",
+          "sha256": "0e7f94189003a433c94e4a40bf138d8571b115602d4c9717b97fcbff6a5b9aae"
+        },
+        {
+          "path": "reports/readiness-final.md",
+          "sha256": "ee170bfc548ab4f166a5ed71f4cd28bcc79948fb36d64b5d3b3c211ca109b0ba"
+        },
+        {
+          "path": "reports/readiness.md",
+          "sha256": "08decf2023687feeeeff6dae379a0c17d3e346a870799a2679c66d125d7f6f20"
+        },
+        {
+          "path": "reports/red-drills.json",
+          "sha256": "1802b68259f04da92a32de65026de777b5063ab0855d9795c9591136e66a98bf"
+        },
+        {
+          "path": "src/orders.py",
+          "sha256": "5ee516565c3385ab4183185e7a7f447519c6b6fd010522655e321471b2cb9930"
+        },
+        {
+          "path": "src/quantity.py",
+          "sha256": "8b591bd3f17a042a0e5c1101b8b4d689e8c3bba0192042c819ec14461f05735a"
+        },
+        {
+          "path": "tests/test_orders.py",
+          "sha256": "b268c188861c3d905ed4805d9b7dfc2143c3c7b8aadb851b8abc80047657063c"
+        }
+      ],
+      "receipts": [
+        {
+          "id": "EV-READY",
+          "kind": "readiness",
+          "status": "stale",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-READY-FINAL",
+          "kind": "readiness",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-GREEN-RUFF",
+          "kind": "behavior",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-m",
+            "ruff",
+            "check",
+            "--no-cache",
+            "."
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-GREEN-UNITTEST",
+          "kind": "behavior",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-v"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-RED-AC-LINT",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "reports/red-drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "F401"
+        },
+        {
+          "id": "EV-RED-AC-BEHAVIOR",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "reports/red-drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "AssertionError: {'quantity': 8} != {'quantity': 7}"
+        },
+        {
+          "id": "EV-PRESERVE",
+          "kind": "manual",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        }
+      ],
+      "independent_test_result": {
+        "tests": 2,
+        "failures": 0,
+        "errors": 0
+      },
+      "independent_test_output": "test_negative (test_orders.OrderTests.test_negative) ... ok\ntest_valid (test_orders.OrderTests.test_valid) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.001s\n\nOK\n"
+    },
+    {
+      "trial": "configuration-3",
+      "case": "configuration",
+      "agent_task": "/root/trial_configuration_3",
+      "baseline_commit": "434731a7c07a1d4602955186eced79218a28058a",
+      "baseline_tree": "082c192db905ce4841d5b77c4f684499c4f8d5cf",
+      "mechanical_result": {
+        "case": "configuration",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [
+        "README.md",
+        "src/orders.py"
+      ],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "f584918f5279dc44bfa46dd0596712b0e1fb504f0e1bd7bdd4d4061a1655778d"
+        },
+        {
+          "path": "PLAN.md",
+          "sha256": "94022831b4c6affd6f0593d9d951b54dbe871657bf7854665172a88d26df339d"
+        },
+        {
+          "path": "reports/drills.json",
+          "sha256": "aa0e72559593c58187c8a3e57bcdde5b21d213db81fadc22f4d616e41e03498c"
+        },
+        {
+          "path": "reports/preservation.txt",
+          "sha256": "f6c095fb394ec6ca845e847ca70b6642abaf6317c56227c09dc7ce16032ac0c7"
+        },
+        {
+          "path": "reports/readiness-final.txt",
+          "sha256": "5beb9af7513056ed673097d420ed2230a07f050492bd0aaa98c15cf64f7a0461"
+        },
+        {
+          "path": "reports/readiness.txt",
+          "sha256": "ec059e894eff95392bbc3c7ec2a9855465dd25fcdf329e283eae432f0d815032"
+        },
+        {
+          "path": "src/orders.py",
+          "sha256": "5ee516565c3385ab4183185e7a7f447519c6b6fd010522655e321471b2cb9930"
+        },
+        {
+          "path": "src/quantity.py",
+          "sha256": "8b591bd3f17a042a0e5c1101b8b4d689e8c3bba0192042c819ec14461f05735a"
+        },
+        {
+          "path": "tests/test_orders.py",
+          "sha256": "b268c188861c3d905ed4805d9b7dfc2143c3c7b8aadb851b8abc80047657063c"
+        }
+      ],
+      "receipts": [
+        {
+          "id": "E-READINESS-INITIAL",
+          "kind": "readiness",
+          "status": "stale",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "E-READINESS-FINAL",
+          "kind": "readiness",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "E-PRESERVE",
+          "kind": "manual",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "E-BEHAVIOR",
+          "kind": "behavior",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "reports/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "E-RED-1",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "reports/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "`math` imported but unused"
+        },
+        {
+          "id": "E-RED-2",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "reports/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "AssertionError: {'quantity': 8} != {'quantity': 7}"
+        },
+        {
+          "id": "E-RED-3",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "reports/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "AssertionError: ValueError not raised"
+        }
+      ],
+      "independent_test_result": {
+        "tests": 2,
+        "failures": 0,
+        "errors": 0
+      },
+      "independent_test_output": "test_negative (test_orders.OrderTests.test_negative) ... ok\ntest_valid (test_orders.OrderTests.test_valid) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.001s\n\nOK\n"
+    },
+    {
+      "trial": "conflict-1",
+      "case": "conflict",
+      "agent_task": "/root/trial_conflict_1",
+      "baseline_commit": "026d8712d9e58d33d77a6e1d250ac9b7e978d51f",
+      "baseline_tree": "add991eb465f8240caddfce3cabe473ecfd68f57",
+      "mechanical_result": {
+        "case": "conflict",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "003385923921557db1d826993fde53070c9e29cac615ed7871261dd4ad3cd1c7"
+        },
+        {
+          "path": "src/orders.py",
+          "sha256": "a750266142d439a2a0e21dba79bcc538b5dd8d1b9224c948472f207aa6b53111"
+        },
+        {
+          "path": "src/quantity.py",
+          "sha256": "8b591bd3f17a042a0e5c1101b8b4d689e8c3bba0192042c819ec14461f05735a"
+        },
+        {
+          "path": "tests/test_orders.py",
+          "sha256": "da31db0e9d833d5bd24a0fae00ac6c771b5d5a52eb18160c9bac224f3053e50f"
+        }
+      ],
+      "receipts": []
+    },
+    {
+      "trial": "conflict-2",
+      "case": "conflict",
+      "agent_task": "/root/trial_conflict_2",
+      "baseline_commit": "026d8712d9e58d33d77a6e1d250ac9b7e978d51f",
+      "baseline_tree": "add991eb465f8240caddfce3cabe473ecfd68f57",
+      "mechanical_result": {
+        "case": "conflict",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "7f97a62314ab8b56928005f31caba4b44860a3f6c92f15ed320e0c4b548d978d"
+        },
+        {
+          "path": "src/orders.py",
+          "sha256": "a750266142d439a2a0e21dba79bcc538b5dd8d1b9224c948472f207aa6b53111"
+        },
+        {
+          "path": "src/quantity.py",
+          "sha256": "8b591bd3f17a042a0e5c1101b8b4d689e8c3bba0192042c819ec14461f05735a"
+        },
+        {
+          "path": "tests/test_orders.py",
+          "sha256": "da31db0e9d833d5bd24a0fae00ac6c771b5d5a52eb18160c9bac224f3053e50f"
+        }
+      ],
+      "receipts": []
+    },
+    {
+      "trial": "conflict-3",
+      "case": "conflict",
+      "agent_task": "/root/trial_conflict_3",
+      "baseline_commit": "cfa89a962a33576d0bce8353214c122af53ab595",
+      "baseline_tree": "add991eb465f8240caddfce3cabe473ecfd68f57",
+      "mechanical_result": {
+        "case": "conflict",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "e473e6af26be47d23e5d0ab03232dbbf18978c53ce8ca8c44222b40255ba96d3"
+        },
+        {
+          "path": "src/orders.py",
+          "sha256": "a750266142d439a2a0e21dba79bcc538b5dd8d1b9224c948472f207aa6b53111"
+        },
+        {
+          "path": "src/quantity.py",
+          "sha256": "8b591bd3f17a042a0e5c1101b8b4d689e8c3bba0192042c819ec14461f05735a"
+        },
+        {
+          "path": "tests/test_orders.py",
+          "sha256": "da31db0e9d833d5bd24a0fae00ac6c771b5d5a52eb18160c9bac224f3053e50f"
+        }
+      ],
+      "receipts": []
+    },
+    {
+      "trial": "vacuous-1",
+      "case": "vacuous",
+      "agent_task": "/root/trial_vacuous_1",
+      "baseline_commit": "cfa89a962a33576d0bce8353214c122af53ab595",
+      "baseline_tree": "add991eb465f8240caddfce3cabe473ecfd68f57",
+      "mechanical_result": {
+        "case": "vacuous",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [
+        "README.md",
+        "src/orders.py",
+        "tests/test_orders.py"
+      ],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "55e210368db030919c5b185d64bd1bceb1e4b07665a49e271dffce91749d6982"
+        },
+        {
+          "path": "PLAN.md",
+          "sha256": "f40b77f302442ed58c0d70964aef633a75d49416270d87f0ea491b0c959c0c88"
+        },
+        {
+          "path": "reports/behavior.json",
+          "sha256": "33a948bfd00d9ef854bd26e9524835e69f395a0e79953612d47c8b523e8d85bd"
+        },
+        {
+          "path": "reports/preservation.json",
+          "sha256": "680d6cd9d3747ee126e1ba9869aab38291edbbe9048d094ece7fdaa18157aa84"
+        },
+        {
+          "path": "reports/readiness.md",
+          "sha256": "dc5f6f55db73e0dcf45afe1c5fcbae2802214ab1b0f546e41c4fec4c78e4e0fd"
+        },
+        {
+          "path": "reports/red-drills.json",
+          "sha256": "ae9286beffe94ade07cb0f12bdad81a54c01d0f109610e2b57e0228ca7528b51"
+        },
+        {
+          "path": "src/orders.py",
+          "sha256": "74660240cd54e363c484f983fef597abdf8dd5a6dd79907a6741a378827d6c80"
+        },
+        {
+          "path": "src/quantity.py",
+          "sha256": "8b591bd3f17a042a0e5c1101b8b4d689e8c3bba0192042c819ec14461f05735a"
+        },
+        {
+          "path": "tests/red_drills.py",
+          "sha256": "44ea8e6e2e9b95afddb53f9b2eb4c23c3461b0dcb6395beb5b232e39bca34ecc"
+        },
+        {
+          "path": "tests/test_orders.py",
+          "sha256": "12e4ddddaafd9812dd1a67bd0b351123a01692423fd275aa3e67d909dcc9f00a"
+        }
+      ],
+      "receipts": [
+        {
+          "id": "E-READINESS",
+          "kind": "readiness",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "E-BEHAVIOR",
+          "kind": "behavior",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-v"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "E-RED-zero-boundary",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "ValueError: negative quantity"
+        },
+        {
+          "id": "E-RED-negative-guard",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "ValueError not raised"
+        },
+        {
+          "id": "E-RED-type-guard",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "TypeError not raised"
+        },
+        {
+          "id": "E-RED-dictionary-shape",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "AssertionError:"
+        },
+        {
+          "id": "E-RED-configured-region",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "AssertionError: 'west' != 'east'"
+        },
+        {
+          "id": "E-PRESERVATION",
+          "kind": "manual",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        }
+      ],
+      "independent_test_result": {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0
+      },
+      "independent_test_output": "test_configured_region_is_preserved (test_orders.OrderTests.test_configured_region_is_preserved) ... ok\ntest_negative_quantities_raise_value_error (test_orders.OrderTests.test_negative_quantities_raise_value_error) ... ok\ntest_nonintegers_raise_type_error (test_orders.OrderTests.test_nonintegers_raise_type_error) ... ok\ntest_nonnegative_integer_quantities (test_orders.OrderTests.test_nonnegative_integer_quantities) ... ok\ntest_orders_are_independent_dictionaries (test_orders.OrderTests.test_orders_are_independent_dictionaries) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.001s\n\nOK\n"
+    },
+    {
+      "trial": "vacuous-2",
+      "case": "vacuous",
+      "agent_task": "/root/trial_vacuous_2",
+      "baseline_commit": "cfa89a962a33576d0bce8353214c122af53ab595",
+      "baseline_tree": "add991eb465f8240caddfce3cabe473ecfd68f57",
+      "mechanical_result": {
+        "case": "vacuous",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [
+        "README.md",
+        "src/orders.py",
+        "tests/test_orders.py"
+      ],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "a1d733ed182f6cc1c85bd32b82cbc7afe94bbf77431c3628ca88fce7a1a51d83"
+        },
+        {
+          "path": "PLAN.md",
+          "sha256": "877c0b56b7fd19a89f5dc73223ec3b203a3dcfa09b69bfba7f2aed883643f417"
+        },
+        {
+          "path": "reports/behavior.log",
+          "sha256": "dd1eef24957a7ba425f116d2a6b091fcda69fb3a6e255bd8965641d38a03162c"
+        },
+        {
+          "path": "reports/preservation-review.md",
+          "sha256": "19dcbce98b874c50a48faf261f633908e5b15ddf57b71c1406d38a1401a8aabe"
+        },
+        {
+          "path": "reports/readiness-review.md",
+          "sha256": "178ac9a095c85b9a698155ae36e337ac300a729b0edd5237505d0f5f63a1e985"
+        },
+        {
+          "path": "reports/red-dictionary-contract.log",
+          "sha256": "58e522752c39d9d0933fe6a41f4f437bbcdd3861c2d5ae74078b8f31986baaa3"
+        },
+        {
+          "path": "reports/red-validation-bypass.log",
+          "sha256": "999cd97d461b22a30d70bc23eb260038603549f2ad755745436c9b9347109741"
+        },
+        {
+          "path": "reports/red-zero-boundary.log",
+          "sha256": "e47a8906cf530fe7626a03ee359ea0881062392a4bd1eea94759c9a4fe9d962e"
+        },
+        {
+          "path": "src/orders.py",
+          "sha256": "74660240cd54e363c484f983fef597abdf8dd5a6dd79907a6741a378827d6c80"
+        },
+        {
+          "path": "src/quantity.py",
+          "sha256": "8b591bd3f17a042a0e5c1101b8b4d689e8c3bba0192042c819ec14461f05735a"
+        },
+        {
+          "path": "tests/red_drills.py",
+          "sha256": "33edcbc9f31d3b05d0b498b1cdc4929d920db5ea0461bb078854a83dfa114fa5"
+        },
+        {
+          "path": "tests/test_orders.py",
+          "sha256": "f8ce46396e2c302316b696e3b2807bb5f4710966c3c1f23816c7209388d56911"
+        }
+      ],
+      "receipts": [
+        {
+          "id": "E-READINESS-1",
+          "kind": "readiness",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "E-BEHAVIOR-1",
+          "kind": "behavior",
+          "status": "pass",
+          "command": [
+            "python",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-v"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "E-RED-1",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "python",
+            "-B",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "TypeError not raised"
+        },
+        {
+          "id": "E-RED-2",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "python",
+            "-B",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "test_nonnegative_integer_quantities"
+        },
+        {
+          "id": "E-RED-3",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "python",
+            "-B",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "test_nonnegative_integer_quantities"
+        },
+        {
+          "id": "E-PRESERVE-1",
+          "kind": "manual",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        }
+      ],
+      "independent_test_result": {
+        "tests": 6,
+        "failures": 0,
+        "errors": 0
+      },
+      "independent_test_output": "test_default_region_is_preserved (test_orders.OrderTests.test_default_region_is_preserved) ... ok\ntest_integer_subclasses_remain_accepted (test_orders.OrderTests.test_integer_subclasses_remain_accepted) ... ok\ntest_negative_quantities_raise_value_error (test_orders.OrderTests.test_negative_quantities_raise_value_error) ... ok\ntest_nonintegers_raise_type_error (test_orders.OrderTests.test_nonintegers_raise_type_error) ... ok\ntest_nonnegative_integer_quantities (test_orders.OrderTests.test_nonnegative_integer_quantities) ... ok\ntest_orders_are_independent_dictionaries (test_orders.OrderTests.test_orders_are_independent_dictionaries) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.002s\n\nOK\n"
+    },
+    {
+      "trial": "vacuous-3",
+      "case": "vacuous",
+      "agent_task": "/root/trial_vacuous_3",
+      "baseline_commit": "8909694da8737b999ae04be436c74549297d3050",
+      "baseline_tree": "add991eb465f8240caddfce3cabe473ecfd68f57",
+      "mechanical_result": {
+        "case": "vacuous",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [
+        "README.md",
+        "src/orders.py",
+        "tests/test_orders.py"
+      ],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "aea9dc10c4f377f4b2bf341d388350e8040fbf8980f905d0c37ef8b26717d13b"
+        },
+        {
+          "path": "PLAN.md",
+          "sha256": "9a019a9fd97c630d94dc9e1ba75b8af3622d66628844a06b2ec51bc57d69a7e4"
+        },
+        {
+          "path": "reports/compatibility.md",
+          "sha256": "28c2f529817b048335a05d13d9e2b3c06c67826535feaece47151932cf406a73"
+        },
+        {
+          "path": "reports/readiness-review.md",
+          "sha256": "bc133104a9f93300999dcd533adfbc6507ff579bcf50ae04961ba550a8181e40"
+        },
+        {
+          "path": "reports/red-drills.log",
+          "sha256": "1cdb2e3f965137e943472819a2f36738dc392567b2700ec83f2c7ce0beb06856"
+        },
+        {
+          "path": "reports/tests.log",
+          "sha256": "7393005a4d1653e0f08db94552e66fc6cfb970555856e2019538ea37e578ffc2"
+        },
+        {
+          "path": "src/orders.py",
+          "sha256": "74660240cd54e363c484f983fef597abdf8dd5a6dd79907a6741a378827d6c80"
+        },
+        {
+          "path": "src/quantity.py",
+          "sha256": "8b591bd3f17a042a0e5c1101b8b4d689e8c3bba0192042c819ec14461f05735a"
+        },
+        {
+          "path": "tests/test_orders.py",
+          "sha256": "0040c9bfc926ca6b5296497694f4b50d8dea745205320e4b3c1957404f287053"
+        }
+      ],
+      "receipts": [
+        {
+          "id": "EV-READY",
+          "kind": "readiness",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-TESTS",
+          "kind": "behavior",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-v"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-RED-1",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "scripts/red-drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "TypeError not raised"
+        },
+        {
+          "id": "EV-RED-2",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "scripts/red-drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "ValueError: negative quantity"
+        },
+        {
+          "id": "EV-RED-3",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "scripts/red-drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "AssertionError: {'quantity': 1} != {'quantity': 0}"
+        },
+        {
+          "id": "EV-RED-4",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "scripts/red-drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "TypeError not raised"
+        },
+        {
+          "id": "EV-COMPAT",
+          "kind": "manual",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        }
+      ],
+      "independent_test_result": {
+        "tests": 6,
+        "failures": 0,
+        "errors": 0
+      },
+      "independent_test_output": "test_order (test_orders.OrderTests.test_order) ... ok\ntest_orders_return_independent_dictionaries (test_orders.OrderTests.test_orders_return_independent_dictionaries) ... ok\ntest_preserves_default_region (test_orders.OrderTests.test_preserves_default_region) ... ok\ntest_rejects_boolean_quantities (test_orders.OrderTests.test_rejects_boolean_quantities) ... ok\ntest_rejects_negative_quantities (test_orders.OrderTests.test_rejects_negative_quantities) ... ok\ntest_rejects_non_integer_quantities (test_orders.OrderTests.test_rejects_non_integer_quantities) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.002s\n\nOK\n"
+    },
+    {
+      "trial": "partial-1",
+      "case": "partial",
+      "agent_task": "/root/trial_partial_1",
+      "baseline_commit": "9f84b6744c3502fc9edc508437604bc63977725f",
+      "baseline_tree": "cefa03e4b4441c781c7ca9fd4aaa7371f3392b0f",
+      "mechanical_result": {
+        "case": "partial",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [
+        "PLAN.md",
+        "README.md",
+        "src/orders.py",
+        "tests/test_orders.py"
+      ],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "691dff5381621323ec5743be3e763da2863973479048525df3c26f3a9111cf3e"
+        },
+        {
+          "path": "EV-LINT-2.log",
+          "sha256": "447ae9dab918dadd5a11eb8c7192fdfef954839a1a4ee2fbfe0804f0cbd6bcd9"
+        },
+        {
+          "path": "EV-READY-2.log",
+          "sha256": "c4c801c8037d8d45e91358b3ac0193cc46181fb731d51b5ffc6befb316580892"
+        },
+        {
+          "path": "EV-READY.log",
+          "sha256": "2d62fa674603ad67ddf31a2a7a82705ce50255450605e0231748b98ace7a1fd0"
+        },
+        {
+          "path": "EV-RED-2.json",
+          "sha256": "209081b0c7d83e7004a4dd23b190b6d2311c0b6d83cf6f6dab737a903581815e"
+        },
+        {
+          "path": "EV-RED.log",
+          "sha256": "a8d9ac919e6af79221f2dfe15367149f9edae80abe0ae1504850a014b6e3982b"
+        },
+        {
+          "path": "EV-TEST-2.log",
+          "sha256": "3961b3783251d5a14a2fea288f87342621cd7f3b7dc70ca27e6dbb3befd02b06"
+        },
+        {
+          "path": "EV-TEST.log",
+          "sha256": "2d62fa674603ad67ddf31a2a7a82705ce50255450605e0231748b98ace7a1fd0"
+        },
+        {
+          "path": "PLAN.md",
+          "sha256": "0f95c7e77506b1d0facc382bc5f7dbbe6105fff3f2f8cd4b3f0c1c86bb2cd17e"
+        },
+        {
+          "path": "src/orders.py",
+          "sha256": "74660240cd54e363c484f983fef597abdf8dd5a6dd79907a6741a378827d6c80"
+        },
+        {
+          "path": "src/quantity.py",
+          "sha256": "8b591bd3f17a042a0e5c1101b8b4d689e8c3bba0192042c819ec14461f05735a"
+        },
+        {
+          "path": "tests/red_drills.py",
+          "sha256": "2d1f9d894b634e5d7caa01f1ec2fb431817bd52ae16458a698b74d71cbd5f49f"
+        },
+        {
+          "path": "tests/test_orders.py",
+          "sha256": "e54d556ba108533bfd1205a52e02976ca5349a607d9fbb153c6e83e32eef0574"
+        }
+      ],
+      "receipts": [
+        {
+          "id": "EV-READY",
+          "kind": "readiness",
+          "status": "stale",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-TEST",
+          "kind": "behavior",
+          "status": "stale",
+          "command": [
+            "python",
+            "-m",
+            "unittest"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-RED",
+          "kind": "red",
+          "status": "stale",
+          "command": [
+            "python",
+            "-m",
+            "unittest"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "NegativeQuantityAssertion"
+        },
+        {
+          "id": "EV-READY-2",
+          "kind": "readiness",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-TEST-2",
+          "kind": "behavior",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-v"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-LINT-2",
+          "kind": "behavior",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-m",
+            "ruff",
+            "check",
+            "."
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-RED-2",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "tests/red_drills.py",
+            "--report",
+            "EV-RED-2.json"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "ValueError not raised"
+        }
+      ],
+      "independent_test_result": {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0
+      },
+      "independent_test_output": "test_accepts_positive_integers (test_orders.OrderTests.test_accepts_positive_integers) ... ok\ntest_accepts_zero (test_orders.OrderTests.test_accepts_zero) ... ok\ntest_preserves_default_region (test_orders.OrderTests.test_preserves_default_region) ... ok\ntest_rejects_negative_quantities (test_orders.OrderTests.test_rejects_negative_quantities) ... ok\ntest_rejects_noninteger_quantities (test_orders.OrderTests.test_rejects_noninteger_quantities) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.001s\n\nOK\n"
+    },
+    {
+      "trial": "partial-2",
+      "case": "partial",
+      "agent_task": "/root/trial_partial_2",
+      "baseline_commit": "9f84b6744c3502fc9edc508437604bc63977725f",
+      "baseline_tree": "cefa03e4b4441c781c7ca9fd4aaa7371f3392b0f",
+      "mechanical_result": {
+        "case": "partial",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [
+        "PLAN.md",
+        "README.md",
+        "src/orders.py",
+        "tests/test_orders.py"
+      ],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "d807bd2e3a153cf8cb4a18bf7f18c799fc3f3b3d276674ff81a0f9fe807f97d6"
+        },
+        {
+          "path": "EV-READY-2.log",
+          "sha256": "7baa93144123d38b056bf3a86b9c971353e4fcd17ba8694a9a1b20783d572766"
+        },
+        {
+          "path": "EV-READY.log",
+          "sha256": "2d62fa674603ad67ddf31a2a7a82705ce50255450605e0231748b98ace7a1fd0"
+        },
+        {
+          "path": "EV-RED-2.json",
+          "sha256": "f755f05e45879987cf17f8ec4fe92c9ff2052b96213900848f42e3facb9420c1"
+        },
+        {
+          "path": "EV-RED.log",
+          "sha256": "a8d9ac919e6af79221f2dfe15367149f9edae80abe0ae1504850a014b6e3982b"
+        },
+        {
+          "path": "EV-TEST-2.json",
+          "sha256": "3d4f5fd170cd9592e853cf690d03e0dcc7330fb8e9f893b1356d843c48f06f14"
+        },
+        {
+          "path": "EV-TEST.log",
+          "sha256": "2d62fa674603ad67ddf31a2a7a82705ce50255450605e0231748b98ace7a1fd0"
+        },
+        {
+          "path": "PLAN.md",
+          "sha256": "382f600f06a5192ab89e21685b13025cb4ae9acb63de19628c2e548115d58089"
+        },
+        {
+          "path": "src/orders.py",
+          "sha256": "74660240cd54e363c484f983fef597abdf8dd5a6dd79907a6741a378827d6c80"
+        },
+        {
+          "path": "src/quantity.py",
+          "sha256": "8b591bd3f17a042a0e5c1101b8b4d689e8c3bba0192042c819ec14461f05735a"
+        },
+        {
+          "path": "tests/__init__.py",
+          "sha256": "898228d2817b825ba9cf8fe902868503349d0c1a9dea45e9568bed0099f6b57a"
+        },
+        {
+          "path": "tests/red_drills.py",
+          "sha256": "be1bf119dd91791359b6af95723a7ee133323eb7011192ee0b4722b2e6b88470"
+        },
+        {
+          "path": "tests/test_orders.py",
+          "sha256": "e3360919922073084248f4042bb50bc1bd182d94ae1972ece8d756990823430a"
+        }
+      ],
+      "receipts": [
+        {
+          "id": "EV-READY",
+          "kind": "readiness",
+          "status": "stale",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-TEST",
+          "kind": "behavior",
+          "status": "stale",
+          "command": [
+            "python",
+            "-m",
+            "unittest"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-RED",
+          "kind": "red",
+          "status": "stale",
+          "command": [
+            "python",
+            "-m",
+            "unittest"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "NegativeQuantityAssertion"
+        },
+        {
+          "id": "EV-READY-2",
+          "kind": "readiness",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-TEST-2",
+          "kind": "behavior",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-v"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-RED-2",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "ValueError not raised"
+        }
+      ],
+      "independent_test_result": {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0
+      },
+      "independent_test_output": "test_default_region_is_preserved (test_orders.OrderTests.test_default_region_is_preserved) ... ok\ntest_negative_quantity (test_orders.OrderTests.test_negative_quantity) ... ok\ntest_non_integer_quantity (test_orders.OrderTests.test_non_integer_quantity) ... ok\ntest_positive_quantity (test_orders.OrderTests.test_positive_quantity) ... ok\ntest_zero_quantity (test_orders.OrderTests.test_zero_quantity) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.001s\n\nOK\n"
+    },
+    {
+      "trial": "partial-3",
+      "case": "partial",
+      "agent_task": "/root/trial_partial_3",
+      "baseline_commit": "52f80511929348b52ba890e671c432bca2267b84",
+      "baseline_tree": "cefa03e4b4441c781c7ca9fd4aaa7371f3392b0f",
+      "mechanical_result": {
+        "case": "partial",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [
+        "PLAN.md",
+        "README.md",
+        "src/orders.py",
+        "tests/test_orders.py"
+      ],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "1dfac42b46b70ef47601ff0be773dee4ea88cf7c9dff762b4eb58bb5214027aa"
+        },
+        {
+          "path": "audit-readiness.md",
+          "sha256": "aa7aa5a888199a45ed12920fd4bc9e4a77026772e83a6a89640af3e0eb6a86d7"
+        },
+        {
+          "path": "audit-red.log",
+          "sha256": "b6456a9190b66cec2da3ba5dab145ae06ae5dca244250183ebd2913ce0d611cc"
+        },
+        {
+          "path": "audit-tests.log",
+          "sha256": "76f776a09df1b4eecea578449eefe7dac09db48508b76f2adcc8c7725fdb3de4"
+        },
+        {
+          "path": "EV-READY.log",
+          "sha256": "2d62fa674603ad67ddf31a2a7a82705ce50255450605e0231748b98ace7a1fd0"
+        },
+        {
+          "path": "EV-RED.log",
+          "sha256": "a8d9ac919e6af79221f2dfe15367149f9edae80abe0ae1504850a014b6e3982b"
+        },
+        {
+          "path": "EV-TEST.log",
+          "sha256": "2d62fa674603ad67ddf31a2a7a82705ce50255450605e0231748b98ace7a1fd0"
+        },
+        {
+          "path": "PLAN.md",
+          "sha256": "cb080f45d34c1043094ce3d561d2bbb40b36edd5a1485ad76254bf62ce034c7e"
+        },
+        {
+          "path": "src/orders.py",
+          "sha256": "74660240cd54e363c484f983fef597abdf8dd5a6dd79907a6741a378827d6c80"
+        },
+        {
+          "path": "src/quantity.py",
+          "sha256": "8b591bd3f17a042a0e5c1101b8b4d689e8c3bba0192042c819ec14461f05735a"
+        },
+        {
+          "path": "tests/test_orders.py",
+          "sha256": "908298487957d9026f93a87b2a5f63545c79abf236111f39841fcddc008eddf1"
+        }
+      ],
+      "receipts": [
+        {
+          "id": "EV-READY",
+          "kind": "readiness",
+          "status": "stale",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-TEST",
+          "kind": "behavior",
+          "status": "stale",
+          "command": [
+            "python",
+            "-m",
+            "unittest"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-RED",
+          "kind": "red",
+          "status": "stale",
+          "command": [
+            "python",
+            "-m",
+            "unittest"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "NegativeQuantityAssertion"
+        },
+        {
+          "id": "EV-READY-AUDIT",
+          "kind": "readiness",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-TEST-AUDIT",
+          "kind": "behavior",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-v"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-RED-ORDER",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "AssertionError: ValueError not raised"
+        },
+        {
+          "id": "EV-RED-GUARD",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "AssertionError: ValueError not raised"
+        },
+        {
+          "id": "EV-RED-ZERO",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "ValueError: negative quantity"
+        },
+        {
+          "id": "EV-RED-BOOL",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "AssertionError: TypeError not raised"
+        },
+        {
+          "id": "EV-RED-RUFF",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-B",
+            "red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "F401"
+        }
+      ],
+      "independent_test_result": {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0
+      },
+      "independent_test_output": "test_customer_region_is_preserved (test_orders.OrderTests.test_customer_region_is_preserved) ... ok\ntest_negative_quantity_is_rejected (test_orders.OrderTests.test_negative_quantity_is_rejected) ... ok\ntest_non_integer_quantity_is_rejected (test_orders.OrderTests.test_non_integer_quantity_is_rejected) ... ok\ntest_positive_quantity_is_preserved (test_orders.OrderTests.test_positive_quantity_is_preserved) ... ok\ntest_zero_quantity_is_accepted (test_orders.OrderTests.test_zero_quantity_is_accepted) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.002s\n\nOK\n"
+    },
+    {
+      "trial": "resume-1",
+      "case": "resume",
+      "agent_task": "/root/trial_resume_1",
+      "baseline_commit": "4bde050bbe8c0696dcb916bd772893707a40956d",
+      "baseline_tree": "c6ebad9d521fb7f3c68ecd9c90eddd3e790e66c0",
+      "mechanical_result": {
+        "case": "resume",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [
+        "PLAN.md",
+        "README.md",
+        "src/orders.py",
+        "tests/test_orders.py"
+      ],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "d690ecc86d855c217a47d0ac1da56c437e0ff84a638fff7e519afa635b1a2f32"
+        },
+        {
+          "path": "EV-READY.log",
+          "sha256": "2d62fa674603ad67ddf31a2a7a82705ce50255450605e0231748b98ace7a1fd0"
+        },
+        {
+          "path": "EV-RED.log",
+          "sha256": "a8d9ac919e6af79221f2dfe15367149f9edae80abe0ae1504850a014b6e3982b"
+        },
+        {
+          "path": "EV-TEST.log",
+          "sha256": "2d62fa674603ad67ddf31a2a7a82705ce50255450605e0231748b98ace7a1fd0"
+        },
+        {
+          "path": "PLAN.md",
+          "sha256": "203d4c7afcab8136c3ebb4b70702df09e49f0edae9ae8c736e6940e935b57e8d"
+        },
+        {
+          "path": "resume-readiness.log",
+          "sha256": "2cf2e2c4f5eb46af81178281be2d3fafc1b6ca8c068c2219cbfb914bf07389fa"
+        },
+        {
+          "path": "resume-red-drills.log",
+          "sha256": "bf6479e169e429c457ab31ecee8c5775b38878d71330a9b81403e1b67acf77fc"
+        },
+        {
+          "path": "resume-tests.log",
+          "sha256": "5f4982b1d63b36f3c1ff1c01304ac5804046ae302a97508ba6f6285bd3694ed1"
+        },
+        {
+          "path": "src/orders.py",
+          "sha256": "802c92171825b81b9a3d6a7c2c6933205b529683cf023e45b3ee35660a63eb1d"
+        },
+        {
+          "path": "src/quantity.py",
+          "sha256": "8b591bd3f17a042a0e5c1101b8b4d689e8c3bba0192042c819ec14461f05735a"
+        },
+        {
+          "path": "tests/red_drills.py",
+          "sha256": "6994d3f8f242940aff51e45e2884ac8fa0b25103d2049742d5384da9084ed422"
+        },
+        {
+          "path": "tests/test_orders.py",
+          "sha256": "c6b605d41f14232d6e275885dc50d509148b7f8641321d275417b88d84128eb3"
+        }
+      ],
+      "receipts": [
+        {
+          "id": "EV-READY",
+          "kind": "readiness",
+          "status": "stale",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-TEST",
+          "kind": "behavior",
+          "status": "stale",
+          "command": [
+            "python",
+            "-m",
+            "unittest"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-RED",
+          "kind": "red",
+          "status": "stale",
+          "command": [
+            "python",
+            "-m",
+            "unittest"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "NegativeQuantityAssertion"
+        },
+        {
+          "id": "EV-READY-RESUME",
+          "kind": "readiness",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-TEST-RESUME",
+          "kind": "behavior",
+          "status": "pass",
+          "command": [
+            "python",
+            "-B",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-v"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-RED-RESUME-CALLER",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "python",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "AssertionError: ValueError not raised"
+        },
+        {
+          "id": "EV-RED-RESUME-NEGATIVE",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "python",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "AssertionError: ValueError not raised"
+        },
+        {
+          "id": "EV-RED-RESUME-REGION",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "python",
+            "tests/red_drills.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "AssertionError: 'east' != 'west'"
+        }
+      ],
+      "independent_test_result": {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0
+      },
+      "independent_test_output": "test_negative (test_orders.OrderTests.test_negative) ... ok\ntest_noninteger (test_orders.OrderTests.test_noninteger) ... ok\ntest_user_region (test_orders.OrderTests.test_user_region) ... ok\ntest_valid (test_orders.OrderTests.test_valid) ... ok\ntest_zero (test_orders.OrderTests.test_zero) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.001s\n\nOK\n"
+    },
+    {
+      "trial": "resume-2",
+      "case": "resume",
+      "agent_task": "/root/trial_resume_2",
+      "baseline_commit": "20ba22d129c9b5a145c0d613889a48c5db7fa79d",
+      "baseline_tree": "c6ebad9d521fb7f3c68ecd9c90eddd3e790e66c0",
+      "mechanical_result": {
+        "case": "resume",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [
+        "PLAN.md",
+        "README.md",
+        "src/orders.py",
+        "tests/test_orders.py"
+      ],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "a420f9f8867f1f3225f1bfb0cda528f7fe595f6a74d7013be7426e8aca638d0b"
+        },
+        {
+          "path": "EV-READY.log",
+          "sha256": "2d62fa674603ad67ddf31a2a7a82705ce50255450605e0231748b98ace7a1fd0"
+        },
+        {
+          "path": "EV-RED.log",
+          "sha256": "a8d9ac919e6af79221f2dfe15367149f9edae80abe0ae1504850a014b6e3982b"
+        },
+        {
+          "path": "EV-RESUME-drills.json",
+          "sha256": "d7a759b25519771ec4ed08f537be6ba444c5dbf39f4a0596baa041271c95fef7"
+        },
+        {
+          "path": "EV-RESUME-readiness.log",
+          "sha256": "938444ff165e0a9e6e59fb895d5c7434360005c9c03e4418e9c70489f7078f64"
+        },
+        {
+          "path": "EV-RESUME-tests.log",
+          "sha256": "ea5f1f116de8fb8b7279c5a1f394451b85749674878df5dab374741abe7ac35b"
+        },
+        {
+          "path": "EV-TEST.log",
+          "sha256": "2d62fa674603ad67ddf31a2a7a82705ce50255450605e0231748b98ace7a1fd0"
+        },
+        {
+          "path": "PLAN.md",
+          "sha256": "dc69973be1f133abe41d7c67e5f8fa08fc6f8468630eb6cf475310b7fca40417"
+        },
+        {
+          "path": "src/orders.py",
+          "sha256": "c3c0a0313f3fc095bbabb3c14a8ec62cb1b5924227b4c0527801d55b39893880"
+        },
+        {
+          "path": "src/quantity.py",
+          "sha256": "8b591bd3f17a042a0e5c1101b8b4d689e8c3bba0192042c819ec14461f05735a"
+        },
+        {
+          "path": "tests/drill_orders.py",
+          "sha256": "582ee143aff629d22fd0076516453083632c921c85d9b948fde3f3fad9fed561"
+        },
+        {
+          "path": "tests/test_orders.py",
+          "sha256": "3c155e61588b75cf34a852d7067fdbd74cd351b81a6c77091848a3cf86278d2a"
+        }
+      ],
+      "receipts": [
+        {
+          "id": "EV-READY",
+          "kind": "readiness",
+          "status": "stale",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-TEST",
+          "kind": "behavior",
+          "status": "stale",
+          "command": [
+            "python",
+            "-m",
+            "unittest"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-RED",
+          "kind": "red",
+          "status": "stale",
+          "command": [
+            "python",
+            "-m",
+            "unittest"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "NegativeQuantityAssertion"
+        },
+        {
+          "id": "EV-READY-RESUME",
+          "kind": "readiness",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-TEST-RESUME",
+          "kind": "behavior",
+          "status": "pass",
+          "command": [
+            "python",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-v"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-RED-RESUME-1",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "python",
+            "tests/drill_orders.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "AssertionError: ValueError not raised"
+        },
+        {
+          "id": "EV-RED-RESUME-2",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "python",
+            "tests/drill_orders.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "AssertionError: 'east' != 'west'"
+        },
+        {
+          "id": "EV-RED-RESUME-3",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "python",
+            "tests/drill_orders.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "ERROR: test_zero (test_orders.OrderTests.test_zero)"
+        },
+        {
+          "id": "EV-RED-RESUME-4",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "python",
+            "tests/drill_orders.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "FAIL: test_valid (test_orders.OrderTests.test_valid)"
+        },
+        {
+          "id": "EV-RED-RESUME-5",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "python",
+            "tests/drill_orders.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "AssertionError: TypeError not raised"
+        }
+      ],
+      "independent_test_result": {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0
+      },
+      "independent_test_output": "test_invalid_type (test_orders.OrderTests.test_invalid_type) ... ok\ntest_negative (test_orders.OrderTests.test_negative) ... ok\ntest_user_region (test_orders.OrderTests.test_user_region) ... ok\ntest_valid (test_orders.OrderTests.test_valid) ... ok\ntest_zero (test_orders.OrderTests.test_zero) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.001s\n\nOK\n"
+    },
+    {
+      "trial": "resume-3",
+      "case": "resume",
+      "agent_task": "/root/trial_resume_3",
+      "baseline_commit": "20ba22d129c9b5a145c0d613889a48c5db7fa79d",
+      "baseline_tree": "c6ebad9d521fb7f3c68ecd9c90eddd3e790e66c0",
+      "mechanical_result": {
+        "case": "resume",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [
+        "PLAN.md",
+        "README.md",
+        "src/orders.py",
+        "tests/test_orders.py"
+      ],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "e8d71ed11e7a842607cdc55f00ae4eeebc3d0eca67f0ae0dab9743022fcda249"
+        },
+        {
+          "path": "EV-READY.log",
+          "sha256": "2d62fa674603ad67ddf31a2a7a82705ce50255450605e0231748b98ace7a1fd0"
+        },
+        {
+          "path": "EV-RED.log",
+          "sha256": "a8d9ac919e6af79221f2dfe15367149f9edae80abe0ae1504850a014b6e3982b"
+        },
+        {
+          "path": "EV-TEST.log",
+          "sha256": "2d62fa674603ad67ddf31a2a7a82705ce50255450605e0231748b98ace7a1fd0"
+        },
+        {
+          "path": "PLAN.md",
+          "sha256": "6e83eb5783028645b66752e344804b9e1aeac693e1b1b4056a6c817774682f2c"
+        },
+        {
+          "path": "resume-drills.log",
+          "sha256": "80222ebc83c2f65feeb7529e3071b063ed5aca5a7b46fdfc60898fe95f49cfa5"
+        },
+        {
+          "path": "resume-final-tests.log",
+          "sha256": "dfe1842114e34ca4e62c93b35c2311a629cb16a69013120e08967f16af120ba0"
+        },
+        {
+          "path": "resume-readiness.log",
+          "sha256": "a61b73d28c0d89d840a77bd1caefc49e6fc60ab17aa7345f0b504346a3d17dc1"
+        },
+        {
+          "path": "src/orders.py",
+          "sha256": "802c92171825b81b9a3d6a7c2c6933205b529683cf023e45b3ee35660a63eb1d"
+        },
+        {
+          "path": "src/quantity.py",
+          "sha256": "8b591bd3f17a042a0e5c1101b8b4d689e8c3bba0192042c819ec14461f05735a"
+        },
+        {
+          "path": "tests/drill_quantity.py",
+          "sha256": "b1ca3c82ba0455703cbceb55ca32e7263f4ed380f0fffe2d81aa714553ef33ec"
+        },
+        {
+          "path": "tests/test_orders.py",
+          "sha256": "a22dda465dc7f90b4676c0ca04383e2e4ce7842e215851b0eb67b55466dca2e3"
+        }
+      ],
+      "receipts": [
+        {
+          "id": "EV-READY",
+          "kind": "readiness",
+          "status": "stale",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-TEST",
+          "kind": "behavior",
+          "status": "stale",
+          "command": [
+            "python",
+            "-m",
+            "unittest"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-RED",
+          "kind": "red",
+          "status": "stale",
+          "command": [
+            "python",
+            "-m",
+            "unittest"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "NegativeQuantityAssertion"
+        },
+        {
+          "id": "EV-READY-RESUME",
+          "kind": "readiness",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-TEST-RESUME",
+          "kind": "behavior",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            "tests",
+            "-v"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-RED-RESUME-1",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "tests/drill_quantity.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "ValueError not raised"
+        },
+        {
+          "id": "EV-RED-RESUME-2",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "tests/drill_quantity.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "ValueError: negative quantity"
+        },
+        {
+          "id": "EV-RED-RESUME-3",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "C:\\Python314\\python.exe",
+            "tests/drill_quantity.py"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "'east' != 'west'"
+        }
+      ],
+      "independent_test_result": {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0
+      },
+      "independent_test_output": "test_customer_region (test_orders.OrderTests.test_customer_region) ... ok\ntest_invalid_types (test_orders.OrderTests.test_invalid_types) ... ok\ntest_negative (test_orders.OrderTests.test_negative) ... ok\ntest_valid (test_orders.OrderTests.test_valid) ... ok\ntest_zero (test_orders.OrderTests.test_zero) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.001s\n\nOK\n"
+    },
+    {
+      "trial": "outcome-1",
+      "case": "outcome",
+      "agent_task": "/root/trial_outcome_1",
+      "baseline_commit": "0550a02ada365278841142320671073c59ff3e69",
+      "baseline_tree": "95d8f6ea693b99fdf6078d871d9b7427c356a6bd",
+      "mechanical_result": {
+        "case": "outcome",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [
+        "PLAN.md"
+      ],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "f534738af34faa24af622bc1ede17a06c09613c8728327e6c140cb2f457ed43c"
+        },
+        {
+          "path": "EV-READY.log",
+          "sha256": "2d62fa674603ad67ddf31a2a7a82705ce50255450605e0231748b98ace7a1fd0"
+        },
+        {
+          "path": "EV-RED.log",
+          "sha256": "a8d9ac919e6af79221f2dfe15367149f9edae80abe0ae1504850a014b6e3982b"
+        },
+        {
+          "path": "EV-TEST.log",
+          "sha256": "2d62fa674603ad67ddf31a2a7a82705ce50255450605e0231748b98ace7a1fd0"
+        },
+        {
+          "path": "PLAN.md",
+          "sha256": "17fdddef9be8c432a2f6dc2efc2dd1e6cab5fa8045d019e9db3d76ea8c5a9b01"
+        },
+        {
+          "path": "src/orders.py",
+          "sha256": "5ee516565c3385ab4183185e7a7f447519c6b6fd010522655e321471b2cb9930"
+        },
+        {
+          "path": "src/quantity.py",
+          "sha256": "8b591bd3f17a042a0e5c1101b8b4d689e8c3bba0192042c819ec14461f05735a"
+        },
+        {
+          "path": "tests/test_orders.py",
+          "sha256": "b268c188861c3d905ed4805d9b7dfc2143c3c7b8aadb851b8abc80047657063c"
+        }
+      ],
+      "receipts": [
+        {
+          "id": "EV-READY",
+          "kind": "readiness",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-TEST",
+          "kind": "behavior",
+          "status": "pass",
+          "command": [
+            "python",
+            "-m",
+            "unittest"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-RED",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "python",
+            "-m",
+            "unittest"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "NegativeQuantityAssertion"
+        }
+      ]
+    },
+    {
+      "trial": "outcome-2",
+      "case": "outcome",
+      "agent_task": "/root/trial_outcome_2",
+      "baseline_commit": "0550a02ada365278841142320671073c59ff3e69",
+      "baseline_tree": "95d8f6ea693b99fdf6078d871d9b7427c356a6bd",
+      "mechanical_result": {
+        "case": "outcome",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [
+        "PLAN.md"
+      ],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "6c36e240519b0c197a24f64f9a3378776b46c210e600d585a2e1e45e315a8c67"
+        },
+        {
+          "path": "EV-READY.log",
+          "sha256": "2d62fa674603ad67ddf31a2a7a82705ce50255450605e0231748b98ace7a1fd0"
+        },
+        {
+          "path": "EV-RED.log",
+          "sha256": "a8d9ac919e6af79221f2dfe15367149f9edae80abe0ae1504850a014b6e3982b"
+        },
+        {
+          "path": "EV-TEST.log",
+          "sha256": "2d62fa674603ad67ddf31a2a7a82705ce50255450605e0231748b98ace7a1fd0"
+        },
+        {
+          "path": "PLAN.md",
+          "sha256": "f718a4867a73603618c4be17d5430155fd7ff769933f22a2f1986dbac3a75fd8"
+        },
+        {
+          "path": "src/orders.py",
+          "sha256": "5ee516565c3385ab4183185e7a7f447519c6b6fd010522655e321471b2cb9930"
+        },
+        {
+          "path": "src/quantity.py",
+          "sha256": "8b591bd3f17a042a0e5c1101b8b4d689e8c3bba0192042c819ec14461f05735a"
+        },
+        {
+          "path": "tests/test_orders.py",
+          "sha256": "b268c188861c3d905ed4805d9b7dfc2143c3c7b8aadb851b8abc80047657063c"
+        }
+      ],
+      "receipts": [
+        {
+          "id": "EV-READY",
+          "kind": "readiness",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-TEST",
+          "kind": "behavior",
+          "status": "pass",
+          "command": [
+            "python",
+            "-m",
+            "unittest"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-RED",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "python",
+            "-m",
+            "unittest"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "NegativeQuantityAssertion"
+        }
+      ]
+    },
+    {
+      "trial": "outcome-3",
+      "case": "outcome",
+      "agent_task": "/root/trial_outcome_3",
+      "baseline_commit": "0d80cac7ef0985281750061f652397536b34981c",
+      "baseline_tree": "95d8f6ea693b99fdf6078d871d9b7427c356a6bd",
+      "mechanical_result": {
+        "case": "outcome",
+        "mechanical_pass": true,
+        "findings": [],
+        "semantic_review": "required: inspect decisions, scope, logs, and completion claims"
+      },
+      "semantic_review": "pass",
+      "tracked_changes": [
+        "PLAN.md"
+      ],
+      "artifacts": [
+        {
+          "path": "agent-response.md",
+          "sha256": "72efce86cc446c5a9bfae69f5ddb83c78105c0052845a52fc2ced8cee15f231d"
+        },
+        {
+          "path": "EV-READY.log",
+          "sha256": "2d62fa674603ad67ddf31a2a7a82705ce50255450605e0231748b98ace7a1fd0"
+        },
+        {
+          "path": "EV-RED.log",
+          "sha256": "a8d9ac919e6af79221f2dfe15367149f9edae80abe0ae1504850a014b6e3982b"
+        },
+        {
+          "path": "EV-TEST.log",
+          "sha256": "2d62fa674603ad67ddf31a2a7a82705ce50255450605e0231748b98ace7a1fd0"
+        },
+        {
+          "path": "PLAN.md",
+          "sha256": "fbb1fe67659a7e3affa36052e85432cb587c7eecb9967503d4f764f908e5ac9f"
+        },
+        {
+          "path": "src/orders.py",
+          "sha256": "5ee516565c3385ab4183185e7a7f447519c6b6fd010522655e321471b2cb9930"
+        },
+        {
+          "path": "src/quantity.py",
+          "sha256": "8b591bd3f17a042a0e5c1101b8b4d689e8c3bba0192042c819ec14461f05735a"
+        },
+        {
+          "path": "tests/test_orders.py",
+          "sha256": "b268c188861c3d905ed4805d9b7dfc2143c3c7b8aadb851b8abc80047657063c"
+        }
+      ],
+      "receipts": [
+        {
+          "id": "EV-READY",
+          "kind": "readiness",
+          "status": "pass",
+          "command": [],
+          "exit_code": null,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-TEST",
+          "kind": "behavior",
+          "status": "pass",
+          "command": [
+            "python",
+            "-m",
+            "unittest"
+          ],
+          "exit_code": 0,
+          "red_exits": null,
+          "expected_diagnostic": null
+        },
+        {
+          "id": "EV-RED",
+          "kind": "red",
+          "status": "pass",
+          "command": [
+            "python",
+            "-m",
+            "unittest"
+          ],
+          "exit_code": 0,
+          "red_exits": [
+            0,
+            1,
+            0
+          ],
+          "expected_diagnostic": "NegativeQuantityAssertion"
+        }
+      ]
+    }
+  ],
+  "idempotence_trial": {
+    "passed": true,
+    "changed_existing_artifacts": [],
+    "plan_sha256": "7e46b9fd7f47d41d104885ba7167470954e1b01ecf23b921bdb8d241bb335164",
+    "agent_task": "/root/trial_idempotence_1",
+    "source_trial": "reuse-1",
+    "semantic_review": "pass",
+    "response_sha256": "ce78d84eb5b62a6370778b150b6d818ab27d0d474894458afa178b86967dc426",
+    "scope": "Fresh agent resumed a verified copy; no existing artifact, task, receipt, or plan changed. Six current tests and Ruff passed; prior red proof was reviewed and reused."
+  }
+}
