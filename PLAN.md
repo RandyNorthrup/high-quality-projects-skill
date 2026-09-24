@@ -2,7 +2,7 @@
 
 Status: **Complete. Implemented, evaluated, released as v0.6.0, and installed.**
 The post-release audit hardening at the end of this plan is implemented and
-locally verified; its hosted CI and release gates remain open.
+verified locally and in hosted CI; it is being released as v0.7.0.
 
 Prepared: 2026-09-07. Baseline: released v0.5.0, commit
 `52fa547a598b8b50392d49924e0db3fc3268c092`.
@@ -451,9 +451,12 @@ publication.
 - [x] H05 CODE-QUALITY sections and workflow, template, and README updates; all
       45 cited URLs returned HTTP 200 on 2026-09-24.
 - [x] H06 `verify-format-safe.py` exit contract and writer permissions, with tests.
-- [ ] Hosted cross-platform CI passes on the committed change, including macOS
-      and the POSIX escaping check.
-- [ ] `release-package-smoke.ps1` passes on the committed tree.
+- [x] Hosted cross-platform CI passes on the committed change, including macOS
+      and the POSIX escaping check: all thirteen jobs in run 36073624130 at
+      `1c43b29` (PR #3, fast-forwarded to main).
+- [x] `release-package-smoke.ps1` passes on the committed tree under
+      PowerShell 7 and 5.1.
+- [ ] Release v0.7.0 from the exact annotated tag and verify published assets.
 - [ ] Dependabot's first scheduled run handles the uv lock and frozen hooks.
 
 Evidence, environments, and limits: `docs/QUALITY-REVIEW.md`, section

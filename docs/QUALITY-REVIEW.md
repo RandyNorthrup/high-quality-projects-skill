@@ -284,9 +284,13 @@ The pinned CI gitleaks 8.30.0 archive matched its published SHA-256.
 
 ### Limits and open gates
 
-- Hosted CI has not run these changes; they are uncommitted. macOS, the
-  POSIX parity job, and the release job are unverified until it does.
-- `release-package-smoke.ps1` requires a clean committed tree and was not run.
+- Hosted CI: all thirteen jobs passed in
+  [run 36073624130](https://github.com/RandyNorthrup/high-quality-projects-skill/actions/runs/36073624130)
+  at `1c43b29`, including macOS, the POSIX parity and escaping check, the
+  repository hooks, and the full-history gitleaks scan. The release job runs
+  only for the v0.7.0 tag; its receipt is recorded after publication.
+- `release-package-smoke.ps1` passed on the committed tree under PowerShell 7
+  and Windows PowerShell 5.1.
 - Dependabot's `uv` and `pre-commit` ecosystems are configured from its
   documentation; their handling of this lock and these frozen revisions is
   unverified until the first scheduled run.

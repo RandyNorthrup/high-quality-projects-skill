@@ -53,12 +53,12 @@ or deferred checks remain explicit.
 
 ## Installation
 
-Stable release: **[v0.6.0](https://github.com/RandyNorthrup/high-quality-projects-skill/releases/tag/v0.6.0)**.
+Stable release: **[v0.7.0](https://github.com/RandyNorthrup/high-quality-projects-skill/releases/tag/v0.7.0)**.
 
 ### Any coding agent
 
 ```console
-git clone --branch v0.6.0 --depth 1 https://github.com/RandyNorthrup/high-quality-projects-skill.git
+git clone --branch v0.7.0 --depth 1 https://github.com/RandyNorthrup/high-quality-projects-skill.git
 ```
 
 Point the agent at [`AGENTS.md`](AGENTS.md), then the selected workflow in full.

@@ -66,7 +66,7 @@ closing the settings page.
 ## Also worth setting
 
 - **Version tags and releases** — pushing an annotated manifest-version tag
-  (currently `v0.6.0`) runs the gated release workflow and publishes verified
+  (currently `v0.7.0`) runs the gated release workflow and publishes verified
   archives, checksums, metadata, notes, and build provenance.
 - **Social preview image** — keep the uploaded setting synchronized with the
   tracked source above.

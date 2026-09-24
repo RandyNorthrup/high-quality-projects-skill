@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "high-quality-projects-skill",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Vendor-neutral project discovery, feature delivery, and quality retrofit. Three workflows scan and enhance canonical code, apply language-specific review, and require repeatable red drills. First-party Python helpers validate traceability, recorded evidence, and resume checkpoints; atomic updates preserve existing plan state. Claude Code packaging is optional.",
   "author": {
     "name": "Randy Northrup",
