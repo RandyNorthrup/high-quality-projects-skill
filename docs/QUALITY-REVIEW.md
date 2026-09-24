@@ -298,9 +298,8 @@ The pinned CI gitleaks 8.30.0 archive matched its published SHA-256.
   v0.6.0 raw trial workspaces and local verification receipts named above were
   still there, they are gone; the committed evaluation record, hashes, and this
   review are unaffected.
-- Dependabot's `uv` and `pre-commit` ecosystems are configured from its
-  documentation; their handling of this lock and these frozen revisions is
-  unverified until the first scheduled run.
+- Dependabot's `uv` and `pre-commit` ecosystems handled this lock and these
+  frozen revisions on their first run; see the publication receipt below.
 - The release workflow keeps `uses: ./…` instead of zizmor's suggested `$/…`
   self-repository form, because only a tagged release exercises that path.
 - New guidance tools (mutation, property/fuzz, benchmark, axe-core,
@@ -311,3 +310,33 @@ The pinned CI gitleaks 8.30.0 archive matched its published SHA-256.
 - The scanners' Python interpreter probes (as before) and the new bash
   PowerShell-module probe run without a timeout; a hung interpreter would stall
   the scan. None hung in these runs.
+
+### Publication receipt: v0.7.0
+
+[v0.7.0](https://github.com/RandyNorthrup/high-quality-projects-skill/releases/tag/v0.7.0)
+was published from commit `5ceda266cd5e17f63f3ddddb51149a35a6354c8d` by its
+annotated tag. That commit first passed all thirteen jobs on main in
+[run 36074289824](https://github.com/RandyNorthrup/high-quality-projects-skill/actions/runs/36074289824);
+the tag then passed all fourteen release jobs, the thirteen reused gates plus
+build, attestation, and publication, in
+[run 36074501215](https://github.com/RandyNorthrup/high-quality-projects-skill/actions/runs/36074501215).
+
+All five downloaded assets matched a local build of the same tag byte for byte.
+Published checksums, the manifest's version, tag, and commit, and all 87
+committed files in both archive formats were verified independently. Both
+archive attestations verified with GitHub CLI; their certificates name this
+commit, `refs/tags/v0.7.0`, and `.github/workflows/release.yml`.
+
+| Archive | SHA-256 |
+|---|---|
+| ZIP | `6de488a8c318a42a7ca1512367540ca49f7ee2955643d78b25431370ffae6b7b` |
+| tar.gz | `04699ee40c94257ebc29f25df2222966d074abe3e8be9767ce932dfc8d7e0604` |
+
+Dependabot's first run opened three grouped proposals as soon as its
+configuration landed: GitHub Actions (checkout v7.0.1, setup-python v7.0.0),
+pre-commit hooks (gitleaks v8.30.1, ruff-pre-commit v0.16.8), and the
+hash-locked Python tools (ruff 0.16.8, with every hash regenerated). Each
+passed all thirteen jobs, and each new SHA matched its upstream tag. All three
+were squash-merged after the release and are not part of v0.7.0. The release
+workflow has not yet run with checkout and setup-python v7; the next tag is
+the first to exercise them.

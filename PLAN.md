@@ -1,8 +1,8 @@
 # Native delivery workflow implementation plan
 
 Status: **Complete. Implemented, evaluated, released as v0.6.0, and installed.**
-The post-release audit hardening at the end of this plan is implemented and
-verified locally and in hosted CI; it is being released as v0.7.0.
+The post-release audit hardening at the end of this plan is implemented,
+verified locally and in hosted CI, and released and verified as v0.7.0.
 
 Prepared: 2026-09-07. Baseline: released v0.5.0, commit
 `52fa547a598b8b50392d49924e0db3fc3268c092`.
@@ -456,8 +456,11 @@ publication.
       `1c43b29` (PR #3, fast-forwarded to main).
 - [x] `release-package-smoke.ps1` passes on the committed tree under
       PowerShell 7 and 5.1.
-- [ ] Release v0.7.0 from the exact annotated tag and verify published assets.
-- [ ] Dependabot's first scheduled run handles the uv lock and frozen hooks.
+- [x] Release v0.7.0 from the exact annotated tag and verify published assets:
+      commit `5ceda26`, release run 36074501215, all five assets byte-identical
+      to a local exact-tag build, both attestations verified.
+- [x] Dependabot's first run handles the uv lock and frozen hooks: PRs #4–#6
+      passed all thirteen jobs and were merged after the release.
 
 Evidence, environments, and limits: `docs/QUALITY-REVIEW.md`, section
 "Post-release audit: 2026-09-24".
