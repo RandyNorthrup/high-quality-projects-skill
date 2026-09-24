@@ -1,9 +1,12 @@
 """Verify atomic state changes, conflict refusal, and preservation of user edits."""
 
 import hashlib
+import os
+import stat
 import tempfile
 import unittest
 from pathlib import Path
+from typing import override
 from unittest.mock import patch
 
 from scripts.delivery.reader import PlanError
@@ -14,6 +17,7 @@ from tests.delivery_fixtures import plan_text, ready, save
 class UpdateTests(unittest.TestCase):
     """Inspect real file outcomes for positive, conflicting, and interrupted updates."""
 
+    @override
     def setUp(self) -> None:
         """Create an owned workspace and a valid initial candidate."""
         self.temporary = tempfile.TemporaryDirectory(prefix="delivery-update-")
@@ -69,6 +73,25 @@ class UpdateTests(unittest.TestCase):
         self.assertEqual(plan.read_bytes(), original)
         self.assertFalse((self.root / "PLAN.md.lock").exists())
         self.assertEqual(list(self.root.glob(".PLAN.md.*.tmp")), [])
+
+    @unittest.skipIf(os.name == "nt", "Windows exposes only a read-only flag, not mode bits")
+    def test_replacement_keeps_plan_permissions(self) -> None:
+        """Atomic replacement keeps the plan's mode rather than the owner-only temporary mode."""
+        plan = save(self.root, self.data)
+        plan.chmod(0o640)
+        original = plan.read_bytes()
+        self.candidate.write_bytes(original + b"\nRevised rationale.\n")
+        update(self.root, "PLAN.md", self.candidate, hashlib.sha256(original).hexdigest())
+        self.assertEqual(plan.read_bytes(), self.candidate.read_bytes())
+        self.assertEqual(stat.S_IMODE(plan.stat().st_mode), 0o640)
+
+    @unittest.skipIf(os.name == "nt", "Windows exposes only a read-only flag, not mode bits")
+    def test_new_plan_receives_ordinary_file_permissions(self) -> None:
+        """A created plan follows the umask like any other new file, not owner-only."""
+        previous = os.umask(0o022)
+        self.addCleanup(os.umask, previous)
+        update(self.root, "PLAN.md", self.candidate, "missing")
+        self.assertEqual(stat.S_IMODE((self.root / "PLAN.md").stat().st_mode), 0o644)
 
     def test_invalid_candidate_does_not_write(self) -> None:
         """Malformed candidate state cannot replace a valid record."""

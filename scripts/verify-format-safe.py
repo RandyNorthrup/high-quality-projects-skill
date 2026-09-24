@@ -12,7 +12,7 @@ It does not replace review of comments, generated files, or the full diff.
     verify-format-safe.py BEFORE.py AFTER.py
 
 Exit 0 = parsed AST identical. Exit 1 = AST changed; review before committing.
-Exit 2 = a file failed to parse.
+Exit 2 = a file could not be read, decoded, or parsed, so nothing was compared.
 """
 
 from __future__ import annotations
@@ -34,9 +34,10 @@ def normalized_ast(path: Path) -> str:
 
     Line and column attributes are excluded because they legitimately change
     during reformatting and are not part of the syntax structure compared here.
+    Bytes are parsed directly so a PEP 263 encoding declaration or BOM is
+    honored exactly as the interpreter would honor it.
     """
-    source = path.read_text(encoding="utf-8")
-    tree = ast.parse(source, filename=str(path))
+    tree = ast.parse(path.read_bytes(), filename=str(path))
     return ast.dump(tree, annotate_fields=True, include_attributes=False)
 
 
@@ -48,11 +49,14 @@ def main(argv: list[str]) -> int:
 
     before, after = Path(argv[1]), Path(argv[2])
 
+    # An unreadable or undecodable file must not surface as an uncaught
+    # exception: Python exits 1 for those, which this contract reserves for a
+    # real syntax change. ValueError covers decoding and null-byte failures.
     try:
         before_ast = normalized_ast(before)
         after_ast = normalized_ast(after)
-    except SyntaxError as exc:
-        print(f"  PARSE ERROR: {exc}", file=sys.stderr)
+    except (OSError, SyntaxError, ValueError) as exc:
+        print(f"  ERROR: cannot compare - {exc}", file=sys.stderr)
         return EXIT_PARSE_ERROR
 
     # Output is deliberately ASCII-only. This runs under whatever console the

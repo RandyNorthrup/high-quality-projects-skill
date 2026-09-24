@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import os
+import shutil
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -15,6 +16,7 @@ from .reader import DIGEST_PATTERN, PlanError, fail, parse_plan, read_input
 from .snapshot import owned_path
 
 MISSING = "missing"
+DEFAULT_FILE_MODE = 0o666
 
 
 class UpdateConflictError(RuntimeError):
@@ -64,6 +66,25 @@ def acquire_lock(path: Path, expected: str) -> None:
         raise
 
 
+def default_file_mode() -> int:
+    """Return the mode an ordinary new file receives under the process umask."""
+    # os.umask can only be read by setting it; restore it before returning.
+    umask = os.umask(0)
+    os.umask(umask)
+    return DEFAULT_FILE_MODE & ~umask
+
+
+def sync_directory(directory: Path) -> None:
+    """Persist the rename itself on POSIX; Windows exposes no directory handle to flush."""
+    if os.name == "nt":
+        return
+    descriptor = os.open(directory, os.O_RDONLY)
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
 def replace_owned(plan: Path, candidate: bytes, expected: str) -> None:
     """Flush complete bytes, recheck the precondition, and atomically replace the plan."""
     temporary: Path | None = None
@@ -75,8 +96,15 @@ def replace_owned(plan: Path, candidate: bytes, expected: str) -> None:
             stream.write(candidate)
             stream.flush()
             os.fsync(stream.fileno())
+        # Temporary files are owner-only; the replacement must keep the plan's
+        # existing permissions or, for a new plan, those of an ordinary file.
+        if plan.exists():
+            shutil.copymode(plan, temporary)
+        else:
+            temporary.chmod(default_file_mode())
         require_expected(plan, expected)
         temporary.replace(plan)
+        sync_directory(plan.parent)
     finally:
         if temporary is not None and temporary.exists():
             temporary.unlink()
