@@ -66,7 +66,7 @@ class ValidatorRedDrills(unittest.TestCase):
         """Run the unmodified core tests with a fresh interpreter and no cached bytecode."""
         # The interpreter, module, test pattern, and owned cwd are fixed by this
         # harness. No shell or outside command string participates in execution.
-        return subprocess.run(
+        return subprocess.run(  # nosec B603
             [
                 sys.executable,
                 "-B",

@@ -89,7 +89,11 @@ def git(root: Path, *arguments: str) -> None:
     """Run fixed local Git preparation commands in an owned fixture workspace."""
     # Arguments come only from this fixture initializer; no user or model text
     # becomes a command or shell expression.
-    subprocess.run(["git", "-C", str(root), *arguments], check=True, capture_output=True)  # noqa: S603,S607
+    subprocess.run(  # noqa: S603  # nosec B603 B607
+        ["git", "-C", str(root), *arguments],  # noqa: S607
+        check=True,
+        capture_output=True,
+    )
 
 
 def historical_case(destination: Path, case: str) -> str:
@@ -272,7 +276,7 @@ def main() -> None:
     if not target.is_relative_to((PACKAGE / "dist").resolve()):
         parser.error("Keep generated trials inside this checkout's ignored dist directory.")
     target.mkdir(parents=True, exist_ok=True)
-    runs = []
+    runs: list[dict[str, str]] = []
     for case in CASES:
         runs.extend(make_case(target / f"{case}-{iteration}", case) for iteration in range(1, 4))
     (target / "runs.json").write_text(json.dumps(runs, indent=2), encoding="utf-8")

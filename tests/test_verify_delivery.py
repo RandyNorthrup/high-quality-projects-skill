@@ -8,13 +8,21 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from typing import override
 
 from scripts.delivery.checks import validate
 from scripts.delivery.graph import check_graph
 from scripts.delivery.model import EvidenceKind
 from scripts.delivery.reader import PlanError, load_plan, parse_json, read_environment, read_ledger
 from scripts.delivery.snapshot import input_paths, semantic_digest
-from tests.delivery_fixtures import complete, environment, native_ledger, ready, save
+from tests.delivery_fixtures import (
+    FixtureData,
+    complete,
+    environment,
+    native_ledger,
+    ready,
+    save,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -22,13 +30,14 @@ ROOT = Path(__file__).resolve().parents[1]
 class DeliveryTests(unittest.TestCase):
     """Require expected diagnostics, preserved inputs, and genuinely distinct stages."""
 
+    @override
     def setUp(self) -> None:
         """Create an isolated owned workspace for each case."""
         self.temporary = tempfile.TemporaryDirectory(prefix="delivery-test-")
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
 
-    def codes(self, data: dict[str, object], stage: str = "closure") -> set[str]:
+    def codes(self, data: FixtureData, stage: str = "closure") -> set[str]:
         """Return the diagnostic identities produced by the real validator."""
         report = validate(
             native_ledger(data), self.root, stage, read_environment(environment(), "context")
@@ -107,7 +116,7 @@ class DeliveryTests(unittest.TestCase):
 
     def test_receipt_failure_cases(self) -> None:
         """Missing, stale, and invalid success metadata each fail for their own reason."""
-        cases = (
+        cases: tuple[tuple[str, object, str], ...] = (
             ("inputs", [], "inputs-stale"),
             ("artifact", None, "artifact-missing"),
             ("scope_sha256", "0" * 64, "scope-stale"),
@@ -122,7 +131,7 @@ class DeliveryTests(unittest.TestCase):
 
     def test_invalid_acceptance_kinds(self) -> None:
         """Review-only and incomplete test choices cannot certify behavior."""
-        cases = (
+        cases: tuple[tuple[list[str], str], ...] = (
             ([], "checks-missing"),
             (["readiness"], "readiness-not-behavior"),
             (["behavior"], "red-required"),
@@ -312,7 +321,7 @@ class DeliveryTests(unittest.TestCase):
         before = plan.read_bytes()
         # Fixed current interpreter, checked-in CLI, and owned fixture paths;
         # no shell or externally supplied command strings enter this boundary.
-        result = subprocess.run(  # noqa: S603
+        result = subprocess.run(  # noqa: S603  # nosec B603
             [
                 sys.executable,
                 str(ROOT / "scripts/verify-delivery.py"),

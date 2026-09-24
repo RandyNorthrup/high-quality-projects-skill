@@ -14,3 +14,6 @@ extend = "templates/python/ruff.toml"
 # Pytest-specific assertion conversions would require a new test dependency.
 # Assertions in fixture builders narrow deliberately mutable malformed inputs.
 "tests/**" = ["S101", "PLR2004", "PT009", "PT027"]
+# vulture's whitelist idiom is a bare attribute expression that counts as a use;
+# the file sits under TYPE_CHECKING and never executes.
+"tests/vulture_whitelist.py" = ["B018"]

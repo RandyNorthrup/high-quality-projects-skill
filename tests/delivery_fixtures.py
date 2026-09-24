@@ -7,7 +7,7 @@ import hashlib
 import json
 import platform
 from dataclasses import asdict
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -16,23 +16,28 @@ from scripts.delivery.model import EvidenceKind, Ledger
 from scripts.delivery.reader import parse_plan
 from scripts.delivery.snapshot import current_inputs, input_paths, semantic_digest
 
+# Raw ledger JSON that tests deliberately reshape into malformed records before
+# the strict reader sees it. Explicit Any is the JSON escape hatch the shared
+# mypy template permits; the validator itself never receives unchecked types.
+type FixtureData = dict[str, Any]
+
 
 def environment() -> dict[str, object]:
     """Return the actual runtime identity used by local deterministic fixtures."""
     return {"platform": platform.system().lower(), "tools": {"python": platform.python_version()}}
 
 
-def plan_text(data: dict[str, object]) -> str:
+def plan_text(data: FixtureData) -> str:
     """Render the one fixture plan so receipts bind its actual narrative."""
     return "# Quantity delivery\n\n```quality-ledger\n" + json.dumps(data, indent=2) + "\n```\n"
 
 
-def native_ledger(data: dict[str, object]) -> Ledger:
+def native_ledger(data: FixtureData) -> Ledger:
     """Parse the fixture's complete source, including the narrative fingerprint."""
     return parse_plan(plan_text(data).encode("utf-8"), "PLAN.md")[1]
 
 
-def initial(root: Path) -> dict[str, object]:
+def initial(root: Path) -> FixtureData:
     """Create one concrete feature plan, canonical rules, and a real implementation."""
     (root / "AGENTS.md").write_text(
         "# Project rules\n\nRevision: 1\n\nValidate input before writing.\n", encoding="utf-8"
@@ -95,7 +100,7 @@ def initial(root: Path) -> dict[str, object]:
     }
 
 
-def receipt(root: Path, data: dict[str, object], kind: str, identifier: str) -> dict[str, object]:
+def receipt(root: Path, data: FixtureData, kind: str, identifier: str) -> FixtureData:
     """Create a deterministic receipt fixture with real hashed local artifacts."""
     ledger = native_ledger(data)
     enum = EvidenceKind(kind)
@@ -148,14 +153,14 @@ def receipt(root: Path, data: dict[str, object], kind: str, identifier: str) -> 
     }
 
 
-def ready(root: Path) -> dict[str, object]:
+def ready(root: Path) -> FixtureData:
     """Create a structurally complete plan with a scoped readiness-review receipt."""
     data = initial(root)
     data["evidence"] = [receipt(root, data, "readiness", "EV-READY")]
     return data
 
 
-def complete(root: Path) -> dict[str, object]:
+def complete(root: Path) -> FixtureData:
     """Create a complete record for testing freshness and relational validation."""
     data = ready(root)
     data["evidence"] = [
@@ -164,7 +169,6 @@ def complete(root: Path) -> dict[str, object]:
         receipt(root, data, "red", "EV-RED"),
     ]
     tasks = data["tasks"]
-    assert isinstance(tasks, list)
     tasks[0]["status"] = "verified"
     tasks[0]["evidence"] = ["EV-TEST", "EV-RED"]
     ledger = native_ledger(data)
@@ -183,7 +187,7 @@ def complete(root: Path) -> dict[str, object]:
     return data
 
 
-def save(root: Path, data: dict[str, object]) -> Path:
+def save(root: Path, data: FixtureData) -> Path:
     """Write the native plan plus independent observed-context fixture."""
     path = root / "PLAN.md"
     path.write_text(

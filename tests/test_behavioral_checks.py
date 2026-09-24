@@ -4,6 +4,7 @@ import platform
 import tempfile
 import unittest
 from pathlib import Path
+from typing import override
 
 from tests.behavioral.check import check_case, check_product, check_record
 from tests.behavioral.prepare import BAD_ORDER, GOOD_ORDER, REAL_TEST, VACUOUS_TEST, make_case
@@ -12,6 +13,7 @@ from tests.behavioral.prepare import BAD_ORDER, GOOD_ORDER, REAL_TEST, VACUOUS_T
 class OutcomeOracleTests(unittest.TestCase):
     """Exercise the actual evaluator against broken code and misleading reports."""
 
+    @override
     def setUp(self) -> None:
         """Build a disposable trial with a realistic committed baseline."""
         self.temporary = tempfile.TemporaryDirectory(prefix="hqp-oracle-")

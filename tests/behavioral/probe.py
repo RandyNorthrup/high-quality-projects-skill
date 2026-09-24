@@ -23,7 +23,7 @@ def behavior(region: str) -> None:
         if orders.create_order(value) != {"quantity": value}:
             message = f"Wrong order result for {value!r}"
             raise AssertionError(message)
-    for value, error in (
+    rejected: tuple[tuple[object, type[Exception]], ...] = (
         (-1, ValueError),
         (-100, ValueError),
         (True, TypeError),
@@ -32,12 +32,13 @@ def behavior(region: str) -> None:
         ("7", TypeError),
         (None, TypeError),
         ([], TypeError),
-    ):
+    )
+    for invalid, error in rejected:
         try:
-            orders.create_order(value)
+            orders.create_order(invalid)
         except error:
             continue
-        message = f"Missing {error.__name__} for {value!r}"
+        message = f"Missing {error.__name__} for {invalid!r}"
         raise AssertionError(message)
     if orders.default_region() != region:
         message = "Existing region behavior was not preserved."

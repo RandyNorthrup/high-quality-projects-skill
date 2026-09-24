@@ -8,6 +8,7 @@ import sys
 import tempfile
 import tomllib
 from pathlib import Path
+from typing import NotRequired, TypedDict
 
 from scripts.delivery.checks import validate
 from scripts.delivery.model import Environment
@@ -20,7 +21,8 @@ PROBE = Path(__file__).with_name("probe.py")
 
 def run_probe(root: Path, mode: str, region: str = "east") -> subprocess.CompletedProcess[str]:
     """Execute the checked-in oracle using fixed arguments, never recorded commands."""
-    return subprocess.run(  # noqa: S603 - trusted interpreter and checked-in oracle; no shell
+    # Trusted interpreter and checked-in oracle; no shell.
+    return subprocess.run(  # noqa: S603  # nosec B603
         [sys.executable, "-I", "-B", str(PROBE), str(root), "--mode", mode, "--region", region],
         cwd=root,
         capture_output=True,
@@ -58,8 +60,9 @@ def check_product(root: Path, case: str) -> list[str]:
 
 def preserved(root: Path, relative: str) -> bool:
     """Compare a fixture-owned artifact with its committed baseline."""
-    result = subprocess.run(  # noqa: S603 - fixed local read-only Git query
-        ["git", "show", f"HEAD:{relative}"],  # noqa: S607 - fixed fixture Git query
+    # Fixed, read-only Git query inside an owned fixture repository.
+    result = subprocess.run(  # noqa: S603  # nosec B603 B607
+        ["git", "show", f"HEAD:{relative}"],  # noqa: S607
         cwd=root,
         capture_output=True,
         check=True,
@@ -117,7 +120,8 @@ def check_record(root: Path) -> list[str]:
         observed = observed_environment()
         versions = dict(observed.tools)
         if "ruff" in ledger.work.environment.tools:
-            result = subprocess.run(
+            # The current interpreter reporting its own Ruff version; no shell.
+            result = subprocess.run(  # nosec B603
                 [sys.executable, "-m", "ruff", "--version"],
                 capture_output=True,
                 text=True,
@@ -137,11 +141,25 @@ def check_record(root: Path) -> list[str]:
         return [f"Cannot independently verify delivery record: {error}"]
 
 
-def check_case(root: Path, case: str) -> dict[str, object]:
+class CaseResult(TypedDict):
+    """Mechanical trial outcome; semantic review is reported only when checks ran."""
+
+    case: str
+    mechanical_pass: bool
+    findings: list[str]
+    semantic_review: NotRequired[str]
+
+
+def check_case(root: Path, case: str) -> CaseResult:
     """Return bounded mechanical findings; human semantic review remains separate."""
-    failures = []
+    failures: list[str] = []
     if not (root / "agent-response.md").is_file():
-        return {"case": case, "mechanical_pass": False, "findings": ["No final agent response."]}
+        return {
+            "case": case,
+            # A trial verdict, not a credential.
+            "mechanical_pass": False,  # nosec B105
+            "findings": ["No final agent response."],
+        }
     if case == "discovery":
         if list(root.glob("src/**/*.py")) or (root / "pyproject.toml").exists():
             failures.append("Product scaffold created before critical decisions were confirmed.")

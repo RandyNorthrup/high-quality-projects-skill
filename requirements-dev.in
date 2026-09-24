@@ -1,0 +1,11 @@
+# Development and CI tools for this repository's own gates. The delivery
+# helpers themselves use only the Python standard library.
+#
+# Regenerate the hash-locked requirements-dev.txt after changing a pin:
+#     uv pip compile requirements-dev.in --universal --python-version 3.12 --generate-hashes -o requirements-dev.txt
+bandit==1.9.4
+coverage==7.16.1
+mypy==2.3.1
+pre-commit==4.6.2
+ruff==0.16.4
+vulture==2.16

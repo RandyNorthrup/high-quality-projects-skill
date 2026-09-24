@@ -1,0 +1,22 @@
+# Coverage for this package's own Python. Run:
+#     python -m coverage run -m unittest discover -s tests -p "test_*.py"
+#     python -m coverage combine
+#     python -m coverage report
+#
+# Coverage shows which code the tests execute, not that they would catch a
+# defect there; red drills cover that separately.
+
+[run]
+branch = true
+source = scripts
+# Tests run the documented command-line entry points in child processes.
+patch = subprocess
+parallel = true
+
+[report]
+show_missing = true
+precision = 1
+# Measured 83.1% (Windows) and 83.3% (Linux) on 2026-09-24. The one-point
+# margin absorbs branch-analysis differences between supported Pythons. Raise
+# this floor as tests improve; never lower it to admit untested code.
+fail_under = 82
