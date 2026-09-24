@@ -23,6 +23,9 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   "AST changed" (exit 1) and rejected valid PEP 263 source encodings.
 - The atomic plan writer replaced plans with owner-only (0600) permissions and
   did not flush the directory entry after the rename on POSIX.
+- The documented local release build recursively deleted its output directory,
+  by default the whole Git-ignored `dist/`, including unrelated local evidence.
+  It now replaces only its own earlier artifacts and refuses anything else.
 - `detect-stack.sh` wrote unescaped paths into its JSON, matched extensions and
   pruned directories case-sensitively unlike the PowerShell scanner, and walked
   the tree once per extension (480 s versus 16 s on a large local workspace).

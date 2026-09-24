@@ -123,10 +123,27 @@ if ([string]::IsNullOrWhiteSpace($notes)) {
     throw "CHANGELOG.md release notes for $manifestVersion are empty."
 }
 
+# Replace only this builder's own earlier output. dist/ is ignored by Git, so a
+# recursive delete there would silently destroy unrelated local evidence.
+$ownedOutputPattern = '^(high-quality-projects-skill-v[0-9A-Za-z.+-]+\.(zip|tar\.gz)|release-manifest\.json|RELEASE_NOTES\.md|SHA256SUMS\.txt)$'
 if (Test-Path -LiteralPath $resolvedOutput) {
-    Remove-Item -LiteralPath $resolvedOutput -Recurse -Force
+    $existingOutput = @(Get-ChildItem -LiteralPath $resolvedOutput -Force)
+    $foreignOutput = @(
+        $existingOutput | Where-Object {
+            $_.PSIsContainer -or $_.Name -notmatch $ownedOutputPattern
+        }
+    )
+    if ($foreignOutput.Count -gt 0) {
+        $foreignNames = ($foreignOutput | Select-Object -ExpandProperty Name) -join ', '
+        throw "Release output '$resolvedOutput' holds files this builder did not create: $foreignNames. Choose an empty directory under dist/ or move them."
+    }
+    foreach ($ownedItem in $existingOutput) {
+        Remove-Item -LiteralPath $ownedItem.FullName -Force
+    }
 }
-New-Item -ItemType Directory -Path $resolvedOutput | Out-Null
+else {
+    New-Item -ItemType Directory -Path $resolvedOutput | Out-Null
+}
 
 $packageBase = "high-quality-projects-skill-$tag"
 $archivePrefix = "$packageBase/"

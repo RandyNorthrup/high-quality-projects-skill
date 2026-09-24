@@ -29,6 +29,7 @@ $temporaryRoot = Join-Path -Path $distRoot -ChildPath (
     'release-package-test-{0}' -f [Guid]::NewGuid().ToString('N')
 )
 $comparisonRoot = "${temporaryRoot}-comparison"
+$foreignRoot = "${temporaryRoot}-foreign"
 $originalTimezone = [Environment]::GetEnvironmentVariable('TZ', 'Process')
 
 try {
@@ -151,6 +152,23 @@ try {
         [StringComparison]::Ordinal
     ) -Message 'Release notes do not exactly match the current changelog entry.'
 
+    # An output directory holding anything the builder did not create must be
+    # refused and left intact, never recursively deleted.
+    [void] (New-Item -ItemType Directory -Path $foreignRoot)
+    $sentinelPath = Join-Path -Path $foreignRoot -ChildPath 'local-evidence.txt'
+    [IO.File]::WriteAllText($sentinelPath, 'keep')
+    $refused = $false
+    try {
+        & $builder -OutputDirectory $foreignRoot -Version $manifest.version | Out-Null
+    }
+    catch {
+        $refused = $_.Exception.Message.Contains('did not create')
+    }
+    Confirm-Condition -Condition $refused `
+        -Message 'Release builder did not refuse an output directory with unowned files.'
+    Confirm-Condition -Condition (Test-Path -LiteralPath $sentinelPath -PathType Leaf) `
+        -Message 'Release builder deleted a file it did not create.'
+
     Write-Output 'PASS: versioned release archives, manifest, notes, and checksums'
 }
 finally {
@@ -159,7 +177,7 @@ finally {
         [IO.Path]::DirectorySeparatorChar,
         [IO.Path]::AltDirectorySeparatorChar
     ) + [IO.Path]::DirectorySeparatorChar
-    foreach ($testRoot in @($temporaryRoot, $comparisonRoot)) {
+    foreach ($testRoot in @($temporaryRoot, $comparisonRoot, $foreignRoot)) {
         $resolvedTestRoot = [IO.Path]::GetFullPath($testRoot)
         if ($resolvedTestRoot.StartsWith($safePrefix, [StringComparison]::OrdinalIgnoreCase)) {
             Remove-Item -LiteralPath $resolvedTestRoot -Recurse -Force -ErrorAction SilentlyContinue

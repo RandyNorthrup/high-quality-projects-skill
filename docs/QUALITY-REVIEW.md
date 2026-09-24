@@ -226,6 +226,7 @@ sections remain the record for their own dates.
 | Rust template | cargo-deny was a listed gate with no policy; its defaults rejected even an MIT crate | `rust/deny.toml` |
 | `verify-format-safe.py` | Missing, undecodable, or directory input exited 1 ("AST changed"); valid Latin-1 source rejected | Parses bytes; input errors exit 2; tests added |
 | Plan writer | Replacement plan became owner-only (0600) on POSIX | Mode preserved or umask-derived; directory flushed after rename |
+| Release builder | The documented `build-release.ps1 -Version` step recursively deleted the ignored `dist/`, including unrelated local files | Replaces only its own artifacts; refuses a directory holding anything else; release smoke test checks a sentinel |
 | `detect-stack.sh` | Unescaped JSON root; case-sensitive matching unlike PowerShell; one tree walk per extension | Escaped strings, one case-insensitive walk, parity-checked |
 | Repository gates | ShellCheck, shfmt, PSScriptAnalyzer, vulture, Bandit, gitleaks history, coverage, and mypy on tests were not run by CI | Frozen pre-commit configuration and CI jobs run them all |
 | CI supply chain | Actions pinned to movable tags; credentials persisted by checkout; no timeouts; unhashed tool installs; no update automation | SHA pins, `persist-credentials: false`, timeouts, hash lock, Dependabot with cooldown |
@@ -291,6 +292,12 @@ The pinned CI gitleaks 8.30.0 archive matched its published SHA-256.
   only for the v0.7.0 tag; its receipt is recorded after publication.
 - `release-package-smoke.ps1` passed on the committed tree under PowerShell 7
   and Windows PowerShell 5.1.
+- The release-builder defect was found by running the documented v0.7.0 build
+  step, which deleted this checkout's ignored `dist/` before the fix. Its
+  earlier contents were not listed first and could not be recovered. If the
+  v0.6.0 raw trial workspaces and local verification receipts named above were
+  still there, they are gone; the committed evaluation record, hashes, and this
+  review are unaffected.
 - Dependabot's `uv` and `pre-commit` ecosystems are configured from its
   documentation; their handling of this lock and these frozen revisions is
   unverified until the first scheduled run.

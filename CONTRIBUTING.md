@@ -213,6 +213,11 @@ Release before its tag workflow.
    & .\scripts\build-release.ps1 -Version $ReleaseVersion
    ```
 
+   The builder writes to `dist/` and replaces only its own earlier artifacts.
+   It refuses an output directory that holds anything else, including
+   subdirectories: keep other local evidence outside `dist/`, or pass
+   `-OutputDirectory dist/release-<version>`.
+
 4. Push the commit and wait for `Cross-platform package checks` to pass.
 5. Create and push annotated tag `v<manifest version>`.
 
