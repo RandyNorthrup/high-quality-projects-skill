@@ -1,0 +1,38 @@
+# Proposes updates for everything this repository pins by version or SHA:
+# workflow actions, frozen pre-commit hook revisions, and the hash-locked tools
+# in requirements-dev.txt (compiled from requirements-dev.in by uv).
+#
+# The cooldown lets a new release age before it is proposed, so a compromised
+# or yanked version is usually caught upstream before it reaches CI. Every
+# proposal still has to pass the full cross-platform gate before merging.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: pre-commit
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      hooks:
+        patterns: ["*"]
+
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      python-tools:
+        patterns: ["*"]
