@@ -145,6 +145,28 @@ try {
                 Before = "Write-ScanError -Message 'unreadable path'"
                 After = "Write-ScanError -Message 'scan failed'"
                 Diagnostic = 'Unreadable path did not return JSON error contract.'
+            },
+            @{
+                Name = 'case-insensitive directory pruning'
+                Path = 'scripts/detect-stack.ps1'
+                Before = '[StringComparer]::OrdinalIgnoreCase'
+                After = '[StringComparer]::Ordinal'
+                Diagnostic = 'Python count or directory pruning is wrong.'
+            },
+            @{
+                Name = 'knip.jsonc configuration detection'
+                Path = 'scripts/detect-stack.ps1'
+                Before = "-RelativePath 'knip.jsonc'"
+                After = "-RelativePath 'knip.json'"
+                Diagnostic = 'knip.jsonc configuration detection failed.'
+            },
+            @{
+                # The anchor omits the SHA so routine Dependabot bumps keep it valid.
+                Name = 'immutable workflow actions'
+                Path = '.github/workflows/release.yml'
+                Before = 'uses: actions/attest@'
+                After = 'uses: actions/attest@v4 #'
+                Diagnostic = 'Workflow action is not pinned to a commit SHA'
             }
         )
         foreach ($drill in $drills) {
@@ -254,12 +276,28 @@ try {
     foreach ($requiredReleaseText in @(
             'uses: ./.github/workflows/cross-platform.yml',
             './scripts/build-release.ps1',
-            'uses: actions/attest@v4',
+            'uses: actions/attest@',
             'gh release create'
         )) {
         Confirm-Condition -Condition $releaseWorkflowContent.Contains($requiredReleaseText) `
             -Message "Release workflow is missing required gate: $requiredReleaseText"
     }
+    # Third-party actions in a job that can publish and sign must be immutable.
+    foreach ($workflowPath in @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot '.github/workflows') -File)) {
+        $workflowContent = Get-Content -LiteralPath $workflowPath.FullName -Raw -Encoding UTF8
+        foreach ($use in [regex]::Matches($workflowContent, '(?m)^\s*(?:-\s+)?uses:\s*(\S+)')) {
+            $reference = $use.Groups[1].Value
+            Confirm-Condition -Condition (
+                $reference.StartsWith('./') -or $reference -match '^[^@\s]+@[0-9a-f]{40}$'
+            ) -Message "Workflow action is not pinned to a commit SHA: $($workflowPath.Name) $reference"
+        }
+    }
+
+    $analyzerSettings = Import-PowerShellDataFile -LiteralPath (
+        Join-Path $repositoryRoot 'templates/powershell/PSScriptAnalyzerSettings.psd1'
+    )
+    Confirm-Condition -Condition ($analyzerSettings.Rules.Count -gt 0) `
+        -Message 'PSScriptAnalyzer template does not load as a data file.'
 
     $installationContent = Get-Content -LiteralPath $installationGuide -Raw -Encoding UTF8
     foreach ($requiredInstallText in @(
@@ -280,6 +318,8 @@ try {
     [void] (New-Item -ItemType Directory -Path $workspace)
     [void] (New-Item -ItemType Directory -Path (Join-Path $workspace 'src'))
     [void] (New-Item -ItemType Directory -Path (Join-Path $workspace 'node_modules'))
+    # Generated-directory pruning is case-insensitive in both scanners.
+    [void] (New-Item -ItemType Directory -Path (Join-Path $workspace 'Build'))
     [void] (New-Item -ItemType Directory -Path (Join-Path $workspace '.github/workflows'))
 
     Push-Location -LiteralPath $workspace
@@ -293,10 +333,11 @@ try {
         -Message 'skill-root.ps1 did not resolve from an unrelated directory.'
 
     foreach ($relativeFile in @(
-            'src/app.py', 'src/app.ts', 'src/view.tsx', 'src/browser.js',
+            'src/app.py', 'src/app.ts', 'src/view.tsx', 'src/Legacy.TS', 'src/browser.js',
             'src/lib.rs', 'src/App.cs', 'src/native.cpp', 'src/module.psm1',
             'src/style.scss', 'src/index.html', 'src/run.sh', 'src/main.go',
-            'README.md', '.prettierrc', 'node_modules/ignored.py'
+            'README.md', '.prettierrc', 'knip.jsonc', 'uv.lock', 'Cargo.lock', 'global.json',
+            'node_modules/ignored.py', 'Build/generated.py'
         )) {
         $filePath = Join-Path -Path $workspace -ChildPath $relativeFile
         Set-Content -LiteralPath $filePath -Value '' -Encoding Ascii
@@ -309,7 +350,7 @@ try {
         -Message 'detect-stack.ps1 returned wrong root.'
     Confirm-Equal -Actual $scan.languages.python -Expected 1 `
         -Message 'Python count or directory pruning is wrong.'
-    Confirm-Equal -Actual $scan.languages.typescript -Expected 2 `
+    Confirm-Equal -Actual $scan.languages.typescript -Expected 3 `
         -Message 'TypeScript count is wrong.'
     Confirm-Equal -Actual $scan.languages.javascript -Expected 1 `
         -Message 'JavaScript count is wrong.'
@@ -328,6 +369,16 @@ try {
         -Message 'GitHub workflow directory detection failed.'
     Confirm-Condition -Condition $scan.existing_config.prettierrc `
         -Message '.prettierrc configuration detection failed.'
+    Confirm-Condition -Condition $scan.existing_config.knip_jsonc `
+        -Message 'knip.jsonc configuration detection failed.'
+    Confirm-Equal -Actual ($scan.lockfiles -join ',') -Expected 'uv.lock,Cargo.lock' `
+        -Message 'Lockfile inventory or its declared order is wrong.'
+    Confirm-Equal -Actual ($scan.toolchain_pins -join ',') -Expected 'global.json' `
+        -Message 'Toolchain pin inventory is wrong.'
+    foreach ($toolKey in @('dpdm', 'go', 'psscriptanalyzer', 'pester', 'actionlint', 'zizmor')) {
+        Confirm-Condition -Condition ($scan.tools_installed.$toolKey -is [bool]) `
+            -Message "Tool inventory is missing boolean key: $toolKey"
+    }
     Confirm-Condition -Condition (-not $scan.git.is_repo) `
         -Message 'Non-repository workspace reported as a Git repository.'
     Confirm-Condition -Condition ($null -ne $scan.python_runtime.module_only_tools) `

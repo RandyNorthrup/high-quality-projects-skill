@@ -129,6 +129,57 @@ function Test-WorkspacePath {
     return Test-Path -LiteralPath (Join-Path -Path $WorkspaceRoot -ChildPath $RelativePath)
 }
 
+function Test-AnyWorkspacePath {
+    param(
+        [Parameter(Mandatory)]
+        [string] $WorkspaceRoot,
+
+        [Parameter(Mandatory)]
+        [string[]] $RelativePath
+    )
+
+    foreach ($candidate in $RelativePath) {
+        if (Test-WorkspacePath -WorkspaceRoot $WorkspaceRoot -RelativePath $candidate) {
+            return $true
+        }
+    }
+    return $false
+}
+
+function Get-PresentWorkspacePath {
+    param(
+        [Parameter(Mandatory)]
+        [string] $WorkspaceRoot,
+
+        [Parameter(Mandatory)]
+        [string[]] $RelativePath
+    )
+
+    # Keep the declared order so both scanners emit identical arrays.
+    return , [string[]] @(
+        $RelativePath | Where-Object {
+            Test-WorkspacePath -WorkspaceRoot $WorkspaceRoot -RelativePath $_
+        }
+    )
+}
+
+function Test-PowerShellModule {
+    param(
+        [Parameter(Mandatory)]
+        [string] $Name,
+
+        [int] $MinimumMajorVersion = 0
+    )
+
+    # Gate modules live in the module path, not on PATH. Pester 3.x ships inside
+    # Windows PowerShell but cannot run Pester 5 tests, so callers set a floor.
+    $modules = @(
+        Get-Module -ListAvailable -Name $Name -ErrorAction SilentlyContinue |
+            Where-Object { $_.Version.Major -ge $MinimumMajorVersion }
+    )
+    return $modules.Count -gt 0
+}
+
 try {
     $resolvedRoot = (Resolve-Path -LiteralPath $Root -ErrorAction Stop).ProviderPath
     if (-not (Test-Path -LiteralPath $resolvedRoot -PathType Container)) {
@@ -262,10 +313,15 @@ print(' '.join(found))
             prettierrc = Test-WorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath '.prettierrc'
             stylelintrc_json = Test-WorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath '.stylelintrc.json'
             knip_json = Test-WorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath 'knip.json'
+            knip_jsonc = Test-WorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath 'knip.jsonc'
             cargo_toml = Test-WorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath 'Cargo.toml'
             clippy_toml = Test-WorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath 'clippy.toml'
             deny_toml = Test-WorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath 'deny.toml'
             rustfmt_toml = Test-WorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath 'rustfmt.toml'
+            go_mod = Test-WorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath 'go.mod'
+            golangci = Test-AnyWorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath @(
+                '.golangci.yml', '.golangci.yaml', '.golangci.toml', '.golangci.json'
+            )
             clang_tidy = Test-WorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath '.clang-tidy'
             clang_format = Test-WorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath '.clang-format'
             cmakelists = Test-WorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath 'CMakeLists.txt'
@@ -278,6 +334,13 @@ print(' '.join(found))
             env_example = Test-WorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath '.env.example'
             dockerfile = Test-WorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath 'Dockerfile'
             github_workflows = Test-WorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath '.github/workflows'
+            dependabot = Test-AnyWorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath @(
+                '.github/dependabot.yml', '.github/dependabot.yaml'
+            )
+            renovate = Test-AnyWorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath @(
+                'renovate.json', 'renovate.json5', '.github/renovate.json',
+                '.github/renovate.json5', '.renovaterc', '.renovaterc.json'
+            )
             readme = Test-WorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath 'README.md'
             changelog = Test-WorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath 'CHANGELOG.md'
             plan = Test-WorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath 'PLAN.md'
@@ -285,6 +348,16 @@ print(' '.join(found))
             agents_md = Test-WorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath 'AGENTS.md'
             claude_md = Test-WorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath 'CLAUDE.md'
         }
+        # Dependency locks and runtime/toolchain pins, in a fixed order.
+        lockfiles = Get-PresentWorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath @(
+            'package-lock.json', 'npm-shrinkwrap.json', 'pnpm-lock.yaml', 'yarn.lock',
+            'bun.lock', 'bun.lockb', 'uv.lock', 'poetry.lock', 'Pipfile.lock', 'pdm.lock',
+            'Cargo.lock', 'go.sum', 'packages.lock.json'
+        )
+        toolchain_pins = Get-PresentWorkspacePath -WorkspaceRoot $resolvedRoot -RelativePath @(
+            '.python-version', '.nvmrc', '.node-version', '.tool-versions',
+            'rust-toolchain.toml', 'rust-toolchain', 'global.json'
+        )
         tools_installed = [ordered]@{
             ruff = Test-PythonToolAvailable -CommandName 'ruff' -ModuleName 'ruff'
             mypy = Test-PythonToolAvailable -CommandName 'mypy' -ModuleName 'mypy'
@@ -301,6 +374,7 @@ print(' '.join(found))
             prettier = Test-CommandAvailable -Name 'prettier'
             stylelint = Test-CommandAvailable -Name 'stylelint'
             knip = Test-CommandAvailable -Name 'knip'
+            dpdm = Test-CommandAvailable -Name 'dpdm'
             htmlhint = Test-CommandAvailable -Name 'htmlhint'
             jscpd = Test-CommandAvailable -Name 'jscpd'
             madge = Test-CommandAvailable -Name 'madge'
@@ -308,6 +382,11 @@ print(' '.join(found))
             cargo_audit = Test-CommandAvailable -Name 'cargo-audit'
             cargo_machete = Test-CommandAvailable -Name 'cargo-machete'
             cargo_deny = Test-CommandAvailable -Name 'cargo-deny'
+            go = Test-CommandAvailable -Name 'go'
+            gofmt = Test-CommandAvailable -Name 'gofmt'
+            staticcheck = Test-CommandAvailable -Name 'staticcheck'
+            govulncheck = Test-CommandAvailable -Name 'govulncheck'
+            golangci_lint = Test-CommandAvailable -Name 'golangci-lint'
             dotnet = Test-CommandAvailable -Name 'dotnet'
             roslynator = Test-CommandAvailable -Name 'roslynator'
             gcc = Test-CommandAvailable -Name 'gcc'
@@ -318,8 +397,15 @@ print(' '.join(found))
             valgrind = Test-CommandAvailable -Name 'valgrind'
             gcovr = Test-CommandAvailable -Name 'gcovr'
             pwsh = Test-CommandAvailable -Name 'pwsh'
+            psscriptanalyzer = Test-PowerShellModule -Name 'PSScriptAnalyzer'
+            pester = Test-PowerShellModule -Name 'Pester' -MinimumMajorVersion 5
             shellcheck = Test-CommandAvailable -Name 'shellcheck'
             shfmt = Test-CommandAvailable -Name 'shfmt'
+            bats = Test-CommandAvailable -Name 'bats'
+            actionlint = Test-CommandAvailable -Name 'actionlint'
+            zizmor = Test-CommandAvailable -Name 'zizmor'
+            osv_scanner = Test-CommandAvailable -Name 'osv-scanner'
+            hadolint = Test-CommandAvailable -Name 'hadolint'
             gitleaks = Test-CommandAvailable -Name 'gitleaks'
             pre_commit = Test-PythonToolAvailable -CommandName 'pre-commit' -ModuleName 'pre_commit'
         }

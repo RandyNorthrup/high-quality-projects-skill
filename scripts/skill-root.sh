@@ -31,13 +31,16 @@ fi
 # Resolve symlinks so that a symlinked script still reports the real package
 # root. `readlink -f` is coreutils-only; fall back to a portable loop.
 target="${BASH_SOURCE[0]}"
-while [[ -L "$target" ]]; do
-    link="$(readlink "$target")"
-    if [[ "$link" = /* ]]; then
-        target="$link"
+while [[ -L "${target}" ]]; do
+    link="$(readlink "${target}")"
+    if [[ "${link}" = /* ]]; then
+        target="${link}"
     else
-        target="$(cd -- "$(dirname -- "$target")" && pwd)/$link"
+        directory="$(dirname -- "${target}")"
+        target="$(cd -- "${directory}" && pwd)/${link}"
     fi
 done
 
-printf '%s\n' "$(cd -- "$(dirname -- "$target")/.." && pwd)"
+directory="$(dirname -- "${target}")"
+root="$(cd -- "${directory}/.." && pwd)"
+printf '%s\n' "${root}"
