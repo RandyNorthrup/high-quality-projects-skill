@@ -1,7 +1,9 @@
 # Code quality by language
 
-Reviewed against primary sources on 2026-09-07. Read the common contract and
-the sections for the detected stack before implementation or template changes.
+Reviewed against primary sources on 2026-09-07; the test-depth, supply-chain,
+and CI sections were added from primary sources on 2026-09-24. Read the common
+contract and the sections for the detected stack before implementation or
+template changes.
 These are this package's engineering decisions informed by the linked sources;
 they are not a claim that a language author endorses every supplied setting.
 Select supported runtimes and pin compatible tools in the target project.
@@ -56,6 +58,70 @@ ordinary scans otherwise report findings without a failing exit. Pin or retain
 the rule source used for repeatable CI, and verify include/exclude scope. See
 the [Semgrep CLI contract](https://docs.semgrep.dev/cli-reference/).
 
+## Test depth and performance evidence
+
+Coverage shows which code ran, not whether a test would notice it breaking;
+red drills and mutation testing show that. Set a coverage floor from a measured
+baseline, leaving only the margin that differs between supported platforms or
+runtimes, and raise it as tests improve. Never lower it to admit untested code.
+Run mutation testing on the changed code in CI and across the whole project on
+a schedule. Add property or fuzz tests where inputs are parsed or unbounded.
+
+| Stack | Coverage floor | Mutation testing | Property / fuzz | Benchmarks |
+|---|---|---|---|---|
+| Python | [coverage.py](https://coverage.readthedocs.io/en/latest/config.html) `fail_under`, branch on | [mutmut](https://mutmut.readthedocs.io/en/latest/) (needs `fork`; WSL on Windows) | [Hypothesis](https://hypothesis.readthedocs.io/en/latest/) | [pyperf](https://pyperf.readthedocs.io/en/latest/) |
+| TS / JS | [Vitest](https://vitest.dev/config/coverage) `coverage.thresholds` | [StrykerJS](https://stryker-mutator.io/docs/stryker-js/introduction/) | [fast-check](https://fast-check.dev/) | [size-limit](https://github.com/ai/size-limit) for bundle budgets |
+| Rust | [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov) `--fail-under-lines` | [cargo-mutants](https://mutants.rs/in-diff.html) `--in-diff` | [proptest](https://proptest-rs.github.io/proptest/), [cargo-fuzz](https://rust-fuzz.github.io/book/cargo-fuzz.html) | [Criterion](https://criterion-rs.github.io/book/index.html) |
+| C / C++ | [gcovr](https://gcovr.com/en/stable/manpage.html) `--fail-under-line` | none selected | [FuzzTest](https://github.com/google/fuzztest) | [Google Benchmark](https://google.github.io/benchmark/) |
+| C# | [coverlet](https://github.com/coverlet-coverage/coverlet/blob/master/Documentation/MSBuildIntegration.md) `/p:Threshold` | [Stryker.NET](https://stryker-mutator.io/docs/stryker-net/introduction/) | [CsCheck](https://github.com/AnthonyLloyd/CsCheck) | [BenchmarkDotNet](https://benchmarkdotnet.org/) |
+| Go | [`go test -coverprofile`](https://pkg.go.dev/cmd/go#hdr-Testing_flags); no built-in floor | no mature tool; record as open | [native fuzzing](https://go.dev/doc/security/fuzz/) | `testing.B` with [benchstat](https://pkg.go.dev/golang.org/x/perf/cmd/benchstat) |
+
+Record performance budgets in the plan with the workload, data size, and
+hardware they apply to. Compare benchmarks against a baseline from the same
+machine class; shared CI runners are too noisy for absolute wall-clock gates, so
+gate on relative change or use a dedicated runner. Time whole commands with
+[hyperfine](https://github.com/sharkdp/hyperfine) and profile Python with
+[py-spy](https://github.com/benfred/py-spy) before optimizing. A tool listed
+here is a starting point: drill it in the project before trusting it as a gate.
+
+## Dependencies and supply chain
+
+- Commit lockfiles and install from them in CI: `npm ci`, `cargo build --locked`,
+  `uv sync --locked`, `pip install --require-hashes`, and NuGet
+  [locked mode](https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies).
+  Add `--ignore-scripts` to npm installs that do not need package scripts.
+- Scan every lockfile together with
+  [OSV-Scanner](https://google.github.io/osv-scanner/usage/scan-source)
+  (`osv-scanner scan source -r .`) in addition to each ecosystem's audit.
+- Automate updates with [Dependabot](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference)
+  or [Renovate](https://docs.renovatebot.com/). A short cooldown lets a new
+  release age before it is proposed; every update still passes the full gates.
+- When the brief requires an SBOM, generate it from the built artifact with
+  [Syft](https://github.com/anchore/syft) and publish it beside provenance.
+- Lint Dockerfiles with [hadolint](https://github.com/hadolint/hadolint), and
+  pin scanner images and actions by digest or SHA. Trivy's own release actions
+  were [compromised in March 2026](https://github.com/aquasecurity/trivy/security/advisories/GHSA-69fq-xp46-6x23).
+
+## CI workflows (GitHub Actions)
+
+Workflows run with repository credentials, so review them as production code.
+Follow GitHub's [secure use reference](https://docs.github.com/en/actions/reference/security/secure-use):
+
+- Pin every action to a full-length commit SHA with the version as a comment.
+  A tag can be moved to different code; a SHA cannot.
+- Declare `permissions` at the top (`{}` or `contents: read`) and grant write
+  scopes only to the job that needs them.
+- Check out with `persist-credentials: false` unless a later step runs
+  authenticated Git commands.
+- Pass untrusted values such as branch names, PR titles, and issue text into
+  `run:` through `env:`; an inline `${{ }}` becomes shell source.
+- Set `timeout-minutes` on every job and verify downloaded binaries against a
+  pinned checksum.
+
+Gate workflows with [actionlint](https://github.com/rhysd/actionlint) (syntax,
+expressions, embedded shell) and [zizmor](https://docs.zizmor.sh/audits/)
+(security audits); both are in the pre-commit template.
+
 ## Python
 
 Keep cohesive packages and explicit public APIs; isolate I/O and mutable state
@@ -68,8 +134,10 @@ and [Ruff S101](https://docs.astral.sh/ruff/rules/assert/).
 
 Match Ruff's target and mypy's Python version to the minimum supported runtime.
 Keep Ruff correctness/test rules and mypy's unreachable, redundant-expression,
-truthiness, and unused-awaitable checks; annotate test helpers rather than
-blanket-exempting tests. Drill constant assertions, always-truthy expressions,
+truthiness, unused-awaitable, explicit-override, and exhaustive-match checks
+(the last two mirror TypeScript's `noImplicitOverride` and exhaustive switch
+check); annotate test helpers rather than blanket-exempting tests. Run mypy in
+the project's environment: an isolated hook cannot see dependency types. Drill constant assertions, always-truthy expressions,
 and an unhandled failure. See [mypy optional checks](https://mypy.readthedocs.io/en/stable/error_code_list2.html).
 
 ## TypeScript and JavaScript
@@ -97,6 +165,9 @@ union case, an ignored promise, a tautological condition, and any changed test.
 For React, keep render pure, state owned, and effects tied to external systems;
 do not add mirrored state or effects for values derivable during render. See
 [React purity rules](https://react.dev/reference/rules/components-and-hooks-must-be-pure).
+Enforce the hook rules with
+[eslint-plugin-react-hooks](https://react.dev/reference/eslint-plugin-react-hooks)
+(`reactHooks.configs.flat.recommended`).
 
 ## Rust
 
@@ -150,7 +221,8 @@ that [latest varies by installed compiler](https://learn.microsoft.com/en-us/dot
 
 Run compiler, analyzer, formatting, and test gates on every supported target.
 Verify relevant IDE diagnostic severity at build time instead of assuming
-`EnforceCodeStyleInBuild` enables every suggestion. Include a nullable-error
+`EnforceCodeStyleInBuild` enables every suggestion: without the `.editorconfig`
+template's severities, an unused private method (IDE0051) builds cleanly. Include a nullable-error
 drill and [CA1508 dead-condition drill](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1508).
 Install the selected test framework's analyzers explicitly; the shared props
 file does not supply them.
@@ -173,6 +245,8 @@ Use explicit encodings and restore process state in `finally`. Select real,
 installed [compatibility inventories](https://learn.microsoft.com/en-us/powershell/utility-modules/psscriptanalyzer/rules/usecompatiblecmdlets)
 and execute on the supported hosts; historical profile matches do not certify
 PowerShell 5.1/7 behavior. Drill ignored native failures and empty result sets.
+Run the analyzer with `-ErrorAction Stop`: a rule that throws otherwise loses
+its findings while `-EnableExit` still reports success.
 
 ## Shell
 
@@ -195,7 +269,11 @@ links for navigation, and explicit form labels. Do not replace native behavior
 with clickable generic containers or redundant/conflicting ARIA. Follow
 [W3C structural-role guidance](https://www.w3.org/WAI/ARIA/apg/practices/structural-roles/).
 HTML syntax checks complement keyboard, focus, accessible-name, and screen-reader
-verification; they do not replace it. Validate rendered markup as well as source
+verification; they do not replace it. Run [axe-core](https://github.com/dequelabs/axe-core)
+against rendered pages in end-to-end tests, for example through
+[Playwright](https://playwright.dev/docs/accessibility-testing); automated rules
+find a subset of problems, so manual checks remain required. Validate rendered
+markup as well as source
 templates, including errors, loading, and empty states.
 
 Keep CSS ownership clear, reuse design tokens, and keep specificity bounded.

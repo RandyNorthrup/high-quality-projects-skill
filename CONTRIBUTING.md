@@ -6,8 +6,12 @@
 AGENTS.md                     universal entry point — any agent starts here
 .cursor/rules/                Cursor auto-discovery, points at AGENTS.md
 .github/copilot-instructions.md  Copilot auto-discovery, same
-.github/workflows/cross-platform.yml  Windows/Linux script regression tests
+.github/workflows/cross-platform.yml  repository gates and Windows/Linux/macOS regression tests
 .github/workflows/release.yml    tag-gated build, attestation, and publication
+.github/dependabot.yml        update proposals for actions, hooks, and Python tools
+.pre-commit-config.yaml       this repository's own gates, frozen to commit SHAs
+requirements-dev.in/.txt      hash-locked Python tools for local checks and CI
+.coveragerc                   coverage settings and the enforced floor
 .claude-plugin/               Claude Code manifests — packaging only
 skills/
   project_setup/    SKILL.md — new-project scaffolding
@@ -81,7 +85,10 @@ from "nobody thought about this."
 Before committing a template change, run its gate against deliberately broken
 code and confirm it still fires. A config that silently stops catching things is
 worse than no config — see the false-green argument in
-[`docs/PHILOSOPHY.md`](docs/PHILOSOPHY.md).
+[`docs/PHILOSOPHY.md`](docs/PHILOSOPHY.md). `tests/test_templates.py` also parses
+every template the standard library can read and fails when a new template is
+not classified; it caught an XML comment that made `Directory.Build.props`
+unloadable, which no drill of an individual rule would have reached.
 
 ## Editing the detect-stack scripts
 
@@ -116,9 +123,10 @@ Linux, and macOS, then compares the Bash and PowerShell scanner inventories on
 both POSIX runners.
 
 `-RedDrills` reuses the same smoke suite in a temporary copy of current source.
-It runs a passing baseline, separately breaks directory pruning, the explicit
-root override, and the unreadable-path error, and requires each existing
-assertion to fail with a non-zero child exit. Every mutation is restored
+It runs a passing baseline, separately breaks directory pruning (including its
+case-insensitive match), the explicit root override, the unreadable-path error,
+`knip.jsonc` detection, and the release workflow's SHA-pinned action, and
+requires each existing assertion to fail with a non-zero child exit. Every mutation is restored
 byte-for-byte before a fresh green run. The parent command fails on surviving
 mutations, wrong failures, timeouts, or failed restoration. CI uses this mode,
 which includes the normal suite; run it under both PowerShell 7 and 5.1 locally.
@@ -148,20 +156,43 @@ Exercise all three workflows against isolated realistic projects. Follow
 independent product oracles, negative controls, and semantic review of actual
 artifacts. Reading a skill or matching its wording is not behavioral testing.
 
-Delivery helpers use Python 3.12+ and the standard library. Before a change:
+Delivery helpers use Python 3.12+ and only the standard library. The quality
+tools are hash-locked in `requirements-dev.txt`; install them into a virtual
+environment, then install the hooks (PowerShell hooks also need `pwsh` with
+PSScriptAnalyzer):
 
 ```console
-python -m ruff check scripts tests
-python -m ruff format --check scripts tests
-python -m mypy --strict --python-version 3.12 scripts/delivery scripts/verify-delivery.py scripts/update-delivery.py
-python -m unittest discover -s tests -p "test_*.py"
+python -m venv .venv
+.venv/bin/python -m pip install --require-hashes -r requirements-dev.txt   # Windows: .venv\Scripts\python.exe
+.venv/bin/python -m pre_commit install
 ```
 
-CI runs these checks on Windows, Linux, and macOS with Python 3.12 and 3.14.
-Its two validator mutations reuse existing regression assertions. Outcome-oracle
-controls also reject broken behavior, vacuous tests, duplicated domain logic,
-premature implementation, and replayed side effects. Live agent trials are
-recorded separately; CI does not pretend to rerun a model.
+With that environment active, run before a change:
+
+```console
+python -m pre_commit run --all-files
+python -m coverage run -m unittest discover -s tests -p "test_*.py"
+python -m coverage combine
+python -m coverage report
+```
+
+The hooks run Ruff, both mypy scopes with the shipped mypy template, vulture,
+Bandit, ShellCheck, shfmt, PSScriptAnalyzer with the shipped settings,
+actionlint, zizmor, and staged-change secret scanning. The entry scripts and the
+tests import the delivery package under different module names, so mypy runs
+once for each. Coverage includes the command-line entry points run as child
+processes, and `coverage report` fails below the floor in `.coveragerc`.
+
+CI runs the same hooks plus a full-history gitleaks scan, then the tests with
+coverage and both mypy runs on Windows, Linux, and macOS with Python 3.12 and
+3.14. Its validator mutations reuse existing regression assertions.
+Outcome-oracle controls also reject broken behavior, vacuous tests, duplicated
+domain logic, premature implementation, and replayed side effects. Live agent
+trials are recorded separately; CI does not pretend to rerun a model.
+
+After changing a pin in `requirements-dev.in`, regenerate the lock with the
+command in that file's header. Hook revisions are frozen to commit SHAs;
+refresh them with `pre-commit autoupdate --freeze`. Dependabot proposes both.
 
 ## Releasing
 

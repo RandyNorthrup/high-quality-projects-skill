@@ -170,15 +170,17 @@ compliance by being copied.
 |---|---|
 | Python | Ruff, mypy, vulture, deptry, Bandit, pip-audit; project tests |
 | TypeScript / JavaScript | Prettier, ESLint, TypeScript, knip, dpdm, npm audit, Semgrep |
-| Rust | rustfmt, Clippy, compiler, cargo-machete, cargo-audit, cargo-deny, cargo test |
+| Rust | rustfmt, Clippy, compiler, cargo-machete, cargo-audit, cargo-deny policy, cargo test |
 | C / C++ | clang-format, clang-tidy, cppcheck, compiler, separate sanitizer builds |
-| C# / .NET | dotnet format, analyzers, nullable checks, warnings as errors, NuGet audit, dotnet test |
-| HTML / CSS | Semantic and accessibility review, HTMLHint, Stylelint, Prettier |
+| C# / .NET | dotnet format, analyzers, dead-code rule severities, nullable checks, warnings as errors, NuGet audit, dotnet test |
+| HTML / CSS | Semantic and accessibility review, axe-core, HTMLHint, Stylelint, Prettier |
 | PowerShell / Shell | PSScriptAnalyzer / ShellCheck and shfmt; project tests |
 | Go | gofmt, go vet, selected Staticcheck, govulncheck, go test, race/fuzz checks where supported |
+| GitHub Actions | actionlint, zizmor; SHA-pinned actions and least-privilege permissions |
 
 Go has guidance rather than a supplied configuration template. Cross-cutting
-references cover Gitleaks, Semgrep, and jscpd. See the
+references cover Gitleaks, Semgrep, jscpd, and OSV-Scanner, plus per-stack
+coverage floors, mutation testing, property/fuzz tests, and benchmarks. See the
 [language review contract](docs/CODE-QUALITY.md) for primary sources and the
 [template index](templates/README.md) for configuration details and compatibility.
 

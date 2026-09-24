@@ -5,6 +5,57 @@ All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Fixed
+
+- The C# `Directory.Build.props` template was malformed XML since 0.5.0: an XML
+  comment contained `--`, so MSBuild refused to load it (`MSB4024`).
+- The PowerShell template could pass while losing findings. `PSUseCorrectCasing`
+  intermittently throws in PSScriptAnalyzer 1.24.0 and 1.25.0; a planted
+  violation then went unreported and `-EnableExit` exited 0. The rule is off,
+  and every documented command adds `-ErrorAction Stop`.
+- The pre-commit template's vulture hook exited 2 without configured paths;
+  mypy ran in an isolated environment that turned dependency types into `Any`;
+  ShellCheck required Docker; and `mixed-line-ending --fix=lf` rewrote files kept
+  in CRLF by `.gitattributes`, failing every commit that touched them.
+- `verify-format-safe.py` reported unreadable, undecodable, or missing input as
+  "AST changed" (exit 1) and rejected valid PEP 263 source encodings.
+- The atomic plan writer replaced plans with owner-only (0600) permissions and
+  did not flush the directory entry after the rename on POSIX.
+- `detect-stack.sh` wrote unescaped paths into its JSON, matched extensions and
+  pruned directories case-sensitively unlike the PowerShell scanner, and walked
+  the tree once per extension (480 s versus 16 s on a large local workspace).
+
+### Added
+
+- C# `.editorconfig` template that makes the dead-code rules IDE0051, IDE0052,
+  IDE0059, IDE0060, and IDE0005 fail the build; without it they were silent.
+- Rust `deny.toml` policy for advisories, licenses, bans, and sources.
+- mypy template codes `explicit-override`, `exhaustive-match`,
+  `mutable-override`, `truthy-iterable`, and `deprecated`.
+- Pre-commit template hooks for executable/shebang consistency, actionlint, and
+  zizmor, with guidance to freeze hook revisions to commit SHAs.
+- Scanner detection of `knip.jsonc`, Go modules and tools, golangci-lint,
+  Dependabot/Renovate configuration, lockfiles, toolchain pins, dpdm, bats,
+  actionlint, zizmor, OSV-Scanner, hadolint, and the PSScriptAnalyzer and
+  Pester 5 modules.
+- Guidance for coverage floors, mutation testing, property and fuzz testing,
+  benchmarks, dependency supply chain, accessibility automation, React hook
+  rules, and hardened GitHub Actions workflows.
+
+### Changed
+
+- This repository now passes the gates it ships: a frozen pre-commit
+  configuration runs Ruff, both mypy scopes with the shipped template,
+  vulture, Bandit, ShellCheck, shfmt, PSScriptAnalyzer, actionlint, and zizmor;
+  CI adds a checksum-verified full-history gitleaks scan and a coverage floor.
+- CI installs hash-locked tools, pins every action to a commit SHA, disables
+  persisted checkout credentials, and sets job timeouts. Dependabot proposes
+  updates for actions, hooks, and tools after a seven-day cooldown.
+- The smoke suite maintains six red drills, adding case-insensitive pruning,
+  `knip.jsonc` detection, and SHA-pinned release actions.
+
 ## 0.6.0 — 2026-09-07
 
 ### Added

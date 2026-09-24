@@ -31,6 +31,7 @@ Concrete examples of rules deliberately disabled:
 | `multiple_crate_versions` (clippy) | you rarely control transitive duplicates |
 | `unicorn/prevent-abbreviations` | renames `req`/`res`/`props` against every framework convention |
 | `CS1591` (C#) | XML doc on every public member is busywork |
+| `PSUseCorrectCasing` (PSScriptAnalyzer) | crashes intermittently; the crash dropped a real finding while the gate exited 0 |
 
 Each is a one-line revert. The point is that the decision was made
 deliberately and written down, not that it is permanent.

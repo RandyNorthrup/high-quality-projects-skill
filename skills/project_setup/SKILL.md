@@ -221,18 +221,21 @@ and each documents its own deliberate loosenings.
 |---|---|---|---|---|---|---|
 | Python | ruff format | ruff (`ALL`) | mypy strict | vulture, deptry | bandit, pip-audit | pytest |
 | TS/JS | prettier | eslint strictTypeChecked | tsc strict+ | knip | npm audit, semgrep | vitest |
-| Rust | rustfmt | clippy pedantic | (compiler) | cargo-machete | cargo-audit, cargo-deny | cargo test |
+| Rust | rustfmt | clippy pedantic | (compiler) | cargo-machete | cargo-audit, cargo-deny (`deny.toml`) | cargo test |
 | C++ | clang-format | clang-tidy, cppcheck | (compiler) | cppcheck unusedFunction | sanitizers, valgrind | ctest |
-| C# | dotnet format | AnalysisLevel latest-all | nullable+warnaserror | IDE0051/0052 | NuGetAudit | dotnet test |
+| C# | dotnet format | AnalysisLevel latest-all | nullable+warnaserror | IDE0051/0052 (`.editorconfig`) | NuGetAudit | dotnet test |
 | CSS | prettier | stylelint | — | — | — | — |
 | HTML | prettier | htmlhint | — | — | — | — |
 | PowerShell | PSScriptAnalyzer | PSScriptAnalyzer | — | — | — | Pester |
 | Shell | shfmt | shellcheck | — | — | gitleaks | bats |
 | Go | gofmt | go vet, selected Staticcheck | (compiler) | selected analyzer + review | govulncheck | go test, race/fuzz where supported |
+| GitHub Actions | — | actionlint | — | — | zizmor | — |
 
 Cross-cutting regardless of stack: `gitleaks` (secrets; use `gitleaks git` for
-reachable checked-out history), `semgrep` (multi-language SAST), and `jscpd`
-(copy-paste detection).
+reachable checked-out history), `semgrep` (multi-language SAST), `jscpd`
+(copy-paste detection), and OSV-Scanner across all lockfiles. Coverage floors,
+mutation testing, property/fuzz tests, and benchmarks per stack are in
+`${SKILL_ROOT}/docs/CODE-QUALITY.md`.
 
 ### The flags that make a linter a gate
 
@@ -243,7 +246,7 @@ decorative:
 ```
 eslint --max-warnings=0          stylelint --max-warnings=0
 cargo clippy -- -D warnings      cppcheck --error-exitcode=1
-knip --strict                    Invoke-ScriptAnalyzer -EnableExit
+knip --strict                    Invoke-ScriptAnalyzer -EnableExit -ErrorAction Stop
 semgrep scan --error             (findings must fail the command)
 ruff check          (nonzero by default)
 mypy                (nonzero by default)
@@ -416,6 +419,12 @@ must also carry.
 - `.env` in `.gitignore` before the first commit.
 - Secure headers, input validation, output encoding where applicable.
 - Least-privilege defaults.
+- Lockfiles committed and installed in locked or hash-checked mode; update bot
+  (Dependabot or Renovate) with a cooldown; SBOM when the brief requires one.
+- CI workflows hardened: actions pinned to commit SHAs, top-level read-only
+  `permissions`, `persist-credentials: false`, untrusted values passed through
+  `env:`, and actionlint plus zizmor as gates. See the supply-chain and CI
+  sections of `${SKILL_ROOT}/docs/CODE-QUALITY.md`.
 
 Document security assumptions and accepted residual risk in `PLAN.md`.
 
@@ -487,6 +496,10 @@ Where applicable:
 
 - Production build validation — the build must actually succeed.
 - Bundle size awareness with a recorded budget.
+- For services, libraries, and CLIs: benchmarks of the hot paths the brief
+  names, compared against a recorded baseline on the same machine class, and a
+  profile before any optimization. Shared CI runners are too noisy for absolute
+  timing gates; gate on relative change or use a dedicated runner.
 - Lighthouse on visual milestones: **Performance, Accessibility, Best
   Practices**. SEO excluded unless explicitly requested.
 - Prefer static/server-side work where the stack favors it.

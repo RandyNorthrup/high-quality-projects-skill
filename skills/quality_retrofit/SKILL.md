@@ -188,7 +188,7 @@ one signal that protects the user's work.
 Record what exists before the gates run, and remove only what they created:
 
 ```bash
-CACHES=(.ruff_cache .mypy_cache .pytest_cache .tox htmlcov)
+CACHES=(.ruff_cache .mypy_cache .pytest_cache .tox htmlcov .coverage)
 PRE=(); for d in "${CACHES[@]}"; do [ -e "$d" ] && PRE+=("$d"); done
 
 # ... run the baseline gates ...
@@ -203,7 +203,7 @@ git status --porcelain    # must match what it printed before the baseline
 PowerShell equivalent:
 
 ```powershell
-$Caches = @('.ruff_cache', '.mypy_cache', '.pytest_cache', '.tox', 'htmlcov')
+$Caches = @('.ruff_cache', '.mypy_cache', '.pytest_cache', '.tox', 'htmlcov', '.coverage')
 $PreExistingCaches = @($Caches | Where-Object { Test-Path -LiteralPath $_ })
 
 # ... run the baseline gates ...
@@ -277,11 +277,15 @@ earlier change. This step is not optional.
 
 ### Phase 2 — config and gates (no product-source change)
 Install or extend the strict configs. Wire the gate scripts. Add pre-commit.
-Add CI workflow. Nothing under `src/` changes in this phase.
+Add or extend the CI workflow, hardened per the CI section of
+`${SKILL_ROOT}/docs/CODE-QUALITY.md`: actions pinned to commit SHAs, read-only
+default permissions, `persist-credentials: false`, job timeouts, and actionlint
+plus zizmor as gates. Install dependencies from lockfiles in CI. Nothing under
+`src/` changes in this phase.
 
 Ignore the tool caches here, once, for the rest of the retrofit —
 `.ruff_cache/`, `.mypy_cache/`, `.pytest_cache/`, `__pycache__/`, `.tox/`,
-`htmlcov/`, `node_modules/`, `target/`, `dist/`, `build/`, plus whatever the
+`htmlcov/`, `.coverage`, `node_modules/`, `target/`, `dist/`, `build/`, plus whatever the
 project's own toolchain writes. Extend the existing `.gitignore`; do not
 replace it.
 
@@ -324,7 +328,8 @@ Each tool sees something the others structurally cannot:
 - `vulture` — Python, heuristic
 - `cppcheck --enable=all` — includes `unusedFunction`
 - `cargo machete` — unused Cargo deps
-- Roslyn `IDE0051`/`IDE0052` — unused C# private members
+- Roslyn `IDE0051`/`IDE0052` — unused C# private members, reported at build
+  only when `.editorconfig` sets their severity (see the C# template)
 - `dpdm --no-warning --no-tree --exit-code circular:1 <entry>` — import cycles
 
 **Confirm the tool fires before trusting a clean run.** A dead-code tool that
@@ -407,7 +412,10 @@ checks.
   not a
   lint finding: the secret is in history, so rotate it first, then scrub.
   Report and stop; do not rewrite history unprompted.
-- `semgrep scan --error --config=auto`, `bandit`, `npm audit`, `pip-audit`, `cargo audit`
+- `semgrep scan --error --config=auto`, `bandit`, `npm audit`, `pip-audit`, `cargo audit`,
+  and `osv-scanner scan source -r .` across every lockfile
+- `zizmor` over `.github/`: an unpinned action or injectable `${{ }}` in a
+  workflow that holds write permissions is a supply-chain finding, not style
 - C/C++/Rust: wire sanitizer CI jobs. ASan+UBSan in one job, TSan in a
   **separate** one — they use incompatible shadow memory and cannot be combined.
   Use `-fno-sanitize-recover=all` so recoverable UBSan findings halt instead of
@@ -445,8 +453,10 @@ silently omit a row.
 [ ] No unjustified any / ignore / suppression
 [ ] Secret scan clean over reachable checked-out history (full checkout if claimed)
 [ ] Dependency audit clean, or exceptions documented
+[ ] Lockfiles committed; CI installs in locked or hash-checked mode
+[ ] CI actions pinned to SHAs, least-privilege permissions, zizmor clean
 [ ] Sanitizers wired (native code) and passing
-[ ] Tests pass; coverage recorded
+[ ] Tests pass; coverage floor set from the measured baseline and enforced
 [ ] Tests actually discovered/executed; affected red drills caught intended defects
 [ ] Maintained drill set passes with exact restoration and final green
 [ ] Canonical code enhanced; new paths justified; no unintended parallel implementation

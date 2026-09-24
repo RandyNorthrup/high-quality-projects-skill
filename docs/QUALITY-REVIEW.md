@@ -206,3 +206,97 @@ This post-publication receipt is maintained on main. The installed clone remains
 at exact release source; the immutable tagged plan records its prerequisite
 boundary, while this audit and the current plan record completed publication.
 No implementation or required release gate remains open.
+
+## Post-release audit: 2026-09-24
+
+Scope: an audit of `1789ed0` (v0.6.0 plus evidence commits) for missing tools,
+gates this repository prescribed but did not run on itself, and template
+defects. Every finding below was reproduced before it was fixed. The earlier
+sections remain the record for their own dates.
+
+### Findings corrected
+
+| Area | Finding | Correction |
+|---|---|---|
+| C# template | `Directory.Build.props` has been malformed XML since v0.5.0 (`--` inside a comment); MSBuild failed with `MSB4024` | Comment reworded; `tests/test_templates.py` parses every template the standard library can read |
+| C# template | IDE0051/IDE0052 were listed as the dead-code gate, but no severity was configured, so an unused private method built cleanly | `csharp/.editorconfig` sets IDE0051, IDE0052, IDE0059, IDE0060, and IDE0005 to error |
+| PowerShell template | `PSUseCorrectCasing` threw `NullReferenceException` intermittently (1.24.0 and 1.25.0, PowerShell 7.6.6); a planted violation went unreported with exit 0 | Rule disabled with evidence; all documented commands add `-ErrorAction Stop` |
+| mypy template | No equivalent of TypeScript's override and exhaustive-switch checks | `explicit-override`, `exhaustive-match`, `mutable-override`, `truthy-iterable`, `deprecated` |
+| Pre-commit template | vulture hook exited 2 without paths; mirrors-mypy turned dependencies into `Any`; ShellCheck hook needed Docker; `mixed-line-ending --fix=lf` rewrote CRLF-by-policy files | Hook `args`; project-environment mypy hook; `shellcheck-py`; `--fix=no` |
+| Rust template | cargo-deny was a listed gate with no policy; its defaults rejected even an MIT crate | `rust/deny.toml` |
+| `verify-format-safe.py` | Missing, undecodable, or directory input exited 1 ("AST changed"); valid Latin-1 source rejected | Parses bytes; input errors exit 2; tests added |
+| Plan writer | Replacement plan became owner-only (0600) on POSIX | Mode preserved or umask-derived; directory flushed after rename |
+| `detect-stack.sh` | Unescaped JSON root; case-sensitive matching unlike PowerShell; one tree walk per extension | Escaped strings, one case-insensitive walk, parity-checked |
+| Repository gates | ShellCheck, shfmt, PSScriptAnalyzer, vulture, Bandit, gitleaks history, coverage, and mypy on tests were not run by CI | Frozen pre-commit configuration and CI jobs run them all |
+| CI supply chain | Actions pinned to movable tags; credentials persisted by checkout; no timeouts; unhashed tool installs; no update automation | SHA pins, `persist-credentials: false`, timeouts, hash lock, Dependabot with cooldown |
+
+### Executed drills
+
+Each row passed first, failed for the named reason, then passed again after
+byte-identical restoration, unless the row states otherwise. Commands ran in
+disposable copies or fixtures; the working tree was never mutated.
+
+| Gate | Injected defect | Required diagnostic | Exit sequence |
+|---|---|---|---|
+| `unittest tests.test_verify_format_safe` | Original helper, before the fix | four failures (`1 != 2`, `1 != 0`) | 1 -> 0 after fix |
+| `unittest tests.test_update_delivery` (Linux) | Remove mode preservation | `AssertionError: 384 != 420` | 0 -> 1 -> 0 |
+| `unittest tests.test_templates` | Original props template | `ParseError: … line 32, column 11` | 1 -> 0 after fix |
+| mypy 2.3.1 with the template | Missing `@override`; missing match case; narrowed mutable attribute; truthiness of an `Iterable`; call to a `@deprecated` function | `[explicit-override]`, `[exhaustive-match]`, `[mutable-override]`, `[truthy-iterable]`, `[deprecated]` | 0 -> 1 -> 0 each |
+| Template pre-commit hooks | Wrong return type; unused function; lost executable bit; unknown `github` property; unpinned action | `[return-value]`, `unused function 'orphan'`, `marked executable`, `nonexistent_property`, `unpinned-uses` | 0 -> 1 -> 0 each |
+| `dotnet build` with both C# templates | Unused private method; unread field; overwritten value; unused parameter; unnecessary `using` | IDE0051, IDE0052, IDE0059, IDE0060, IDE0005 | 0 -> 1 -> 0 each |
+| `cargo deny check` with the template | License outside the allow-list; wildcard path dependency | `rejected`; `wildcard` | 0 -> 4 -> 0; 0 -> 2 -> 0 |
+| `coverage report` (Linux) | Remove `test_verify_format_safe.py` | `total of 80.7 is less than fail-under=82.0` | 0 -> 2 -> 0 |
+| `cross-platform-smoke.ps1 -RedDrills`, PowerShell 7 and 5.1 | Six maintained mutations | Each existing assertion message | 0 -> 1 -> 0 each |
+
+Additional observations:
+
+- PSScriptAnalyzer, ten fresh processes each: the new template exited 0 on a
+  clean script every time and 1 on an alias violation every time. With the
+  casing rule re-enabled and `-ErrorAction Stop`, three crashes all exited 1.
+- The superseded hooks, observed directly: mirrors-mypy rejected correct code
+  with `Return type becomes "Any" due to an unfollowed import`; the old vulture
+  hook printed `Please pass at least one file or directory`; `--fix=lf`
+  rewrote a uniformly CRLF `.ps1` and exited 1, while `--fix=no` passed it and
+  still rejected a mixed file.
+- A first smoke drill that removed `ToLowerInvariant()` survived: PowerShell
+  hashtables already compare keys case-insensitively. It was replaced with the
+  case-insensitive directory-pruning drill rather than counted.
+- Scanner parity on a mixed-case fixture: bash and PowerShell now agree on every
+  section; the previous bash scanner counted `Build/` and missed `.TS` and `.H`.
+  On a local multi-project workspace with more than 29,000 counted source
+  files, the previous bash scanner took 480.0 s, the new one 16.3 s, and
+  PowerShell 16.5 s, with identical counts (Git Bash on Windows). On Linux, a directory
+  named with a quote, backslash, and tab produced invalid JSON before the change
+  and an exact root afterwards.
+- `requirements-dev.txt` installed with `--require-hashes` on Windows (Python
+  3.12.14 and 3.14.0) and Linux (3.14.7). Under 3.12 the suite passed 58 tests
+  at 84.2% coverage. Coverage measured 83.1% on Windows and 83.3% on Linux.
+- The repository pre-commit configuration passed on all 87 files, the smoke
+  suite passed under PowerShell 7 and 5.1, actionlint and zizmor reported no
+  findings, and gitleaks found no leaks in 31 commits.
+
+Environment: Windows 11, PowerShell 7.6.6 and Windows PowerShell 5.1, Python
+3.14.0 and uv-managed 3.12.14; Arch Linux on WSL2 with Python 3.14.7. Ruff
+0.16.4, mypy 2.3.1, coverage 7.16.1, Bandit 1.9.4, vulture 2.16, pre-commit
+4.6.2, ShellCheck 0.11.0, actionlint 1.7.12, zizmor 1.30.1, PSScriptAnalyzer
+1.25.0, .NET SDK 10.0.401, cargo 1.96.0, cargo-deny 0.19.9, gitleaks 8.30.1.
+The pinned CI gitleaks 8.30.0 archive matched its published SHA-256.
+
+### Limits and open gates
+
+- Hosted CI has not run these changes; they are uncommitted. macOS, the
+  POSIX parity job, and the release job are unverified until it does.
+- `release-package-smoke.ps1` requires a clean committed tree and was not run.
+- Dependabot's `uv` and `pre-commit` ecosystems are configured from its
+  documentation; their handling of this lock and these frozen revisions is
+  unverified until the first scheduled run.
+- The release workflow keeps `uses: ./…` instead of zizmor's suggested `$/…`
+  self-repository form, because only a tagged release exercises that path.
+- New guidance tools (mutation, property/fuzz, benchmark, axe-core,
+  OSV-Scanner, Syft, hadolint) cite verified primary sources but were not
+  drilled here; target projects must drill them before relying on them.
+- No Go, Java/Kotlin, or Swift templates were added. The skill wording changed;
+  live agent trials were not rerun for it.
+- The scanners' Python interpreter probes (as before) and the new bash
+  PowerShell-module probe run without a timeout; a hung interpreter would stall
+  the scan. None hung in these runs.

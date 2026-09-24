@@ -1,6 +1,8 @@
 # Native delivery workflow implementation plan
 
 Status: **Complete. Implemented, evaluated, released as v0.6.0, and installed.**
+The post-release audit hardening at the end of this plan is implemented and
+locally verified; its hosted CI and release gates remain open.
 
 Prepared: 2026-09-07. Baseline: released v0.5.0, commit
 `52fa547a598b8b50392d49924e0db3fc3268c092`.
@@ -419,3 +421,40 @@ release, artifact/provenance checks, and installed discovery.
   files verified. Fresh Codex discovery found all three workflows enabled.
 - Test-only policy exceptions retain standard-library unittest assertion style;
   narrow subprocess exceptions cover fixed trusted commands and owned fixtures.
+
+## Post-release audit hardening (2026-09-24)
+
+Baseline: `1789ed0`, clean tree, level with `origin/main`. The owner asked for
+every audit finding to be fixed. Scope: shipped template and script defects,
+gates this repository prescribes but did not run on itself, CI supply-chain
+hardening, and missing guidance. Out of scope without a further decision: new
+language templates (Go, Java/Kotlin, Swift), a version bump, tagging, and
+publication.
+
+| ID | Required outcome |
+|---|---|
+| H01 | Every shipped template loads in its tool, and each changed rule is red-drilled |
+| H02 | Scanners agree across shells, emit valid JSON for any path, and detect the package's own recommended files and tools |
+| H03 | This repository runs every gate it prescribes for its own languages, locally and in CI |
+| H04 | CI actions, hooks, and tools are immutable pins with automated update proposals |
+| H05 | Guidance covers test depth, performance, supply chain, accessibility automation, and CI workflows from primary sources |
+| H06 | Helper scripts report input errors distinctly and preserve file permissions |
+
+- [x] H01 C# props XML fixed; `.editorconfig` and `deny.toml` templates added;
+      mypy codes, PSScriptAnalyzer, and pre-commit hooks corrected; all drilled.
+- [x] H02 Both scanners extended; bash rewritten to one escaped, case-insensitive
+      pass; parity, escaping, and speed verified; six maintained smoke drills.
+- [x] H03 Frozen pre-commit configuration, two mypy scopes with the shipped
+      template, vulture whitelist, Bandit, coverage floor, and CI jobs.
+- [x] H04 SHA-pinned actions, `persist-credentials: false`, timeouts, hash-locked
+      tools, checksum-verified gitleaks, Dependabot with cooldown.
+- [x] H05 CODE-QUALITY sections and workflow, template, and README updates; all
+      45 cited URLs returned HTTP 200 on 2026-09-24.
+- [x] H06 `verify-format-safe.py` exit contract and writer permissions, with tests.
+- [ ] Hosted cross-platform CI passes on the committed change, including macOS
+      and the POSIX escaping check.
+- [ ] `release-package-smoke.ps1` passes on the committed tree.
+- [ ] Dependabot's first scheduled run handles the uv lock and frozen hooks.
+
+Evidence, environments, and limits: `docs/QUALITY-REVIEW.md`, section
+"Post-release audit: 2026-09-24".
