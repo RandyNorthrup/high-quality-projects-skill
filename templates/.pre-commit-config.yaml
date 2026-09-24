@@ -2,7 +2,10 @@
 #
 #     pre-commit install                 # run on every commit
 #     pre-commit run --all-files         # run over the whole repo now
-#     pre-commit autoupdate              # bump pinned rev: pins
+#     pre-commit autoupdate --freeze     # bump pins to commit SHAs
+#
+# Tags are movable; `--freeze` records each hook repository's commit SHA with
+# the tag as a comment, so a retagged release cannot change what runs.
 #
 # Delete the language blocks a given project does not use — every hook that
 # stays enabled must pass, so an unused block is pure friction.
@@ -18,10 +21,18 @@ repos:
       - id: end-of-file-fixer
       - id: check-merge-conflict
       - id: check-case-conflict
+      # A script with a shebang must be executable and an executable must have
+      # a shebang. A Windows checkout cannot see a missing POSIX executable bit.
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
       - id: check-symlinks
       - id: destroyed-symlinks
+      # .gitattributes owns line endings (for example `* text=auto eol=lf` and
+      # `*.ps1 text eol=crlf`); this hook only rejects files that mix them.
+      # --fix=lf also rewrites uniformly CRLF files, so it fails every commit
+      # that touches a script kept in CRLF by that policy.
       - id: mixed-line-ending
-        args: [--fix=lf]
+        args: [--fix=no]
       - id: check-added-large-files
         args: [--maxkb=1024]
       - id: check-json
@@ -48,16 +59,16 @@ repos:
         args: [--fix, --exit-non-zero-on-fix]
       - id: ruff-format
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v2.3.1
-    hooks:
-      - id: mypy
-        additional_dependencies: [types-requests, types-PyYAML]
+  # mypy runs in the local block below, in the project's own environment.
 
   - repo: https://github.com/jendrikseipp/vulture
     rev: v2.16
     hooks:
       - id: vulture   # dead Python code
+        # The hook passes no filenames: unused-code analysis needs the whole
+        # tree. Name owned source roots here or in [tool.vulture] paths;
+        # without either, vulture exits 2 before checking anything.
+        args: [src, tests]
 
   - repo: https://github.com/PyCQA/bandit
     rev: 1.9.4
@@ -65,8 +76,11 @@ repos:
       - id: bandit
 
   # ── Shell ───────────────────────────────────────────────────────────
-  - repo: https://github.com/koalaman/shellcheck-precommit
-    rev: v0.11.0
+  # shellcheck-py installs the upstream ShellCheck binary from PyPI. The
+  # koalaman/shellcheck-precommit hook is a Docker image and fails on any
+  # machine without a running Docker daemon.
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
     hooks:
       - id: shellcheck
         args: [--severity=style, --enable=all]
@@ -76,6 +90,21 @@ repos:
     hooks:
       - id: shfmt
         args: [-i, '4', -ci, -sr, -d]
+
+  # ── GitHub Actions workflows ────────────────────────────────────────
+  # actionlint checks workflow syntax, expressions, and embedded shell;
+  # zizmor audits security: unpinned actions, persisted checkout credentials,
+  # template injection, and excessive permissions.
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.12
+    hooks:
+      - id: actionlint
+
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.30.1
+    hooks:
+      - id: zizmor
+        args: [--no-progress, --offline]
 
   # ── C / C++ ─────────────────────────────────────────────────────────
   - repo: https://github.com/pre-commit/mirrors-clang-format
@@ -90,6 +119,17 @@ repos:
   # or otherwise pin them in the project's toolchain before enabling the hooks.
   - repo: local
     hooks:
+      - id: mypy
+        name: mypy (project environment)
+        # mirrors-mypy's isolated environment lacks the project's dependencies
+        # and passes --ignore-missing-imports, so their types become Any and go
+        # unchecked. Use the interpreter that has them; on Windows that is
+        # python_runtime.bin from detect-stack.
+        entry: python -m mypy
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
+
       - id: eslint
         name: eslint (strict, type-checked)
         entry: eslint --max-warnings=0
@@ -157,7 +197,9 @@ repos:
         name: PSScriptAnalyzer (strict)
         # `pwsh` is the cross-platform host. On a Windows-only project that
         # supports only Windows PowerShell 5.1, replace it with `powershell`.
-        entry: pwsh -NoProfile -Command "Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit"
+        # -ErrorAction Stop turns an analyzer crash into a failing hook instead
+        # of a silent pass with that rule's findings missing.
+        entry: pwsh -NoProfile -Command "Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit -ErrorAction Stop"
         language: system
         files: \.(ps1|psm1|psd1)$
         pass_filenames: false

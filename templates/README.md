@@ -23,7 +23,10 @@ compatibility observations, not permanent minimums or automatic dependency
 pins.
 
 The 2026-09-07 source-backed review and current validation boundaries are in
-[`docs/QUALITY-REVIEW.md`](../docs/QUALITY-REVIEW.md). Preserve the older snapshot
+[`docs/QUALITY-REVIEW.md`](../docs/QUALITY-REVIEW.md). Its 2026-09-24 audit
+drilled the pre-commit, mypy, PSScriptAnalyzer, C#, and cargo-deny changes with
+the versions it records; `test_templates.py` also parses every template that
+the Python standard library can read. Preserve the older snapshot
 as history; select project runtimes explicitly rather than copying version or
 module defaults as universal choices.
 
@@ -39,7 +42,9 @@ module defaults as universal choices.
 | `web/knip.jsonc` | project root | dead files / exports / deps |
 | `cpp/.clang-tidy` | project root | C++ static analysis |
 | `csharp/Directory.Build.props` | solution root | C# compiler + analyzers |
+| `csharp/.editorconfig` | solution root, or merge | C# dead-code rule severities |
 | `rust/clippy-strict.toml` | see file — two parts | Rust lint |
+| `rust/deny.toml` | workspace root | advisories, licenses, bans, sources |
 | `powershell/PSScriptAnalyzerSettings.psd1` | project root | PowerShell |
 | `workflow/PLAN.md` | extend the canonical project plan | native delivery ledger; Python 3.12+ |
 | `.pre-commit-config.yaml` | project root | representative pre-commit hooks |
@@ -82,14 +87,16 @@ visible. Commands still require the corresponding project-local tools.
 ruff check .
 ruff format --check .
 mypy .
-vulture .
+vulture src tests                  # owned source roots
 bandit -r .
+deptry .
 pip-audit
 
 # TypeScript / JS
 tsc --noEmit
 eslint . --max-warnings=0
 knip --strict
+dpdm --no-warning --no-tree --exit-code circular:1 src/main.ts
 prettier --check .
 
 # CSS / HTML
@@ -113,12 +120,17 @@ dotnet build -warnaserror
 roslynator analyze
 
 # PowerShell (run inside PowerShell 5.1+)
-Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit
+Invoke-ScriptAnalyzer -Path . -Recurse -Settings ./PSScriptAnalyzerSettings.psd1 -EnableExit -ErrorAction Stop
 
 # Cross-cutting
 gitleaks git --redact             # secrets in reachable git history
 semgrep scan --error --config=auto # findings must cause a failing exit
 jscpd .                           # configure a project duplication threshold
+osv-scanner scan source -r .      # every lockfile against OSV advisories
+
+# GitHub Actions workflows
+actionlint
+zizmor --offline .github
 ```
 
 Shell-project gates use POSIX filename expansion:
@@ -188,7 +200,21 @@ checks. Domain-local numeric constants need no TypeScript file-wide exemption.
 - **`EnforceCodeStyleInBuild`** runs supported IDE code-style analyzers during
   build. Set diagnostic severities in `.editorconfig` and drill them; it does
   not promote every suggestion. Keep `dotnet format --verify-no-changes` too.
-- **`-EnableExit`** is what makes PSScriptAnalyzer fail a build.
+- **`-EnableExit`** is what makes PSScriptAnalyzer fail a build, and
+  **`-ErrorAction Stop`** is what makes an analyzer crash fail it. A rule that
+  throws is otherwise a non-terminating error: its findings disappear and the
+  command can exit 0 (see `PSUseCorrectCasing` below).
+- **The vulture pre-commit hook passes no filenames**, because unused-code
+  analysis needs the whole tree. It exits 2 with `Please pass at least one file
+  or directory` until the project sets `[tool.vulture] paths` in
+  `pyproject.toml` or gives the hook explicit `args`.
+- **mypy belongs in a project-environment hook.** `mirrors-mypy` runs in an
+  isolated environment holding only its `additional_dependencies`, and its
+  default `--ignore-missing-imports` overrides the template's
+  `ignore_missing_imports = false`. Every project dependency becomes `Any`, so
+  calls into it go unchecked, and `disallow_any_unimported` then rejects
+  correct code: `Return type becomes "Any" due to an unfollowed import`. The
+  template runs mypy with the project's own interpreter instead.
 - **Clippy lint *levels* go in `Cargo.toml`, not `clippy.toml`.** `clippy.toml`
   only tunes thresholds. See `rust/clippy-strict.toml` — it holds both halves.
 - **gitleaks allowlists well-known example keys** (e.g.
@@ -218,6 +244,12 @@ Found by deliberately breaking things. Each of these looked configured.
   not make the combination supported.
 - **`maxDepth: Infinity`** in any JSON-serialised rule option becomes `null`,
   which can silently disable traversal. Use a finite number.
+- **`PSUseCorrectCasing` can crash and still pass.** With PSScriptAnalyzer
+  1.24.0 and 1.25.0 on PowerShell 7.6, it intermittently threw
+  `NullReferenceException` on this package's own test scripts. In a fresh
+  process a planted casing violation then went unreported and `-EnableExit`
+  exited 0. The template disables the rule; `-ErrorAction Stop` makes any
+  remaining analyzer crash fail the command instead.
 
 ### TypeScript 7 is outside typescript-eslint's supported range
 

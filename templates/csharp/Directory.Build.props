@@ -27,9 +27,11 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
 
     <!-- Run supported IDE code-style analyzers during build. Set intended
-         diagnostic severities in the existing .editorconfig: this switch does
-         not promote every suggestion to an error. Keep dotnet format's
-         --verify-no-changes check as a separate formatting gate. -->
+         diagnostic severities in the existing .editorconfig (the companion
+         template sets the dead-code rules): this switch does not promote
+         every suggestion to an error. Keep the dotnet format verify-no-changes
+         check as a separate formatting gate. XML comments cannot contain two
+         consecutive hyphens, so command-line flags are not written here. -->
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 
     <!-- Dead code / correctness -->
