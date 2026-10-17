@@ -5,6 +5,8 @@ name: Cross-platform package checks
     branches:
       - main
   pull_request:
+  # A merge queue receives the same required checks as the pull request.
+  merge_group:
   workflow_call:
 
 permissions:
@@ -43,9 +45,11 @@ jobs:
         run: python -m pre_commit run --all-files --show-diff-on-failure
       - name: Scan reachable history for secrets
         env:
-          GITLEAKS_VERSION: 8.30.0
-          # SHA-256 of gitleaks_8.30.0_linux_x64.tar.gz from the upstream release.
-          GITLEAKS_SHA256: 79a3ab579b53f71efd634f3aaf7e04a0fa0cf206b7ed434638d1547a2470a66e
+          # Pinned in upstreams.json, which the weekly upstream watch compares
+          # with the latest release.
+          GITLEAKS_VERSION: 8.30.1
+          # SHA-256 of gitleaks_8.30.1_linux_x64.tar.gz from the upstream release.
+          GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
         run: |
           set -euo pipefail
           archive="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
@@ -117,9 +121,13 @@ jobs:
       - name: Type-check with the shipped mypy template
         run: |
           python -m compileall -q scripts tests
-          python -m mypy --config-file templates/python/mypy.ini --python-version 3.12 scripts/delivery scripts/verify-delivery.py scripts/update-delivery.py scripts/verify-format-safe.py
+          python -m mypy --config-file templates/python/mypy.ini --python-version 3.12 scripts/delivery scripts/practices scripts/verify-delivery.py scripts/update-delivery.py scripts/verify-format-safe.py scripts/verify-practices.py
           python -m mypy --config-file templates/python/mypy.ini --python-version 3.12 --explicit-package-bases tests
       - name: Run tests, validator red drills, and the coverage floor
+        env:
+          # The upstream-watch test queries api.github.com live. The automatic
+          # read-only token keeps shared runner IPs inside the API rate limit.
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           python -m coverage run -m unittest discover -s tests -p "test_*.py"
           python -m coverage combine

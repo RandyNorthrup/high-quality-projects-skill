@@ -1,0 +1,245 @@
+# Practices enforced by command
+
+Lint and type gates catch defects in code. These failures pass them:
+
+- tests that replace the code they claim to test;
+- tests that check a sentence exists;
+- CI that blocks merges forever, or turns green when re-run;
+- pins that rot unnoticed;
+- lessons that live only in a document.
+
+Each section states the rule, why it holds, what `scripts/verify-practices.py`
+refuses, and what stays review work. All three workflows route here; the
+templates make a new project comply from its first commit.
+
+## Run the check
+
+```console
+python <package-root>/scripts/verify-practices.py --root . --rules AGENTS.md
+python <package-root>/scripts/verify-practices.py --root . --watch
+```
+
+It needs Python 3.12+ and only the standard library. It reads the tree and
+today's date, never writes, and never runs project code. It skips generated
+and vendored directories (`node_modules`, `dist`, `build`, `target`, `vendor`,
+virtual environments) and nested Git repositories, such as a pinned checkout
+of this package in CI.
+
+| Exit | Meaning |
+|---|---|
+| 0 | Every check ran and nothing was refused |
+| 1 | Refused practices are listed by file, line, and check |
+| 2 | The root, `upstreams.json`, or the pitfalls register cannot be read |
+
+A project with no code files, no `upstreams.json`, or no pitfalls register
+fails: missing input is never a pass. `--watch` asks each watched upstream for
+its latest release and exits 1 when one moved since the last review; a failed
+query exits 2. `--format json` emits the same findings for tooling.
+
+## Tests run real code
+
+Tests exercise real code only. No mock, stub, or spy replaces behavior. No
+fake server answers with hand-written responses. No fake CLI, fake timer, or
+in-memory stand-in replaces a store, keyring, or filesystem.
+
+A double encodes what someone believed the dependency does. The test then
+passes against a world that does not exist, and keeps passing after the real
+dependency changes: the service renames a field, the CLI changes its exit
+code, the store rejects a value. Users meet the failure first.
+
+The outside world is tested live, or not at all. Never test it through a
+recording, a cassette, a fixture of its replies, or a local fake server. A
+recording is a stand-in too: it keeps answering the old way after the service
+changes, so the test stays green while users fail. A test that reaches an
+outside service fails when the service is unreachable; it never skips.
+
+When code cannot be tested without a double, change the code. Move decisions
+out of the I/O path, so tests call them directly with inputs they construct to
+exercise the code's own rules, such as malformed and boundary values. Exercise
+the I/O itself against the real dependency in an integration run: a real
+database engine in a disposable directory, the real CLI, the real API. Property
+and fuzz generators are unaffected: they explore inputs to your own code for
+invariants rather than standing in for what an outside system said.
+
+| Check | Refuses | Allowance |
+|---|---|---|
+| `mock` | `unittest.mock`, `mock`, `pytest-mock` and `mocker`, `monkeypatch.setattr`; `vi`/`jest` `mock`, `fn`, `spyOn`; Sinon, testdouble; Moq, NSubstitute; mockall; gomock, testify `mock`; Mockito; Pester `Mock`; `__mocks__` | none |
+| `fake-timer` | freezegun, time-machine, `useFakeTimers`, `@sinonjs/fake-timers`, `FakeTimeProvider`, fake Go clocks | none |
+| `fake-server` | responses, respx, httpretty, `BaseHTTPRequestHandler` subclasses in tests, nock, msw, fetch-mock, `MockAgent`, WireMock, `httptest` with an inline handler | none |
+| `stand-in` | fakeredis, mongomock, moto, pyfakefs, memfs, mock-fs, redis mocks, fake-indexeddb | none |
+
+These apply to code and to dependency manifests (`package.json`,
+`pyproject.toml`, requirements files, `Cargo.toml`, `.csproj`, `go.mod`): a
+mocking library that is installed gets used.
+
+## Tests that can fail a user
+
+A test fails when a user would be harmed. A test that only checks that text, a
+key, or a file exists is not a test: the product can break completely while it
+passes. Assert the behavior a user depends on, through the product's real
+entry point.
+
+Write fewer, meaningful tests. A test per rule, per finding, or per checklist
+item multiplies maintenance and still misses the behavior between items. Add
+a case to the behavior's table-driven test instead.
+
+Prove every new test and gate fires with the [red-drill procedure](RED-DRILLS.md).
+Wait for the condition the test needs, never for a fixed delay. Keep the
+repository's default timeouts; a raised timeout hides slow setup until it
+grows past the new limit.
+
+A UI change gets one small local look. CI runs no screenshot or frame
+comparison: pixel diffs fail on fonts, drivers, and anti-aliasing, and teach
+people to re-baseline instead of looking.
+
+The proof that a product works is real use of the built or packed product.
+Make claims in the README, changelog, help, and release notes only after that
+use. A false claim is fixed in the code, never by rewording it.
+
+| Check | Refuses | Allowance |
+|---|---|---|
+| `text-existence` | A Python or JavaScript-family test that only reads or lists files and asserts presence (`in`, `toContain`, `toMatch`, `toHaveProperty`, truthiness) | reviewed |
+| `one-off` | Three or more tests in a file whose bodies differ only in literal values; a test named after a numbered finding, item, checklist entry, rule, lesson, pitfall, issue, ticket, or bug | reviewed |
+| `fixed-delay` | `time.sleep`, `waitForTimeout`, a sleeping `setTimeout` promise, `Thread.Sleep`, `time.Sleep`, `Start-Sleep` in tests; `sleep` in workflow steps | reviewed |
+| `timeout-override` | `@pytest.mark.timeout`, `jest.setTimeout`, `this.timeout`, `testTimeout`, a per-test timeout argument | reviewed |
+| `rerun` | Retry and re-run settings in test code, runner configuration, package scripts, and workflows (`retries`, `--reruns`, `retryTimes`, flaky markers, retry actions, `gh run rerun`) | none |
+
+## Hosted CI is the merge gate
+
+Hosted CI is the gate for merges and releases, and it needs no secret or key:
+forks and merge queues run it with read-only access. Publishing credentials
+belong to tag- or dispatch-triggered release jobs, never to a merge gate.
+
+A check is green on its first run. A red check is never re-run into green;
+find the cause. A re-run that passes leaves the defect in place, now hidden.
+
+Every required check reports on every change. A workflow skipped by a path or
+branch filter leaves its required check
+[Pending, which blocks the merge](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow).
+A docs-only change is then blocked forever. Skip expensive work inside the
+job instead, so the check still reports.
+
+Design throughput in. Size runner capacity to the contributors and agents
+working in parallel. A strict "branch must be up to date before merging" rule
+serializes every merge behind one CI run each. A
+[merge queue](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue)
+gives the same protection without that queue of re-runs, and requires
+workflows to run on `merge_group`. Use merge trains where the host offers
+those instead of queues. Declaring `merge_group` is harmless before a queue is
+enabled.
+
+Run every suite that depends on a changed file before pushing; a change to a
+hub file that many modules import means an integration run. The merge gate
+runs every suite.
+
+Set `timeout-minutes` on every job from one repository default, as a ceiling
+for a hung runner. Never raise it to make room for slow setup.
+
+| Check | Refuses | Allowance |
+|---|---|---|
+| `ci-secret` | `secrets.*` other than `GITHUB_TOKEN`, or `secrets: inherit`, in a workflow triggered by `pull_request`, `pull_request_target`, or `merge_group` | none |
+| `ci-merge-group` | A `pull_request` workflow without `merge_group` | reviewed |
+| `ci-path-filter` | `paths` or `paths-ignore` on a merge-gate trigger | reviewed |
+| `ci-continue-on-error` | `continue-on-error: true` in a merge gate | reviewed |
+| `ci-timeout` | A job without `timeout-minutes` (reusable-workflow calls excepted) | reviewed |
+
+[`templates/ci/quality.yml`](../templates/ci/quality.yml) is a merge gate in
+this shape.
+
+## Upstream currency
+
+Keep every pinned version in one place from day one: `upstreams.json`. Update
+bots cover lockfile ecosystems. They do not cover a CLI downloaded in CI, an
+API or protocol version a client sends, or a data or schema snapshot. Those rot
+silently until the upstream removes them.
+
+```json
+{
+  "schema_version": 1,
+  "upstreams": [
+    {
+      "name": "gitleaks",
+      "kind": "cli",
+      "pinned": "8.30.1",
+      "used_in": [".github/workflows/ci.yml"],
+      "watch": {"type": "github-releases", "repository": "gitleaks/gitleaks"},
+      "reviewed": "YYYY-MM-DD",
+      "latest_seen": "8.30.1",
+      "max_age_days": 30,
+      "hold": null
+    }
+  ]
+}
+```
+
+`kind` is one of `runtime`, `sdk`, `cli`, `tool`, `action`, `protocol`, `api`,
+`snapshot`, or `service`. A `watch` is `github-releases` with an
+`owner/name` repository, or `manual` with an https URL for a changelog or
+release page. A `hold` is `{"reason": ..., "until": "YYYY-MM-DD"}`. Unknown fields,
+duplicate keys, and future dates are input errors.
+
+The staleness gate runs in the merge gate, offline and deterministic:
+
+| Check | Fails when |
+|---|---|
+| `upstream-pin-drift` | The pinned string is missing from a `used_in` file: the one place and the code disagree |
+| `upstream-review-overdue` | `reviewed` is older than `max_age_days`: nobody looked at releases or changelogs |
+| `upstream-behind` | `latest_seen` differs from `pinned` with no hold |
+| `upstream-hold-expired` | A hold's end date passed |
+
+[`templates/ci/upstream-watch.yml`](../templates/ci/upstream-watch.yml) runs
+`--watch` weekly and opens one incorporation issue when a release appears. A
+detected change is incorporation work at once: adopt it, or record a hold with
+a reason and an end date, then update `latest_seen` and `reviewed`.
+
+## Pitfalls register
+
+Keep a pitfalls register from day one, in the canonical rules file. Every
+entry names the code that fails if the pitfall returns: a test, a gate script
+that CI runs, or a check of this command. A rule enforced by a document, a
+skill, or a suggestion is read once and then forgotten.
+
+````markdown
+```pitfalls-register
+{
+  "schema_version": 1,
+  "pitfalls": [
+    {
+      "id": "PIT-1",
+      "pitfall": "A path-filtered required check blocked docs-only pull requests",
+      "rule": "Merge-gate workflows run on every change",
+      "enforced_by": [{"check": "ci-path-filter"}, {"path": "tests/test_ci.py"}]
+    }
+  ]
+}
+```
+````
+
+| Check | Fails when |
+|---|---|
+| `register-missing` | The rules file has no register block |
+| `register-unenforced` | An entry names nothing, a document, a missing file, a script that no workflow or gate runner (`.pre-commit-config.yaml`, `package.json`, `Makefile`, `justfile`, `Taskfile.yml`, `tox.ini`, `noxfile.py`, `pyproject.toml`) runs, or an unknown check |
+
+## Allowances
+
+A reviewed exception is a comment on the finding's line or the line above it:
+
+```python
+# verify-practices: allow fixed-delay -- the server documents a fixed 2 s backoff
+time.sleep(2)
+```
+
+The reason after `--` is required. Only the checks marked "reviewed" above
+accept one. An allowance on any other check is refused, an allowance with no
+matching finding fails as stale, and accepted allowances are listed in every
+report so they stay visible.
+
+## What the command cannot see
+
+The checks match imports, calls, names, and workflow text; they do not run
+the tests. Test shape is analyzed for Python and the JavaScript family only. A
+fake CLI on `PATH`, a saved fixture of an outside service's replies, a manual
+re-run in the CI interface, a screenshot comparison, and a process rule built
+into the product are found by review. A clean run proves only that these
+forms are absent. Red drills and real use of the built product prove that the
+tests and the product work.

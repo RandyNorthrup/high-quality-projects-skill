@@ -3,11 +3,11 @@
 import hashlib
 import os
 import stat
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 from typing import override
-from unittest.mock import patch
 
 from scripts.delivery.reader import PlanError
 from scripts.delivery.writer import UpdateConflictError, acquire_lock, run, update
@@ -60,15 +60,19 @@ class UpdateTests(unittest.TestCase):
         self.assertEqual(owner.read_text(encoding="utf-8"), '{"pid": 42}')
         self.assertFalse((self.root / "PLAN.md").exists())
 
+    @unittest.skipUnless(
+        os.name == "nt",
+        "POSIX lets an unprivileged process rename over an open file; only Windows refuses it",
+    )
     def test_failure_before_replace_preserves_complete_plan(self) -> None:
-        """A failed atomic replacement leaves the original bytes and releases our lock."""
+        """A replacement the OS refuses leaves the original bytes and releases our lock."""
         plan = save(self.root, self.data)
         original = plan.read_bytes()
         self.candidate.write_bytes(original + b"\nRevised rationale.\n")
-        with (
-            patch("scripts.delivery.writer.Path.replace", side_effect=OSError("disk failure")),
-            self.assertRaisesRegex(OSError, "disk failure"),
-        ):
+        # Windows refuses to replace a file another handle holds open without
+        # delete sharing, which is how Python opens files: a real OS failure at
+        # the final step, after the complete candidate was written and flushed.
+        with plan.open("rb"), self.assertRaises(PermissionError):
             update(self.root, "PLAN.md", self.candidate, hashlib.sha256(original).hexdigest())
         self.assertEqual(plan.read_bytes(), original)
         self.assertFalse((self.root / "PLAN.md.lock").exists())
@@ -108,19 +112,18 @@ class UpdateTests(unittest.TestCase):
         with self.assertRaises(PlanError):
             update(self.root, "../outside.md", self.candidate, "missing")
 
-    def test_partial_lock_write_releases_owned_lock(self) -> None:
-        """A partial owner-file write cannot leave our failed acquisition locked."""
+    @unittest.skipIf(
+        sys.platform == "win32" or os.geteuid() == 0,
+        "needs POSIX permissions enforced on the current user (not Windows, not root)",
+    )
+    def test_failed_owner_write_releases_owned_lock(self) -> None:
+        """A lock whose owner record cannot be written is removed, not left behind."""
         lock = self.root / "PLAN.md.lock"
-
-        def partial_write(path: Path, *_args: object, **_kwargs: object) -> None:
-            path.write_bytes(b"partial")
-            message = "owner write interrupted"
-            raise OSError(message)
-
-        with (
-            patch.object(Path, "write_text", partial_write),
-            self.assertRaisesRegex(OSError, "owner write interrupted"),
-        ):
+        # With no write bits in the umask, the new lock directory is read-only to
+        # its creator, so writing the owner record fails for real after mkdir.
+        previous = os.umask(0o277)
+        self.addCleanup(os.umask, previous)
+        with self.assertRaises(PermissionError):
             acquire_lock(lock, "missing")
         self.assertFalse(lock.exists())
 

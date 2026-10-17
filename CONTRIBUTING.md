@@ -12,6 +12,7 @@ AGENTS.md                     universal entry point — any agent starts here
 .pre-commit-config.yaml       this repository's own gates, frozen to commit SHAs
 requirements-dev.in/.txt      hash-locked Python tools for local checks and CI
 .coveragerc                   coverage settings and the enforced floor
+upstreams.json                pins no update bot covers; the staleness gate reads it
 .claude-plugin/               Claude Code manifests — packaging only
 skills/
   project_setup/    SKILL.md — new-project scaffolding
@@ -25,7 +26,9 @@ scripts/
   verify-delivery.py     read-only structural/evidence verification
   update-delivery.py     atomic candidate updates with conflict detection
   delivery/             shared first-party standard-library implementation
-templates/          strict configs, copied into target projects
+  verify-practices.py    refuses doubles, re-runs, merge-gate defects, stale pins
+  practices/            its standard-library implementation
+templates/          strict configs, CI workflows, rules and pin files for target projects
 docs/               philosophy and extended reference
 ```
 
@@ -178,7 +181,8 @@ python -m coverage report
 
 The hooks run Ruff, both mypy scopes with the shipped mypy template, vulture,
 Bandit, ShellCheck, shfmt, PSScriptAnalyzer with the shipped settings,
-actionlint, zizmor, and staged-change secret scanning. The entry scripts and the
+actionlint, zizmor, staged-change secret scanning, and `verify-practices.py`
+against this repository with the register below. The entry scripts and the
 tests import the delivery package under different module names, so mypy runs
 once for each. Coverage includes the command-line entry points run as child
 processes, and `coverage report` fails below the floor in `.coveragerc`.
@@ -193,6 +197,63 @@ trials are recorded separately; CI does not pretend to rerun a model.
 After changing a pin in `requirements-dev.in`, regenerate the lock with the
 command in that file's header. Hook revisions are frozen to commit SHAs;
 refresh them with `pre-commit autoupdate --freeze`. Dependabot proposes both.
+
+## Editing the practices checker
+
+`verify-practices.py` must keep passing on this repository. Every check has a
+refused case and a negative control in `tests/test_practices.py`, and a drill
+in `tests/test_red_drills.py` that breaks it and requires that case to fail.
+Add both with a new check. A heuristic that fires on legitimate code gets
+disabled by the people it annoys, so prefer a precise pattern over a broad
+one, and list what it cannot see in `docs/PRACTICES.md`.
+
+### Pitfalls register
+
+This repository's own pitfalls, each with the code that fails if it returns.
+
+```pitfalls-register
+{
+  "schema_version": 1,
+  "pitfalls": [
+    {
+      "id": "PIT-1",
+      "pitfall": "The documented release build deleted unrelated files in its output directory",
+      "rule": "The builder replaces only its own artifacts and refuses a directory holding anything else",
+      "enforced_by": [{"path": "tests/release-package-smoke.ps1"}]
+    },
+    {
+      "id": "PIT-2",
+      "pitfall": "An analyzer rule crashed, its findings vanished, and the gate exited 0",
+      "rule": "An analyzer error fails the gate; the crashing rule stays disabled with evidence",
+      "enforced_by": [{"path": "tests/powershell-analysis.ps1"}]
+    },
+    {
+      "id": "PIT-3",
+      "pitfall": "A malformed template shipped because no test loaded it in its own grammar",
+      "rule": "Every template is classified and parsed by the grammar its tool uses",
+      "enforced_by": [{"path": "tests/test_templates.py"}]
+    },
+    {
+      "id": "PIT-4",
+      "pitfall": "Workflow actions referenced by movable tags could change what CI runs",
+      "rule": "Every action is pinned to a full commit SHA",
+      "enforced_by": [{"path": "tests/cross-platform-smoke.ps1"}]
+    },
+    {
+      "id": "PIT-5",
+      "pitfall": "Writer tests replaced disk failures with mocks, so the cleanup path never met a real failure",
+      "rule": "Tests trigger real OS refusals; no test doubles",
+      "enforced_by": [{"check": "mock"}, {"path": "tests/test_update_delivery.py"}]
+    },
+    {
+      "id": "PIT-6",
+      "pitfall": "The CI secret-scanner binary fell a release behind with nobody noticing",
+      "rule": "Every pin no update bot covers lives in upstreams.json and is watched",
+      "enforced_by": [{"check": "upstream-behind"}, {"check": "upstream-review-overdue"}]
+    }
+  ]
+}
+```
 
 ## Releasing
 

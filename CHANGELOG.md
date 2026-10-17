@@ -5,6 +5,40 @@ All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- `scripts/verify-practices.py`, a standard-library command for failures that
+  lint and type gates cannot see. It refuses test doubles, fake timers, fake
+  servers, and in-memory stand-ins in code and dependency manifests;
+  presence-only and one-off tests in Python and the JavaScript family;
+  configured re-runs, fixed delays, and per-test timeout overrides; merge-gate
+  workflows without `merge_group`, with path filters, secrets, or
+  `continue-on-error`; jobs without timeouts; stale or drifted pins in
+  `upstreams.json`; and pitfalls-register entries that no code enforces. Exit 0
+  passes, 1 lists findings, 2 means unreadable input; missing input never
+  passes. `--watch` asks GitHub for each watched upstream's latest release.
+- `docs/PRACTICES.md`: each rule with its reason, the check that enforces it,
+  the allowance syntax, and what the command cannot see.
+- Templates for a new project: the `templates/ci/quality.yml` merge gate, the
+  `templates/ci/upstream-watch.yml` weekly release watch, the
+  `templates/workflow/AGENTS.md` process-rules file with an enforced pitfalls
+  register, and `templates/workflow/upstreams.json`.
+- `upstreams.json` for this repository's own CLI, tool, and API pins, and a
+  pitfalls register in `CONTRIBUTING.md`.
+
+### Changed
+
+- This repository passes its own checker: pre-commit and CI run it, the gate
+  workflow also runs on `merge_group`, and the test step passes the automatic
+  read-only token to the live upstream-watch test. The CI gitleaks binary moved
+  to the 8.30.1 release, verified against its published checksum and run over
+  this repository's history.
+- The atomic-writer tests trigger real OS refusals instead of patching `Path`,
+  and the behavioral oracle observes calls into the canonical helper through a
+  profiling hook instead of replacing it.
+
 ## 0.7.0 — 2026-09-24
 
 ### Fixed

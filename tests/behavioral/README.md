@@ -46,9 +46,9 @@ python -m tests.behavioral.check dist/behavioral-v0.6.0/reuse-1 --case reuse
 | resume | Stale proof rejected, current behavior restored, unrelated user edit retained |
 | outcome | Completed local deployment observed and checkpoint reconciled without replay |
 
-`check.py` executes a separately authored public-behavior oracle, patches the
-canonical helper before importing its consumer to establish reuse, runs submitted
-tests, then reruns those unchanged tests against a disposable broken source copy.
+`check.py` executes a separately authored public-behavior oracle, observes calls
+into the canonical helper with a profiling hook, without replacing it, to
+establish reuse, runs submitted tests, then reruns those unchanged tests against a disposable broken source copy.
 Configuration and history checks inspect actual artifacts. Outcome checks inspect
 the replay marker, checkpoint, and protected source files. No command text from
 an agent report or plan is executed.
