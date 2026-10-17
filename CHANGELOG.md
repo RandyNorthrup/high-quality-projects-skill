@@ -68,6 +68,16 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   keeps its scanner, root-resolution, action-pinning, release-gate, template
   loading, and manifest-version checks, and all six red drills.
 
+### Verification
+
+- The checker's first run on this repository found two mocks, a gate without
+  `merge_group`, and no pin file or register; all were fixed in the code.
+- 69 tests pass on Windows (4 POSIX or symlink skips) and on Linux under WSL
+  (1 Windows-only skip), with coverage at 85.1% against the 82% floor. All
+  repository hooks pass, both smoke suites pass under PowerShell 7 and 5.1,
+  and the live upstream watch ran against GitHub. Hosted CI has not yet run on
+  these commits. Evidence and limits are in `docs/QUALITY-REVIEW.md`.
+
 ## 0.7.0 — 2026-09-24
 
 ### Fixed

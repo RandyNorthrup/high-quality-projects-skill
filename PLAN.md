@@ -464,3 +464,41 @@ publication.
 
 Evidence, environments, and limits: `docs/QUALITY-REVIEW.md`, section
 "Post-release audit: 2026-09-24".
+
+## Practices enforcement (2026-10-17)
+
+Baseline: `18e47cf`, clean tree, branch `lessons/2026-10-17`. The owner asked
+for the skill itself to prevent failures that pass lint and type gates. That
+means changing what the workflows scaffold, check, and require, not writing
+the lessons down. Scope is general engineering practice for any project. Out
+of scope: a version bump, tagging, publication, and repository settings such
+as a merge queue or branch protection.
+
+| ID | Required outcome |
+|---|---|
+| P01 | Tests run real code: doubles, fake servers and timers, stand-ins, presence-only, one-off, and re-run tests are refused by a command; the outside world is tested live or not at all |
+| P02 | Every new test and gate is proven to fire, and gate scripts are proven as commands, including through a symlink |
+| P03 | CI is a secret-free merge gate: `merge_group`, no path filters, no retries or `continue-on-error`, job timeouts |
+| P04 | Upstream currency: one pin file, a staleness gate, and a release watch |
+| P05 | Process rules stay apart from product rules; a pitfalls register is enforced by code |
+| P06 | All three workflows scaffold, check, or require the above, and this repository passes its own checker |
+
+- [x] P01 `verify-practices.py` with refused cases and negative controls in
+      `tests/test_practices.py`; this repository's mocks replaced by real OS
+      refusals and a profiling observer.
+- [x] P02 27 maintained drills in `tests/test_red_drills.py`; the harness
+      itself fails on surviving mutations and drifted anchors; gate-as-command
+      procedure in `docs/RED-DRILLS.md`.
+- [x] P03 `templates/ci/quality.yml`; this repository's gate runs on
+      `merge_group`.
+- [x] P04 `upstreams.json`, staleness checks, `--watch`, and
+      `templates/ci/upstream-watch.yml`; the watch was run live against GitHub.
+- [x] P05 `templates/workflow/AGENTS.md`, `docs/DELIVERY.md`, and the register
+      in `CONTRIBUTING.md`.
+- [x] P06 Workflow, documentation, and template changes; repository hooks,
+      the tests on Windows and Linux, both smoke suites, and the release smoke
+      pass locally.
+- [ ] Hosted cross-platform CI passes on the pushed commits, including macOS.
+
+Evidence, environments, and limits: `docs/QUALITY-REVIEW.md`, section
+"Practices enforcement: 2026-10-17".

@@ -340,3 +340,90 @@ passed all thirteen jobs, and each new SHA matched its upstream tag. All three
 were squash-merged after the release and are not part of v0.7.0. The release
 workflow has not yet run with checkout and setup-python v7; the next tag is
 the first to exercise them.
+
+## Practices enforcement: 2026-10-17
+
+Scope: commits `fd96289`, `85f373e`, and `799b2d6` on branch
+`lessons/2026-10-17`, from base `18e47cf` (v0.7.0 plus evidence). They add
+`verify-practices.py`, the CI and project-rules templates, and the workflow
+changes that route to `docs/PRACTICES.md`. They also make this repository pass
+the new checker. The checks are general engineering practice; nothing in them
+is specific to one kind of product.
+
+### What the checker found here first
+
+The first run against this repository refused: two uses of `unittest.mock`
+(`tests/test_update_delivery.py` and `tests/behavioral/probe.py`), a gate
+workflow without `merge_group`, and the absence of `upstreams.json` and a
+pitfalls register. Each was fixed in the code, not allowed:
+
+- The atomic-writer tests now meet real OS refusals. On Windows, an open
+  handle makes the final replace fail. On POSIX, a no-write umask makes the
+  lock's owner file uncreatable after `mkdir`.
+- The behavioral oracle observes calls into the canonical helper with
+  `sys.setprofile` instead of replacing it.
+- `cross-platform.yml` runs on `merge_group`. The CI gitleaks binary moved
+  from 8.30.0 to 8.30.1, after the archive matched the release's published
+  checksum and the binary scanned this history (44 commits, no leaks, exit 0)
+  under WSL.
+- `upstreams.json` pins gitleaks, PSScriptAnalyzer, and the GitHub REST API
+  version the watch sends (2026-03-10). `CONTRIBUTING.md` carries a register
+  of six pitfalls, each enforced by a test or a check.
+
+### Executed drills
+
+Every drill passed first, failed for the named reason with a non-zero exit,
+and passed again after restoration. Restoration was compared by SHA-256.
+Source was mutated only in disposable copies.
+
+| Gate or test | Injected defect | Required failure |
+|---|---|---|
+| `tests/test_red_drills.py` (maintained, 27 drills) | Removed or disabled each detection rule of the checker (mock imports and calls, fake servers, stand-ins, flaky markers, comment masking, other-language imports, Pester, manifests, presence-only and copied tests, sleeps, per-test timeouts, `merge_group`, path filters, secrets, timeouts, staleness, pin drift, live tag parsing, register rules, allowance reasons), two validator rules, and the oracle's delegation check | The named test fails with `AssertionError`; each run exits non-zero; then green |
+| The drill harness itself | A behavior-neutral mutation; a drifted anchor | `Defect survived` and `Mutation anchor drifted`, harness exit 1 |
+| `test_failure_before_replace_preserves_complete_plan` (Windows) | Temporary-file cleanup removed | Leftover `.tmp` listed, exit 1 |
+| `test_failed_owner_write_releases_owned_lock` (Linux, WSL) | Lock cleanup on a failed owner write removed | `AssertionError: True is not false`, exit 1 |
+| `tests/test_templates.py` | New templates not yet classified | Completeness assertion listed the four files, exit 1 |
+| zizmor 1.30.1 on `templates/ci/quality.yml` | `actions/setup-python@v7` instead of a SHA | `unpinned-uses`, exit 14 |
+
+The drill table also caught one of its own stale anchors after a refactor,
+failing instead of skipping, as designed.
+
+### Results
+
+- Windows: 69 tests pass with 4 skips: two POSIX mode-bit tests, the POSIX
+  umask test, and the symlinked start, because this host cannot create
+  symlinks without privilege (WinError 1314). Coverage is 85.1% against the
+  82% floor. Every repository hook passes, including `verify-practices`; the
+  broken-symlink hook had no files to check.
+  `cross-platform-smoke.ps1 -RedDrills` passes its six drills under PowerShell
+  7.6.6 and 5.1.26100.9711. `release-package-smoke.ps1` passes under both from
+  native PowerShell.
+- Linux (Arch on WSL2, Python 3.14.7, non-root): 69 tests pass with 1 skip,
+  the Windows-only replace refusal. The symlinked start passes.
+- Real use: `verify-practices.py --root . --rules CONTRIBUTING.md` passes on
+  45 code files with no allowances. `--watch` queried GitHub live and reported
+  all three upstreams current (exit 0). In a scratch project that had last seen
+  gitleaks 8.30.0, it reported the real 8.30.1 release (exit 1).
+- Both CI templates pass actionlint 1.7.12 and zizmor 1.30.1.
+
+Environment: Windows 11, Python 3.14.0 with the hash-locked tools (Ruff
+0.16.8, mypy 2.3.1, coverage 7.16.1, vulture 2.16, Bandit 1.9.4, pre-commit
+4.6.2), PSScriptAnalyzer 1.25.0, PowerShell 7.6.6 and Windows PowerShell 5.1.
+
+### Limits and open gates
+
+- Hosted CI has not run on these commits; nothing is pushed. The macOS jobs,
+  and the Windows CI symlink case, run only there.
+- `test_release_watch_queries_github_live` needs network access and fails,
+  never skips, when GitHub is unreachable. CI passes it the automatic
+  read-only token to stay within the API rate limit.
+- From Git Bash, `release-package-smoke.ps1` fails to list the tar.gz archive,
+  because the GNU `tar` first on that PATH reads `C:` as a remote host. The
+  script is unchanged; from native PowerShell it passes.
+- The checker matches patterns. Test shape is analyzed for Python and the
+  JavaScript family only, and comment and literal masking for other languages
+  is approximate (`masking.py` is 67% covered). Its documented blind spots,
+  such as a fake CLI on `PATH` or a manual re-run in the CI interface, remain
+  review work.
+- Live agent trials were not rerun for the changed workflow wording. Enabling
+  a merge queue and branch protection are repository settings for the owner.
