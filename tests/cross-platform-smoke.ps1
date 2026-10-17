@@ -80,18 +80,8 @@ function Invoke-SmokeProcess {
 $repositoryRoot = [IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath '..'))
 $rootScript = Join-Path -Path $repositoryRoot -ChildPath 'scripts/skill-root.ps1'
 $scanScript = Join-Path -Path $repositoryRoot -ChildPath 'scripts/detect-stack.ps1'
-$projectSetupSkill = Join-Path -Path $repositoryRoot -ChildPath 'skills/project_setup/SKILL.md'
-$qualityRetrofitSkill = Join-Path -Path $repositoryRoot -ChildPath 'skills/quality_retrofit/SKILL.md'
-$redDrillReference = Join-Path -Path $repositoryRoot -ChildPath 'docs/RED-DRILLS.md'
-$codeQualityReference = Join-Path -Path $repositoryRoot -ChildPath 'docs/CODE-QUALITY.md'
-$grillMeReference = Join-Path -Path $repositoryRoot `
-    -ChildPath 'skills/project_setup/references/grill-me.md'
-$projectBriefAsset = Join-Path -Path $repositoryRoot `
-    -ChildPath 'skills/project_setup/assets/PROJECT_BRIEF.md'
 $pluginManifest = Join-Path -Path $repositoryRoot -ChildPath '.claude-plugin/plugin.json'
-$releaseBuilder = Join-Path -Path $repositoryRoot -ChildPath 'scripts/build-release.ps1'
 $releaseWorkflow = Join-Path -Path $repositoryRoot -ChildPath '.github/workflows/release.yml'
-$installationGuide = Join-Path -Path $repositoryRoot -ChildPath 'docs/INSTALLATION.md'
 $temporaryBase = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $temporaryRoot = Join-Path -Path $temporaryBase -ChildPath (
     'high-quality-projects-skill-test-{0}' -f [Guid]::NewGuid().ToString('N')
@@ -201,73 +191,6 @@ try {
         return
     }
 
-    foreach ($requiredFile in @(
-            $projectSetupSkill,
-            $qualityRetrofitSkill,
-            (Join-Path $repositoryRoot 'skills/feature_delivery/SKILL.md'),
-            (Join-Path $repositoryRoot 'docs/DELIVERY.md'),
-            (Join-Path $repositoryRoot 'templates/workflow/PLAN.md'),
-            (Join-Path $repositoryRoot 'scripts/verify-delivery.py'),
-            (Join-Path $repositoryRoot 'scripts/update-delivery.py'),
-            $redDrillReference,
-            $codeQualityReference,
-            $grillMeReference,
-            $projectBriefAsset,
-            $pluginManifest,
-            $releaseBuilder,
-            $releaseWorkflow,
-            $installationGuide
-        )) {
-        Confirm-Condition -Condition (Test-Path -LiteralPath $requiredFile -PathType Leaf) `
-            -Message "Required package file is missing: $requiredFile"
-    }
-
-    $projectSetupContent = Get-Content -LiteralPath $projectSetupSkill -Raw -Encoding UTF8
-    foreach ($requiredText in @(
-            '## Rule zero: scan, reuse, then create',
-            '## Phase 1 — Grill Me: confirm the project contract',
-            'references/grill-me.md',
-            'assets/PROJECT_BRIEF.md',
-            '### Readiness gate',
-            '**Reuse before creation**',
-            'scan -> reuse or extend -> create only when'
-        )) {
-        Confirm-Condition -Condition $projectSetupContent.Contains($requiredText) `
-            -Message "project_setup is missing required discovery contract: $requiredText"
-    }
-
-    $grillMeContent = Get-Content -LiteralPath $grillMeReference -Raw -Encoding UTF8
-    foreach ($requiredHeading in @(
-            '## Why and outcomes',
-            '## Experience, brand, and accessibility',
-            '## Signing and trust',
-            '## Release pipeline and supply chain',
-            '## Operations, support, and retirement'
-        )) {
-        Confirm-Condition -Condition $grillMeContent.Contains($requiredHeading) `
-            -Message "Grill Me guide is missing coverage: $requiredHeading"
-    }
-    foreach ($requiredBrandingText in @(
-            'editable logo',
-            'app icons',
-            'favicons',
-            'social/OG images',
-            'which original is authoritative'
-        )) {
-        Confirm-Condition -Condition $grillMeContent.Contains($requiredBrandingText) `
-            -Message "Grill Me guide is missing branding inventory: $requiredBrandingText"
-    }
-
-    $projectBriefContent = Get-Content -LiteralPath $projectBriefAsset -Raw -Encoding UTF8
-    Confirm-Condition -Condition $projectBriefContent.Contains('## Decision ledger') `
-        -Message 'PROJECT_BRIEF asset is missing its decision ledger.'
-    Confirm-Condition -Condition $projectBriefContent.Contains('## Readiness confirmation') `
-        -Message 'PROJECT_BRIEF asset is missing its readiness confirmation.'
-    Confirm-Condition -Condition $projectBriefContent.Contains('Existing branding items') `
-        -Message 'PROJECT_BRIEF asset is missing its branding inventory.'
-    Confirm-Condition -Condition $projectBriefContent.Contains('to reuse or extend') `
-        -Message 'PROJECT_BRIEF asset is missing its reuse decision record.'
-
     $manifest = Get-Content -LiteralPath $pluginManifest -Raw -Encoding UTF8 | ConvertFrom-Json
     Confirm-Equal -Actual $manifest.version -Expected '0.7.0' `
         -Message 'Plugin manifest version does not match the automated release.'
@@ -298,17 +221,6 @@ try {
     )
     Confirm-Condition -Condition ($analyzerSettings.Rules.Count -gt 0) `
         -Message 'PSScriptAnalyzer template does not load as a data file.'
-
-    $installationContent = Get-Content -LiteralPath $installationGuide -Raw -Encoding UTF8
-    foreach ($requiredInstallText in @(
-            'v0.7.0',
-            'SHA256SUMS.txt',
-            'gh attestation verify',
-            'Bash is not required on Windows'
-        )) {
-        Confirm-Condition -Condition $installationContent.Contains($requiredInstallText) `
-            -Message "Installation guide is missing release instruction: $requiredInstallText"
-    }
 
     [Environment]::SetEnvironmentVariable('SKILL_ROOT', $null)
     [Environment]::SetEnvironmentVariable('CLAUDE_PLUGIN_ROOT', $null)

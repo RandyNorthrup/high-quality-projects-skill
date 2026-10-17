@@ -38,6 +38,17 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The atomic-writer tests trigger real OS refusals instead of patching `Path`,
   and the behavioral oracle observes calls into the canonical helper through a
   profiling hook instead of replacing it.
+- `tests/test_red_drills.py` replaces `tests/test_delivery_red_drills.py`. Its
+  table of 27 drills breaks the validator, the practices checker, and the
+  behavioral oracle one defect at a time. Each drill requires the named test to
+  fail with an assertion, then restores the source and compares its SHA-256.
+
+### Removed
+
+- Smoke-suite assertions that only checked that skill wording, guide headings,
+  or package files exist. They passed whatever the workflows did. The suite
+  keeps its scanner, root-resolution, action-pinning, release-gate, template
+  loading, and manifest-version checks, and all six red drills.
 
 ## 0.7.0 — 2026-09-24
 
