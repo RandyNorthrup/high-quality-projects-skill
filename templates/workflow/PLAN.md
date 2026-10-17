@@ -10,7 +10,9 @@ in the source package before use.
 
 Explain the scoped change, non-goals, reuse decisions, and architecture here.
 The ledger below owns structured facts and status; do not duplicate them in
-a second checklist.
+a second checklist. Product rules come from the brief and process rules from
+`AGENTS.md`; this plan delivers them and repeats neither. When a decision is
+superseded, rewrite every design here that applied it in the same change.
 
 ```quality-ledger
 {

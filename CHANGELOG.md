@@ -42,6 +42,24 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   table of 27 drills breaks the validator, the practices checker, and the
   behavioral oracle one defect at a time. Each drill requires the named test to
   fail with an assertion, then restores the source and compares its SHA-256.
+- `project_setup` scaffolds the practices from the first commit: the merge-gate
+  and upstream-watch workflows, `upstreams.json` as the one place for pins, the
+  process-rules `AGENTS.md` with its register, and a test suite with no doubles.
+  Discovery covers parallel contributors, merge queues, and pinned upstreams.
+- `quality_retrofit` records practice findings in its baseline and turns CI into
+  a merge gate in phase 2. It adds phase 7, which replaces doubles and
+  presence-only, one-off, and re-run tests. Security and documentation are now
+  phases 8 and 9.
+- `feature_delivery` requires real-code tests, a drill for every new test and
+  gate, local checks before pushing, a first-run green CI, and claims only
+  after real use of the built product.
+- `RED-DRILLS.md` drills every new test and gate once and compares restoration
+  by hash. It proves gate scripts as commands: started as a child process, they
+  must fail on a planted violation, on missing and unparseable input, and when
+  started through a symlink.
+- `DELIVERY.md`, `CODE-QUALITY.md`, `PHILOSOPHY.md`, the brief, and the plan
+  template keep process rules apart from product rules and rewrite superseded
+  decisions. They route test, CI, and pin rules to `PRACTICES.md`.
 
 ### Removed
 

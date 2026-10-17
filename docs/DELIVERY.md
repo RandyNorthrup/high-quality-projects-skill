@@ -12,6 +12,9 @@ framework.
   use `PLAN.md` only when no equivalent plan exists.
 - Keep project rules in the existing canonical rules file. Tool adapters point
   to that file. Record rule amendments, rationale, authority, and revisions there.
+- Keep "how we work" apart from "what the product does". The rules file holds
+  process rules for contributors, people or agents; the brief and plan hold
+  product rules. Never build a process rule into the product.
 - Keep detailed command output and other proof in the project's existing report
   location. Reference artifacts from the plan rather than copying their contents.
 - A root roadmap may link to separate feature plans when scale requires it. It
@@ -39,8 +42,9 @@ decisions require clarification.
    Record the review separately from behavior-test results. Run structural
    readiness validation; fix its findings before implementation depends on it.
 5. **Implement and verify.** Work only on ready tasks. Apply the existing
-   [code-quality rules](CODE-QUALITY.md) and [red-drill procedure](RED-DRILLS.md).
-   Record actual command output and independent behavior observations.
+   [code-quality rules](CODE-QUALITY.md), [red-drill procedure](RED-DRILLS.md),
+   and [enforced practices](PRACTICES.md). Record actual command output and
+   independent behavior observations.
 6. **Reconcile.** Compare each acceptance criterion with current implementation
    and evidence. Classify missing, partial, contradictory, and unjustified work.
    Update or reopen its existing owning task. Add a task only for distinct work,
@@ -51,6 +55,15 @@ decisions require clarification.
    or next safe task. Repeating an unchanged review must not create duplicates.
    Stop a loop that repeats the same unresolved finding without new evidence;
    state the specific action needed to make progress.
+
+## Decisions and pitfalls
+
+When a decision is superseded, rewrite every design section that applied it in
+the same change. Keep the superseded requirement record and its replacement
+link in the ledger; never leave the old design standing beside the new one,
+where the next reader implements it. Record each pitfall the project hits in
+the rules file's pitfalls register, with the test or gate that fails if it
+returns ([pitfalls register](PRACTICES.md#pitfalls-register)).
 
 ## Canonical plan format
 

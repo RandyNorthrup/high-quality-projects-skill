@@ -61,7 +61,9 @@ not a script to recite.
 - Who buys, approves, administers, operates, supports, secures, and audits it?
 - Who owns product decisions, architecture, data, releases, credentials,
   incident response, and final acceptance?
-- How many contributors are expected, and what stacks can they maintain?
+- How many contributors are expected, and what stacks can they maintain? How
+  many agents will contribute in parallel beside them? That sizes runner
+  capacity and the merge queue.
 - Who can stop a release? Who is on call when it fails?
 - Which external people or organizations must approve branding, security,
   privacy, legal terms, app-store listing, or distribution?
@@ -187,6 +189,8 @@ official platform or store documentation before implementing the pipeline.
 - Which constraints drive architecture: team skills, existing systems, hosting,
   cost, offline use, regulation, performance, or portability?
 - Which build-versus-buy decisions need evidence before the stack is selected?
+- Which SDKs, CLIs, protocol or API versions, and snapshots will be pinned,
+  and where are their releases and changelogs watched?
 
 ## Security, privacy, and compliance
 
@@ -217,6 +221,10 @@ required and treat it as a release dependency.
 - Which unit, integration, contract, end-to-end, accessibility, visual,
   compatibility, migration, recovery, load, and security tests are required?
 - What supported-platform test matrix must CI or release certification cover?
+- Which outside systems will tests meet live, and how will the integration
+  suite reach them? Tests run real code only; nothing stands in for an outside
+  service. Visual checks are a local
+  look per UI change, not screenshot comparison in CI.
 - Which critical defects must red drills prove the tests detect? What disposable
   environments, evidence, owners, and CI/milestone/release cadence are needed?
   Red drills are required; establish their scope rather than asking whether to
@@ -238,6 +246,8 @@ required and treat it as a release dependency.
   self-hosted runners required?
 - Which gates run on commit, pull request, merge, release candidate, and
   production promotion?
+- Is a merge queue or merge train available? Every required check must report
+  on every change, without path filters or secrets, and pass on its first run.
 - How are versions, changelogs, release notes, migrations, compatibility, and
   deprecations managed?
 - Where are build artifacts stored, how long are they retained, and can the

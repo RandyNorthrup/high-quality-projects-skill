@@ -66,6 +66,11 @@ change anything yet.** Report:
 - Required tools that are missing from this machine
 - Estimated blast radius: how many findings, in how many files. Run the
   strict template against the tree to get a real number — do not guess
+- Practice findings by check, from the read-only
+  `python "${SKILL_ROOT}/scripts/verify-practices.py" --root .`: test doubles,
+  presence-only and one-off tests, re-runs, fixed delays, merge-gate defects,
+  and the missing pin file and pitfalls register. See
+  `${SKILL_ROOT}/docs/PRACTICES.md`
 
 If the JSON contains `error`, stop and report it. Do not modify the target
 workspace after a failed inventory.
@@ -171,8 +176,10 @@ and use the atomic update helper for native plan state. A changed rule needs an
 amendment and impact review in the canonical project rules file.
 
 ### Phase 0 — baseline
-Record: test results, build status, current lint/type error counts. This is the
-number every later phase is measured against. Write it into the report.
+Record: test results, build status, current lint/type error counts, and the
+`verify-practices` findings by check. This is the number every later phase is
+measured against. Write it into the report. A suite built on mocks can be green
+and still prove nothing: count its doubles as gaps, not coverage.
 Confirm actual test discovery and execution, then drill the tests protecting
 behavior in scope before relying on them. Record surviving mutations, unrelated
 failures, missing tests, and blocked drills as gaps; never as verified green.
@@ -283,6 +290,17 @@ default permissions, `persist-credentials: false`, job timeouts, and actionlint
 plus zizmor as gates. Install dependencies from lockfiles in CI. Nothing under
 `src/` changes in this phase.
 
+Make the workflow a merge gate, comparing it with
+`${SKILL_ROOT}/templates/ci/quality.yml`: it runs on `merge_group` as well as
+`pull_request`, has no path filters on required checks, needs no secret, and
+has no retries or `continue-on-error`. Create `upstreams.json` from
+`${SKILL_ROOT}/templates/workflow/upstreams.json` for every pin no update bot
+covers, and adopt `templates/ci/upstream-watch.yml`. Add a pitfalls register
+block to the canonical rules file, with process rules kept apart from product
+rules as in `templates/workflow/AGENTS.md`. Add `verify-practices.py` to the
+aggregate gate and CI. Changing the trigger, secrets, or retries of required
+checks affects everyone who merges: confirm it with the owner first.
+
 Ignore the tool caches here, once, for the rest of the retrofit —
 `.ruff_cache/`, `.mypy_cache/`, `.pytest_cache/`, `__pycache__/`, `.tox/`,
 `htmlcov/`, `.coverage`, `node_modules/`, `target/`, `dist/`, `build/`, plus whatever the
@@ -290,7 +308,7 @@ project's own toolchain writes. Extend the existing `.gitignore`; do not
 replace it.
 
 At the end, run every gate and **record the failure counts**. Those counts are
-the work list for phases 3–6.
+the work list for phases 3–7.
 Add or extend a repeatable red-drill command using the existing harness. Prove
 each new/changed gate and its aggregate command propagate failures, then restore
 and rerun. Wire a deterministic drill set into CI and record broader cadence in
@@ -392,6 +410,23 @@ Do this **per-module with tests green after each**, never as a bulk sweep. This
 phase changes behavior if you get a unit wrong — `86400` seconds and
 `86400000` milliseconds look alike in a diff.
 
+### Phase 7 — real tests
+Work through the `verify-practices` findings per module, with tests green and
+each change drilled. Rules and reasons are in `${SKILL_ROOT}/docs/PRACTICES.md`.
+
+- **Replace each test double** with real code. Code that cannot be tested
+  without one has its decision logic tangled with I/O: move the decision so
+  tests call it with inputs they construct, and test the I/O against the real
+  dependency in an integration run. Never replace an outside service with a
+  recording or a fixture of its replies. Remove the mocking library from the
+  manifest last.
+- **Rewrite presence-only and one-off tests** as behavior assertions in the
+  behavior's table-driven test. Delete a test only after the replacement is
+  drilled and catches the defect the old test claimed to.
+- **Remove every retry and re-run**, and fix the flake each one hid. Replace
+  fixed delays with waits for the condition, and drop raised timeouts after
+  fixing the slow setup they hid.
+
 ### Handing the tree to an external reviewer
 
 If a step invokes an outside reviewer (Codex, a SAST service, another agent),
@@ -407,7 +442,7 @@ reviewer cannot honor scope, provide an isolated copy of only the relevant
 files. Remove only resources this workflow created, following phase 0 ownership
 checks.
 
-### Phase 7 — security and sanitizers
+### Phase 8 — security and sanitizers
 - `gitleaks git --redact` over reachable history. **A hit here is an incident**,
   not a
   lint finding: the secret is in history, so rotate it first, then scrub.
@@ -423,7 +458,7 @@ checks.
 - Existing sanitizer findings require triage as potential bugs. Report them;
   do not suppress them merely to make the gate green.
 
-### Phase 8 — documentation reconciliation
+### Phase 9 — documentation reconciliation
 Now that the code is known-good, make the docs match it:
 
 - Every command in `README.md` — run it. Fix or delete what fails.
@@ -459,6 +494,11 @@ silently omit a row.
 [ ] Tests pass; coverage floor set from the measured baseline and enforced
 [ ] Tests actually discovered/executed; affected red drills caught intended defects
 [ ] Maintained drill set passes with exact restoration and final green
+[ ] verify-practices clean: no doubles, presence-only, one-off, or re-run tests
+[ ] Outside services tested live, never through recordings or saved replies
+[ ] CI is a merge gate: merge_group, no path filters, no secrets, no retries
+[ ] Every pin in upstreams.json, reviewed in time, watched for releases
+[ ] Pitfalls register in the rules file, each entry enforced by a test or gate
 [ ] Canonical code enhanced; new paths justified; no unintended parallel implementation
 [ ] Build succeeds
 [ ] Pre-commit installed
@@ -480,7 +520,8 @@ PHASE 3 lint        312 auto · 47 manual
 PHASE 4 types       89 fixed · 6 any added  ← debt, listed below
 PHASE 5 dead code   23 removed · 4 kept (dynamic dispatch, listed)
 PHASE 6 literals    31 extracted · 12 left as idiomatic
-PHASE 7 security    2 findings — see below
+PHASE 7 practices   14 mocks replaced · 9 one-off tests folded · 2 retries removed
+PHASE 8 security    2 findings — see below
 
 DEBT
   src/legacy/parse.ts:88   any — untyped third-party response, no @types
@@ -503,3 +544,4 @@ NOT DONE
   as successful red drills.
 - Report a gate as passing when it was skipped, deferred, or its tool is
   missing. A false green is worse than a red.
+- Keep a test double "for now", or count a re-run that turned green as a pass.
