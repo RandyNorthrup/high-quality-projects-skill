@@ -544,3 +544,26 @@ and publication.
 
 Evidence: `docs/QUALITY-REVIEW.md`, section "Seven general practices:
 2026-10-17".
+
+## Review threads and scanner causes (2026-10-17)
+
+Baseline: `58e6cdd`, pushed. The automated review of 21:09Z left 11
+unresolved threads on `d69b3f8`. None of the seven-practice commits touched
+the code they name, and each still reproduces at `58e6cdd`, so each is fixed at
+its cause with a refused case and a negative control, plus a drill when it adds
+a detection. Threads are answered in the report, not on GitHub.
+
+| ID | Thread | Fix |
+|---|---|---|
+| R01 | `workflows.py:23` bracket-form secrets | Find secret use anywhere inside `${{ }}`: `secrets.NAME`, `secrets['NAME']`, and `toJSON(secrets)`, keeping the `GITHUB_TOKEN` exception |
+| R02 | `upstreams.py:232` pin matched as any substring | Match the pin as a whole version token outside comments, so a comment, a file name, or a longer version cannot stand in for it |
+| R03 | `python_rules.py:307` keyword-only `mocker` | Inspect positional-only, regular, and keyword-only parameters |
+| R04 | `script_rules.py:201` imports inside string literals | Accept a module specifier only when its `import`, `from`, or `require` keyword is code, not literal text |
+| R05 | `register.py:138` gate path named only in a comment | Strip comments from workflows and gate runners before looking for the gate path |
+| R06 | `workflows.py:118` `pull_request_target` without `merge_group` | Require `merge_group` for both pull-request triggers |
+| R07 | `manifests.py:182` `requirements/dev.txt` | Read `.txt` and `.in` files under a `requirements/` directory as manifests |
+| R08 | `cli.py:60` pytest `reruns = 3` | Treat a non-zero `reruns` setting as a configured re-run |
+| R09 | `cli.py:279` `--watch --format json` | Render watch results as JSON when asked |
+| R10 | `workflows.py:30` expression `continue-on-error` | Refuse every value except a literal `false` |
+| R11 | `source.py:105` shell-only projects scan nothing | Classify `.sh`, `.bash`, `.zsh`, and `.bats` as code, running the shell checks that exist |
+| R12 | `detect-stack.ps1` reports failures without their cause (practice 2) | Add a `detail` field with the real cause to both scanners' error JSON, keeping `error` as the stable code; update `AGENTS.md` and `CONTRIBUTING.md` |
