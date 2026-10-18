@@ -1,8 +1,9 @@
 """Check Rust, Go, C#, Java, Kotlin, C, C++, and PowerShell sources with masked patterns.
 
-These checks match imports and calls by pattern, not by a full parser. They cover
-the common doubling, fake-clock, fake-server, re-run, and fixed-delay forms; test
-shape is analyzed only for Python and the JavaScript family.
+These checks match imports, calls, and type names by pattern, not by a full
+parser. They cover the common doubling, hand-written double, fake-clock,
+fake-server, re-run, and fixed-delay forms; test shape is analyzed only for
+Python and the JavaScript family.
 """
 
 from __future__ import annotations
@@ -11,7 +12,7 @@ import re
 from typing import TYPE_CHECKING
 
 from .model import Finding
-from .python_rules import DOUBLE_MESSAGES
+from .python_rules import DOUBLE_MESSAGES, DOUBLE_PREFIXES
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -86,6 +87,15 @@ DELAY_RULES: Mapping[str, re.Pattern[str]] = {
     "c": re.compile(r"\b(?:u?sleep|nanosleep)\s*\("),
     "cpp": re.compile(r"\b(?:sleep_for|u?sleep|nanosleep)\s*\("),
 }
+# A type declared in test code under a double's name: C#, Java, Kotlin, Rust, C++.
+DOUBLE_TYPE = re.compile(
+    rf"\b(?:class|struct|record|object)\s+(?P<name>(?:{DOUBLE_PREFIXES})(?:[A-Z0-9_]\w*)?)\b"
+)
+# Go names unexported types in lower case.
+GO_DOUBLE_TYPE = re.compile(
+    r"\btype\s+(?P<name>(?:[Ff]ake|[Ss]tub|[Mm]ock|[Ss]py|[Dd]ummy|[Ii]nMemory|[Ss]cripted"
+    r"|[Cc]anned)(?:[A-Z0-9_]\w*)?)\s+struct\b"
+)
 PESTER_MOCK = re.compile(r"^\s*Mock\s+[-\w]", re.IGNORECASE)
 POWERSHELL_SLEEP = re.compile(r"\bStart-Sleep\b", re.IGNORECASE)
 
@@ -112,6 +122,17 @@ def family_findings(source: SourceFile, masked: Masked) -> list[Finding]:
                 "sleeps for a fixed delay; wait until the expected condition holds",
             )
             for match in delay.finditer(masked.bare)
+        )
+    if source.is_test:
+        findings.extend(
+            Finding(
+                source.relative,
+                masked.line_of(match.start()),
+                "hand-written-double",
+                f"{match['name']} {DOUBLE_MESSAGES['hand-written-double']}",
+            )
+            for pattern in (DOUBLE_TYPE, GO_DOUBLE_TYPE)
+            for match in pattern.finditer(masked.bare)
         )
     return findings
 

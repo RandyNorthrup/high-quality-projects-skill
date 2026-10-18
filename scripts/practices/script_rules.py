@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 from .masking import Masked, matching_close
 from .model import Finding
-from .python_rules import DOUBLE_MESSAGES, ONE_OFF_COPIES
+from .python_rules import DOUBLE_MESSAGES, DOUBLE_PREFIXES, ONE_OFF_COPIES
 
 if TYPE_CHECKING:
     from collections.abc import Iterator, Mapping
@@ -82,6 +82,27 @@ TEST_CALL_RULES: tuple[tuple[re.Pattern[str], str, str], ...] = (
         ),
         "fixed-delay",
         "waits a fixed delay; wait until the expected condition holds",
+    ),
+    (
+        # A server whose request handler is written inline in the test.
+        re.compile(
+            r"\bcreate(?:Secure)?Server\s*\(\s*(?:async\s+)?"
+            r"(?:function\b|\([^()]*\)\s*=>|[A-Za-z_$][\w$]*\s*=>)"
+        ),
+        "fake-server",
+        f"starts a local server that {DOUBLE_MESSAGES['fake-server']}",
+    ),
+    (
+        # A class, or a function bound to a double's name, written in the test.
+        re.compile(
+            rf"\bclass\s+(?:{DOUBLE_PREFIXES})(?:[A-Z0-9_$][\w$]*)?(?![\w$])"
+            r"|\b(?:const|let|var)\s+(?:fake|stub|mock|spy|dummy|inMemory|scripted|canned)"
+            r"(?:[A-Z0-9_$][\w$]*)?\s*(?::[^=;\n]+)?=\s*"
+            r"(?:async\b|function\b|class\b|new\s+class\b|\([^()]*\)\s*(?::[^=;\n]+)?=>"
+            r"|[A-Za-z_$][\w$]*\s*=>)"
+        ),
+        "hand-written-double",
+        f"declares a double that {DOUBLE_MESSAGES['hand-written-double']}",
     ),
 )
 TEST_BLOCK = re.compile(

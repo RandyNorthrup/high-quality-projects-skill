@@ -37,6 +37,8 @@ ALLOWABLE_CHECKS = frozenset(
         "ci-path-filter",
         "ci-continue-on-error",
         "ci-timeout",
+        "error-cause",
+        "hand-written-double",
     }
 )
 

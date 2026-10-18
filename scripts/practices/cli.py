@@ -9,6 +9,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from .error_rules import masked_error_findings
 from .family_rules import family_findings, powershell_findings
 from .manifests import is_manifest, manifest_findings
 from .model import (
@@ -77,8 +78,9 @@ def parser() -> argparse.ArgumentParser:
     """Describe the project check and the separate upstream watch."""
     result = argparse.ArgumentParser(
         description=(
-            "Refuse test doubles, re-runs, presence-only and one-off tests, "
-            "merge-gate defects, stale pins, and unenforced pitfalls."
+            "Refuse test doubles, hand-written stand-ins, re-runs, presence-only and "
+            "one-off tests, error handlers that drop the cause, merge-gate defects, "
+            "stale pins, and unenforced pitfalls."
         )
     )
     result.add_argument("--root", type=Path, default=Path.cwd(), help="Project root to check")
@@ -110,6 +112,7 @@ def analyze_source(source: SourceFile, collected: Collected) -> None:
     else:
         masked = masked_source(source)
         collected.allowances.extend(allowances_in(source.relative, list(masked.comments)))
+        collected.findings.extend(masked_error_findings(source, masked))
         if source.language == "script":
             collected.findings.extend(double_findings(source, masked))
             if source.is_test:

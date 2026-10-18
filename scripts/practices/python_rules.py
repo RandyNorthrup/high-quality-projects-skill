@@ -7,6 +7,7 @@ import re
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
+from .error_rules import python_error_findings
 from .model import Finding
 
 if TYPE_CHECKING:
@@ -43,7 +44,20 @@ DOUBLE_MESSAGES: Mapping[str, str] = {
     "fake-server": "answers as a server with hand-written responses; test the real service live",
     "stand-in": "stands in for a real store, keyring, or filesystem; use the real one",
     "rerun": "re-runs failing tests until they pass; find and fix the cause",
+    "hand-written-double": (
+        "is a hand-written stand-in for a dependency, with or without a mocking library; "
+        "test against the real one"
+    ),
 }
+# Names that declare a hand-written double: a class, function, or namespace that
+# pretends to be a dependency. A following capital, digit, or underscore keeps
+# words such as Mockingbird or Stubborn out.
+DOUBLE_PREFIXES = "Fake|Stub|Mock|Spy|Dummy|InMemory|Scripted|Canned"
+DOUBLE_CLASS = re.compile(rf"^(?:{DOUBLE_PREFIXES})(?:[A-Z0-9_]\w*)?$")
+DOUBLE_FUNCTION = re.compile(
+    r"^(?:fake|stub|mock|spy|dummy|in_?memory|scripted|canned)(?:[A-Z0-9_]\w*)?$"
+)
+TYPE_BUILDER_ARGS = 3
 HANDLER_BASES = frozenset(
     {
         "BaseHTTPRequestHandler",
@@ -191,6 +205,17 @@ def double_check(module: str) -> str | None:
     return None
 
 
+def builds_behavior(value: ast.expr) -> bool:
+    """Report a lambda or an in-place namespace, the shapes a hand-written double takes."""
+    if isinstance(value, ast.Lambda):
+        return True
+    if not isinstance(value, ast.Call):
+        return False
+    name = call_name(value)
+    # type(name, bases, namespace) builds a class; type(value) only reads one.
+    return name == "SimpleNamespace" or (name == "type" and len(value.args) == TYPE_BUILDER_ARGS)
+
+
 def imported_modules(node: ast.AST) -> list[str]:
     """Return the full module names an import statement brings in."""
     if isinstance(node, ast.Import):
@@ -223,6 +248,28 @@ class _Visitor:
                 self.call(node)
             if self.source.is_test:
                 self.test_node(node)
+                self.hand_written_double(node)
+
+    def hand_written_double(self, node: ast.AST) -> None:
+        """Refuse a class, function, lambda, or namespace named as a double in test code."""
+        names: list[str] = []
+        if isinstance(node, ast.ClassDef):
+            bases = {dotted(base).rsplit(".", 1)[-1] for base in node.bases}
+            # A request-handler class is already refused as a fake server.
+            if DOUBLE_CLASS.match(node.name) and not bases & HANDLER_BASES:
+                names.append(node.name)
+        elif isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+            if DOUBLE_FUNCTION.match(node.name):
+                names.append(node.name)
+        elif isinstance(node, ast.Assign) and builds_behavior(node.value):
+            names.extend(
+                target.id
+                for target in node.targets
+                if isinstance(target, ast.Name) and DOUBLE_FUNCTION.match(target.id)
+            )
+        for name in names:
+            message = f"{name} {DOUBLE_MESSAGES['hand-written-double']}"
+            self.add(node, "hand-written-double", message)
 
     def imports(self, node: ast.AST) -> None:
         """Refuse imports of doubling, fake-clock, fake-server, stand-in, or re-run tools."""
@@ -362,6 +409,7 @@ def analyze(source: SourceFile, text: str) -> list[Finding]:
     visitor = _Visitor(source)
     visitor.visit(tree)
     findings = visitor.findings
+    findings.extend(python_error_findings(source, tree))
     if source.is_test:
         findings.extend(test_shape_findings(source, tree))
     return findings

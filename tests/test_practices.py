@@ -75,6 +75,83 @@ BASE_FILES = {
 }
 
 
+def hand_written_cases() -> list[Case]:
+    """Doubles written by hand, with no mocking library, and the real objects beside them."""
+    double = "hand-written-double"
+    script_double = "export const fakeFetch = async (url: string) => ({ ok: true });\n"
+    return [
+        (
+            "python class",
+            {"tests/t.py": "class FakeStore:\n    def get(self, key):\n        return 1\n"},
+            "tests/t.py",
+            double,
+        ),
+        (
+            "python function",
+            {"tests/t.py": "def stub_send(message):\n    return True\n"},
+            "tests/t.py",
+            double,
+        ),
+        (
+            "python namespace",
+            {"tests/t.py": "import types\nfake_api = types.SimpleNamespace(get=len)\n"},
+            "tests/t.py",
+            double,
+        ),
+        ("python lambda", {"tests/t.py": "fake_now = lambda: 0\n"}, "tests/t.py", double),
+        (
+            "python data and real objects",
+            {
+                "tests/t.py": (
+                    'fake_email = "a@example.com"\nfake_kind = type(fake_email)\n'
+                    "class Mockingbird:\n    pass\n"
+                )
+            },
+            "tests/t.py",
+            None,
+        ),
+        (
+            "product class",
+            {"src/cache.py": "class InMemoryCache:\n    pass\n"},
+            "src/cache.py",
+            None,
+        ),
+        ("script class", {"tests/a.test.ts": "class FakeStore {}\n"}, "tests/a.test.ts", double),
+        ("script function", {"tests/a.test.ts": script_double}, "tests/a.test.ts", double),
+        (
+            "script real object",
+            {"tests/a.test.ts": 'const fakeUser = createUser({ name: "a" });\n'},
+            "tests/a.test.ts",
+            None,
+        ),
+        (
+            "script inline server",
+            {"tests/s.test.ts": 'http.createServer((req, res) => res.end("ok"));\n'},
+            "tests/s.test.ts",
+            "fake-server",
+        ),
+        (
+            "script product server",
+            {"tests/s.test.ts": "const server = http.createServer(app);\n"},
+            "tests/s.test.ts",
+            None,
+        ),
+        (
+            "csharp",
+            {"tests/ClockTests.cs": "class FakeClock : IClock { }\n"},
+            "tests/ClockTests.cs",
+            double,
+        ),
+        (
+            "go",
+            {"store_test.go": "package app\ntype fakeStore struct{}\n"},
+            "store_test.go",
+            double,
+        ),
+        ("rust", {"tests/store.rs": "struct InMemoryStore;\n"}, "tests/store.rs", double),
+    ]
+
+
 class PracticeProject:
     """A disposable project written to disk and checked by the real command."""
 
@@ -353,6 +430,7 @@ class PracticeCommandTests(unittest.TestCase):
                 "go.mod",
                 "mock",
             ),
+            *hand_written_cases(),
         ]
         self.assert_cases(cases)
 
@@ -521,6 +599,125 @@ class PracticeCommandTests(unittest.TestCase):
                 {"pyproject.toml": '[tool.pytest.ini_options]\naddopts = "--reruns 3"\n'},
                 "pyproject.toml",
                 "rerun",
+            ),
+        ]
+        self.assert_cases(cases)
+
+    def test_errors_name_their_cause(self) -> None:
+        """A catch-all handler that reports a fixed message fails; one keeping the cause passes."""
+
+        def python(head: str, body: str, path: str = "src/a.py") -> dict[str, str]:
+            text = f"def load():\n    try:\n        return fetch()\n    except {head}:\n"
+            return {path: f"{text}        {body}\n"}
+
+        def script(head: str, body: str) -> dict[str, str]:
+            text = f"export function load() {{\n  try {{ return fetch(); }} catch {head}"
+            return {"src/a.ts": f"{text}{{ {body} }}\n}}\n"}
+
+        def go(body: str) -> dict[str, str]:
+            head = "package app\nfunc Load() error {\n\tif err := fetch(); err != nil {\n"
+            return {"load.go": f"{head}\t\treturn {body}\n\t}}\n\treturn nil\n}}\n"}
+
+        def braced(path: str, prefix: str, handler: str) -> dict[str, str]:
+            return {path: f"{prefix} {{ try {{ f(); }} {handler} }}\n"}
+
+        not_available = 'Unavailable("not available")'
+        cases: list[Case] = [
+            (
+                "python message",
+                python("Exception", f"raise {not_available}"),
+                "src/a.py",
+                "error-cause",
+            ),
+            (
+                "python text",
+                python("Exception as e", 'return "unavailable"'),
+                "src/a.py",
+                "error-cause",
+            ),
+            (
+                "python suppressed",
+                python("BaseException", "raise Gone from None"),
+                "src/a.py",
+                "error-cause",
+            ),
+            ("python bare", python("", 'print("Service unavailable")'), "src/a.py", "error-cause"),
+            (
+                "python chained",
+                python("Exception as e", "raise Gone('load') from e"),
+                "src/a.py",
+                None,
+            ),
+            (
+                "python logged",
+                python("Exception", 'log.exception("load"); raise'),
+                "src/a.py",
+                None,
+            ),
+            ("python narrow", python("KeyError", f"raise {not_available}"), "src/a.py", None),
+            ("python fallback", python("Exception", "return None"), "src/a.py", None),
+            (
+                "python test",
+                python("Exception", f"raise {not_available}", "tests/h.py"),
+                "tests/h.py",
+                None,
+            ),
+            (
+                "script thrown",
+                script("", 'throw new Error("not available");'),
+                "src/a.ts",
+                "error-cause",
+            ),
+            (
+                "script promise text",
+                {"src/b.ts": 'export const load = () => fetch(url).catch(() => "unavailable");\n'},
+                "src/b.ts",
+                "error-cause",
+            ),
+            (
+                "script cause",
+                script("(e) ", 'throw new Error("load", { cause: e });'),
+                "src/a.ts",
+                None,
+            ),
+            ("script fallback", script("", "return null;"), "src/a.ts", None),
+            (
+                "csharp",
+                braced(
+                    "src/L.cs", "class L { void M()", 'catch (Exception) { throw new X("gone"); }'
+                ),
+                "src/L.cs",
+                "error-cause",
+            ),
+            (
+                "csharp rethrow",
+                braced("src/L.cs", "class L { void M()", 'catch { Log("load"); throw; }'),
+                "src/L.cs",
+                None,
+            ),
+            (
+                "java",
+                braced(
+                    "src/L.java",
+                    "class L { void m()",
+                    'catch (Exception e) { throw new X("gone"); }',
+                ),
+                "src/L.java",
+                "error-cause",
+            ),
+            (
+                "cpp",
+                braced("src/l.cpp", "int l()", 'catch (...) { throw std::runtime_error("gone"); }'),
+                "src/l.cpp",
+                "error-cause",
+            ),
+            ("go", go('errors.New("not available")'), "load.go", "error-cause"),
+            ("go wrapped", go('fmt.Errorf("load: %w", err)'), "load.go", None),
+            (
+                "rust",
+                {"src/l.rs": 'fn l() -> Result<u8, String> { f().map_err(|_| "gone".into()) }\n'},
+                "src/l.rs",
+                "error-cause",
             ),
         ]
         self.assert_cases(cases)

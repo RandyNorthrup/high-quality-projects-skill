@@ -28,6 +28,10 @@ Select supported runtimes and pin compatible tools in the target project.
   speculative compatibility paths. Empty collections, identity functions,
   abstract declarations, deliberate no-ops, and defaults can be legitimate:
   require a concrete contract and a test, not a blanket syntactic ban.
+- Error messages name the real cause. A handler that catches every error
+  re-raises, chains, logs, or includes the caught error; it never answers a
+  usage limit, a network failure, and a bug with one fixed sentence. See
+  [errors name their cause](PRACTICES.md#errors-name-their-cause).
 - Reject accidental tautologies and contradictions: comparing a value to itself,
   constant assertions, checking a known result instead of performing the work,
   or branches whose outcomes are identical. Prove simplifications preserve

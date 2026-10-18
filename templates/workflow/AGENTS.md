@@ -17,10 +17,18 @@ adapters such as `CLAUDE.md`, `.cursor/rules/`, and
   responsibility; extend the canonical implementation; record why new code is
   needed when nothing existing can serve.
 
+## Code
+
+- Error messages name the real cause. A handler that catches every error
+  re-raises, chains, logs, or includes it; one fixed message never stands in
+  for a usage limit, a network failure, and a bug alike.
+
 ## Tests
 
 - Tests exercise real code only: no mocks, stubs, spies, fake servers, fake
   CLIs, fake timers, or in-memory stand-ins for stores and keyrings.
+  A hand-written class, scripted port, or local server that pretends to be a
+  dependency is a stand-in too, with or without a mocking library.
   The outside world is tested live, or not at all: never through a recording,
   cassette, fixture of its replies, or local fake server.
 - A test fails when a user would be harmed. Checking that text, a key, or a

@@ -19,6 +19,13 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `upstreams.json`; and pitfalls-register entries that no code enforces. Exit 0
   passes, 1 lists findings, 2 means unreadable input; missing input never
   passes. `--watch` asks GitHub for each watched upstream's latest release.
+- `verify-practices.py` refuses two more forms. `error-cause`: a catch-all
+  handler in product code that never uses the caught error and raises a new one
+  or emits a fixed message, in Python, the JavaScript family, C#, Java, Kotlin,
+  C++, Go, and Rust. `hand-written-double`: a class, function, lambda, or
+  namespace named as a double in test code, written without any mocking
+  library. `fake-server` also refuses a JavaScript-family `createServer` with an
+  inline handler in a test.
 - `docs/PRACTICES.md`: each rule with its reason, the check that enforces it,
   the allowance syntax, and what the command cannot see.
 - Templates for a new project: the `templates/ci/quality.yml` merge gate, the

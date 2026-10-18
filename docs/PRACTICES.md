@@ -4,6 +4,7 @@ Lint and type gates catch defects in code. These failures pass them:
 
 - tests that replace the code they claim to test;
 - tests that check a sentence exists;
+- error handlers that replace the real cause with one fixed message;
 - CI that blocks merges forever, or turns green when re-run;
 - pins that rot unnoticed;
 - lessons that live only in a document.
@@ -42,6 +43,12 @@ Tests exercise real code only. No mock, stub, or spy replaces behavior. No
 fake server answers with hand-written responses. No fake CLI, fake timer, or
 in-memory stand-in replaces a store, keyring, or filesystem.
 
+A stand-in needs no mocking library. A class written in the test that
+implements a dependency's interface, a function or namespace passed where the
+real client goes, a port scripted to return canned answers, and a local server
+started by the test all pretend to be a dependency. Each is a double, and each
+is refused like one.
+
 A double encodes what someone believed the dependency does. The test then
 passes against a world that does not exist, and keeps passing after the real
 dependency changes: the service renames a field, the CLI changes its exit
@@ -65,8 +72,9 @@ invariants rather than standing in for what an outside system said.
 |---|---|---|
 | `mock` | `unittest.mock`, `mock`, `pytest-mock` and `mocker`, `monkeypatch.setattr`; `vi`/`jest` `mock`, `fn`, `spyOn`; Sinon, testdouble; Moq, NSubstitute; mockall; gomock, testify `mock`; Mockito; Pester `Mock`; `__mocks__` | none |
 | `fake-timer` | freezegun, time-machine, `useFakeTimers`, `@sinonjs/fake-timers`, `FakeTimeProvider`, fake Go clocks | none |
-| `fake-server` | responses, respx, httpretty, `BaseHTTPRequestHandler` subclasses in tests, nock, msw, fetch-mock, `MockAgent`, WireMock, `httptest` with an inline handler | none |
+| `fake-server` | responses, respx, httpretty, `BaseHTTPRequestHandler` subclasses in tests, nock, msw, fetch-mock, `MockAgent`, WireMock, `httptest` or `createServer` with an inline handler | none |
 | `stand-in` | fakeredis, mongomock, moto, pyfakefs, memfs, mock-fs, redis mocks, fake-indexeddb | none |
+| `hand-written-double` | In test code, a class, struct, record, or object named `Fake…`, `Stub…`, `Mock…`, `Spy…`, `Dummy…`, `InMemory…`, `Scripted…`, or `Canned…`; a Python function, lambda, or `SimpleNamespace` bound to such a name; a JavaScript-family function or class bound to one | reviewed |
 
 These apply to code and to dependency manifests (`package.json`,
 `pyproject.toml`, requirements files, `Cargo.toml`, `.csproj`, `go.mod`): a
@@ -103,6 +111,26 @@ use. A false claim is fixed in the code, never by rewording it.
 | `fixed-delay` | `time.sleep`, `waitForTimeout`, a sleeping `setTimeout` promise, `Thread.Sleep`, `time.Sleep`, `Start-Sleep` in tests; `sleep` in workflow steps | reviewed |
 | `timeout-override` | `@pytest.mark.timeout`, `jest.setTimeout`, `this.timeout`, `testTimeout`, a per-test timeout argument | reviewed |
 | `rerun` | Retry and re-run settings in test code, runner configuration, package scripts, and workflows (`retries`, `--reruns`, `retryTimes`, flaky markers, retry actions, `gh run rerun`) | none |
+
+## Errors name their cause
+
+An error message names what actually went wrong. A handler that catches every
+error and answers with one fixed sentence, such as "not available", turns a
+usage limit, a network failure, and a bug into the same message. The user
+retries what cannot succeed, and the maintainer debugs the wrong layer.
+
+A handler that catches everything keeps the cause: it re-raises, chains the
+caught error (`raise … from error`, `new Error(…, { cause })`, `%w`), logs it
+with its trace, or includes it in the message. Catch the specific error you can
+explain when you want a specific message. A handler that hides internals from
+an outside caller still records the cause where the maintainer looks.
+
+| Check | Refuses | Allowance |
+|---|---|---|
+| `error-cause` | In product code, a catch-all handler that never uses the caught error and raises a new one or emits text: Python bare, `Exception`, and `BaseException` handlers, including `from None`; every JavaScript-family `catch` and arrow `.catch` callback; C# `catch` and `catch (Exception)`; Java and Kotlin `Exception` and `Throwable`; C++ `catch (...)` and `std::exception`; Go `if err != nil` blocks; Rust `map_err` with a discarded argument | reviewed |
+
+The Python template's Ruff rules `BLE001` and `B904` overlap this check; the
+check also covers the other languages, and projects without that template.
 
 ## Hosted CI is the merge gate
 
@@ -243,3 +271,14 @@ re-run in the CI interface, a screenshot comparison, and a process rule built
 into the product are found by review. A clean run proves only that these
 forms are absent. Red drills and real use of the built product prove that the
 tests and the product work.
+
+These forms also stay review work:
+
+- A hand-written double with a neutral name, an object literal or dictionary
+  passed in place of a dependency, a stand-in defined in product code and
+  imported by tests, and a test-started server whose handler is defined
+  elsewhere.
+- A narrow handler that still merges different causes into one message, a
+  cause dropped by code outside a handler (a returned sentinel error, a
+  logged string instead of the error), and handlers in PowerShell, shell, and
+  other languages not listed above.
