@@ -307,6 +307,12 @@ class PracticeCommandTests(unittest.TestCase):
                 "mock",
             ),
             (
+                "python keyword-only mocker",
+                {"tests/t3.py": "def test_x(*, mocker):\n    pass\n"},
+                "tests/t3.py",
+                "mock",
+            ),
+            (
                 "python fake clock",
                 {"tests/t4.py": "from freezegun import freeze_time\n"},
                 "tests/t4.py",
@@ -377,6 +383,12 @@ class PracticeCommandTests(unittest.TestCase):
                 "rerun",
             ),
             ("script mentions", {"tests/g.test.ts": script_mentions}, "tests/g.test.ts", None),
+            (
+                "script import written as text",
+                {"tests/h.test.ts": "const guide = \"require('nock')\";\n"},
+                "tests/h.test.ts",
+                None,
+            ),
             ("csharp", {"tests/AppTests.cs": "using Moq;\n"}, "tests/AppTests.cs", "mock"),
             ("rust", {"tests/app.rs": "use mockall::predicate::*;\n"}, "tests/app.rs", "mock"),
             (
@@ -426,6 +438,12 @@ class PracticeCommandTests(unittest.TestCase):
                 {"requirements-dev.txt": "freezegun==1.5\n"},
                 "requirements-dev.txt",
                 "fake-timer",
+            ),
+            (
+                "requirements folder",
+                {"requirements/dev.txt": "pytest-mock==3.14\n"},
+                "requirements/dev.txt",
+                "mock",
             ),
             (
                 "cargo manifest",
@@ -619,6 +637,13 @@ class PracticeCommandTests(unittest.TestCase):
                 {"pyproject.toml": '[tool.pytest.ini_options]\naddopts = "--reruns 3"\n'},
                 "pyproject.toml",
                 "rerun",
+            ),
+            ("pytest reruns key", {"pytest.ini": "[pytest]\nreruns = 3\n"}, "pytest.ini", "rerun"),
+            (
+                "pytest no reruns",
+                {"pytest.ini": "[pytest]\nreruns = 0\nreruns_delay = 2\n"},
+                "pytest.ini",
+                None,
             ),
         ]
         self.assert_cases(cases)

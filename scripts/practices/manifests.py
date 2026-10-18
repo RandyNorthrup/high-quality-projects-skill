@@ -150,9 +150,7 @@ def manifest_entries(path: Path, text: str) -> Iterator[tuple[str, str]]:
         yield from (
             (item, SCRIPT_PACKAGES[item]) for item in npm_names(text) if item in SCRIPT_PACKAGES
         )
-    elif name == "pyproject.toml" or (
-        name.startswith("requirements") and path.suffix in {".txt", ".in"}
-    ):
+    elif name == "pyproject.toml" or is_requirements_file(path):
         names = pyproject_names(text) if name == "pyproject.toml" else requirements_names(text)
         yield from ((item, PYTHON_PACKAGES[item]) for item in names if item in PYTHON_PACKAGES)
     elif name == "cargo.toml":
@@ -173,12 +171,19 @@ def manifest_entries(path: Path, text: str) -> Iterator[tuple[str, str]]:
                 yield module, check
 
 
+def is_requirements_file(path: Path) -> bool:
+    """Recognize requirements-*.txt files and any .txt or .in file in a requirements/ folder."""
+    return path.suffix.lower() in {".txt", ".in"} and (
+        path.name.lower().startswith("requirements") or path.parent.name.lower() == "requirements"
+    )
+
+
 def is_manifest(path: Path) -> bool:
     """Recognize the dependency manifests this check reads."""
     name = path.name.lower()
     return (
         name in {"package.json", "pyproject.toml", "cargo.toml", "go.mod"}
-        or (name.startswith("requirements") and path.suffix in {".txt", ".in"})
+        or is_requirements_file(path)
         or path.suffix.lower() in {".csproj", ".fsproj"}
         or name in {"directory.packages.props", "directory.build.props"}
     )

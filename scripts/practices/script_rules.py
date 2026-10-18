@@ -199,7 +199,10 @@ def double_findings(source: SourceFile, masked: Masked) -> list[Finding]:
     findings = []
     for match in MODULE_SPECIFIER.finditer(masked.code):
         check = SCRIPT_PACKAGES.get(package_of(match["module"]))
-        if check:
+        # The keyword before the quote must be code: inside a literal, the bare
+        # view has blanked it, as in `"require('nock')"` written as text.
+        keyword = slice(match.start(), match.start(1))
+        if check and masked.bare[keyword] == masked.code[keyword]:
             message = f"{match['module']} {DOUBLE_MESSAGES[check]}"
             findings.append(Finding(source.relative, masked.line_of(match.start()), check, message))
     for pattern, check in CALL_RULES:

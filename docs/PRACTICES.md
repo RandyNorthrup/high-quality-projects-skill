@@ -79,8 +79,10 @@ invariants rather than standing in for what an outside system said.
 | `hand-written-double` | In test code, a class, struct, record, or object named `Fake…`, `Stub…`, `Mock…`, `Spy…`, `Dummy…`, `InMemory…`, `Scripted…`, or `Canned…`; a Python function, lambda, or `SimpleNamespace` bound to such a name; a JavaScript-family function or class bound to one | reviewed |
 
 These apply to code and to dependency manifests (`package.json`,
-`pyproject.toml`, requirements files, `Cargo.toml`, `.csproj`, `go.mod`): a
-mocking library that is installed gets used.
+`pyproject.toml`, requirements files and any `.txt` or `.in` file in a
+`requirements/` folder, `Cargo.toml`, `.csproj`, `go.mod`): a mocking library
+that is installed gets used. A module name inside a string literal is text,
+not an import.
 
 ## Tests that can fail a user
 
@@ -112,7 +114,7 @@ use. A false claim is fixed in the code, never by rewording it.
 | `one-off` | Three or more tests in a file whose bodies differ only in literal values; a test named after a numbered finding, item, checklist entry, rule, lesson, pitfall, issue, ticket, or bug | reviewed |
 | `fixed-delay` | `time.sleep`, `waitForTimeout`, a sleeping `setTimeout` promise, `Thread.Sleep`, `time.Sleep`, `Start-Sleep` in tests; `sleep` in workflow steps | reviewed |
 | `timeout-override` | `@pytest.mark.timeout`, `jest.setTimeout`, `this.timeout`, `testTimeout`, a per-test timeout argument | reviewed |
-| `rerun` | Retry and re-run settings in test code, runner configuration, package scripts, and workflows (`retries`, `--reruns`, `retryTimes`, flaky markers, retry actions, `gh run rerun`) | none |
+| `rerun` | Retry and re-run settings in test code, runner configuration, package scripts, and workflows (`retries`, `reruns`, `--reruns`, `retryTimes`, flaky markers, retry actions, `gh run rerun`) | none |
 
 ## Errors name their cause
 

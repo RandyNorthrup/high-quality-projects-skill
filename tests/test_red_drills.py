@@ -40,6 +40,30 @@ DRILLS = (
     ),
     (
         "scripts/practices/python_rules.py",
+        "parameters = [*node.args.posonlyargs, *node.args.args, *node.args.kwonlyargs]",
+        "parameters = node.args.args",
+        f"{PRACTICES}.test_test_doubles_are_refused_in_every_language",
+    ),
+    (
+        "scripts/practices/script_rules.py",
+        "if check and masked.bare[keyword] == masked.code[keyword]:",
+        "if check:",
+        f"{PRACTICES}.test_test_doubles_are_refused_in_every_language",
+    ),
+    (
+        "scripts/practices/manifests.py",
+        ' or path.parent.name.lower() == "requirements"',
+        "",
+        f"{PRACTICES}.test_test_doubles_are_refused_in_every_language",
+    ),
+    (
+        "scripts/practices/cli.py",
+        r'r"\b(?:retr(?:y|ies)|reruns)\s*[:=]',
+        r'r"\b(?:retr(?:y|ies))\s*[:=]',
+        f"{PRACTICES}.test_waits_timeouts_and_retries",
+    ),
+    (
+        "scripts/practices/python_rules.py",
         "return bool(kinds) and all(kinds) and calls <= INSPECTION_CALLS",
         "return False and all(kinds) and calls <= INSPECTION_CALLS",
         f"{PRACTICES}.test_tests_must_be_able_to_fail_a_user",

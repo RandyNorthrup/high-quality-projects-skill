@@ -303,7 +303,8 @@ class _Visitor:
                 self.add(node, "fake-server", f"{node.name} {DOUBLE_MESSAGES['fake-server']}")
         if not isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
             return
-        if any(argument.arg == "mocker" for argument in node.args.args):
+        parameters = [*node.args.posonlyargs, *node.args.args, *node.args.kwonlyargs]
+        if any(parameter.arg == "mocker" for parameter in parameters):
             self.add(node, "mock", f"the mocker fixture {DOUBLE_MESSAGES['mock']}")
         for decorator in node.decorator_list:
             target = decorator.func if isinstance(decorator, ast.Call) else decorator

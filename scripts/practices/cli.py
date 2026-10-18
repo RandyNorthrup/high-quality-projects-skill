@@ -56,7 +56,8 @@ CONFIG_NAMES = re.compile(
     r"^(?:(?:playwright|vitest|vite|jest)\.config\.[cm]?[jt]s|\.mocharc\.\w+|pytest\.ini|tox\.ini"
     r"|setup\.cfg|pyproject\.toml|package\.json|nextest\.toml)$"
 )
-RETRY_SETTING = re.compile(r"\bretr(?:y|ies)\s*[:=]\s*(?P<value>[^,\n}]*)")
+# `reruns` is pytest-rerunfailures' configuration key for default reruns.
+RETRY_SETTING = re.compile(r"\b(?:retr(?:y|ies)|reruns)\s*[:=]\s*(?P<value>[^,\n}]*)")
 RETRY_FLAG = re.compile(r"--reruns\b|--retries[= ]+0*[1-9]|\bretryTimes\b|-p\s*rerunfailures")
 
 

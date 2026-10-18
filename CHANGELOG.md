@@ -41,7 +41,10 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `toJSON(secrets)` is refused; `pull_request_target` gates need `merge_group`;
   `continue-on-error` passes only as a literal `false`. A pin counts only as a
   whole version outside comments, so an old version left in a note, a file
-  name, or a longer version no longer hides drift.
+  name, or a longer version no longer hides drift. A keyword-only `mocker`
+  fixture, a `requirements/` folder, and pytest's `reruns` key are refused,
+  and a module name inside a JavaScript string literal is no longer read as an
+  import.
 - `docs/PRACTICES.md`: each rule with its reason, the check that enforces it,
   the allowance syntax, and what the command cannot see.
 - Templates for a new project: the `templates/ci/quality.yml` merge gate, the
