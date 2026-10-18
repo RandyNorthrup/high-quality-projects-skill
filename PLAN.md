@@ -611,3 +611,20 @@ at its cause with a refused case, a negative control, and a drill.
       `verify-practices` here, the full suite, `pre-commit run --all-files`,
       and `cross-platform-smoke.ps1 -RedDrills` under PowerShell 7 and 5.1.
 - [ ] Hosted CI passes on the pushed commits.
+
+## Third review round (2026-10-18)
+
+Baseline: `1a1e734`, pushed. The re-review raised 8 new threads; the 12 from
+the second round are resolved. Each reproduces at `1a1e734` and is fixed at its
+cause with a refused case, a negative control, and a drill.
+
+| ID | Thread | Fix |
+|---|---|---|
+| T01 | `workflows.py:80` flow-style `on: {pull_request: {paths: [...]}}` | Parse an inline trigger mapping: triggers are its first-level keys, and a `paths` key under a merge-gate trigger is refused |
+| T02 | `parallel_rules.py:277` oldest binding chosen | Pick the binding with the greatest line at or above the call |
+| T03 | `workflows.py:36` `secrets : inherit` | Allow whitespace before the colon |
+| T04 | `workflows.py:109` `jobs: # comment` | Strip the comment before locating the jobs block |
+| T05 | `manifests.py:166` NuGet reference inside an XML comment | Blank XML comments, keeping line numbers, before matching references |
+| T06 | `workflows.py:246` reusable workflow called by a gate | Apply the gate checks to local workflows that a gate calls with `jobs.<id>.uses`, transitively |
+| T07 | `parallel_rules.py:109` `pass_filenames: False` | Read every YAML boolean spelling pre-commit's loader accepts (`true/false`, `yes/no`, `on/off`, any case) |
+| T08 | `workflows.py:33` `github['token']`, `toJSON(github)` | Treat an indexed token property and whole-context serialization as the automatic token |
