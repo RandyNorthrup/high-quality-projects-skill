@@ -498,9 +498,8 @@ by review found two places they apply here:
 
 - `scripts/detect-stack.ps1` reports any internal failure as
   `{"error":"scan failed"}` and drops the cause. PowerShell handlers are
-  outside `error-cause`, so no check caught it. Adding the cause changes a JSON
-  contract that `detect-stack.sh`, `AGENTS.md`, and `CONTRIBUTING.md` share,
-  so it is left for the owner to decide.
+  outside `error-cause`, so no check caught it. The owner then asked for the
+  fix; see "Review threads and scanner causes" below.
 - This repository's `CHANGELOG.md` and `PLAN.md` are files every change edits.
   Moving them to per-item files joined by a script is separate work.
 
@@ -508,8 +507,9 @@ A first full-suite run, started while `pre-commit run --all-files` ran in
 parallel, failed `test_every_template_is_classified`: a
 `templates/python/.ruff_cache/` had appeared, and that cache already held an
 older `0.15.9` directory from August. After removing it, pre-commit alone and
-the suite alone each passed and left no cache there. The process that wrote it
-was not identified.
+the suite alone each passed and left no cache there. The writer was found
+later: the root `ruff format --check .` and `ruff check .` run before the
+suite. See "Review threads and scanner causes" below.
 
 Environment: Windows 11, Python 3.14.0, Ruff 0.16.8, mypy 2.3.1, coverage
 7.16.1, pre-commit 4.6.2, PowerShell 7.6.6 and Windows PowerShell 5.1.
@@ -519,3 +519,77 @@ Environment: Windows 11, Python 3.14.0, Ruff 0.16.8, mypy 2.3.1, coverage
 - Hosted CI has not run on these commits; nothing is pushed. Linux and macOS
   ran nothing locally for this change.
 - Live agent trials were not rerun for the changed workflow wording.
+
+## Review threads and scanner causes: 2026-10-17
+
+Scope: commits `41a4660` (plan) through `787d06b`, from `58e6cdd`. The
+automated review of 21:09Z left 11 unresolved threads on `d69b3f8`. None of
+the seven-practice commits touched the code they name, and each reproduced at
+`58e6cdd`, so each was fixed at its cause. None was answered as no longer
+applying. Threads were not resolved or replied to on GitHub.
+
+| Thread | Cause | Fix |
+|---|---|---|
+| `workflows.py:23` | The secret pattern matched only `${{ secrets.NAME` at the start of an expression | `f27731d`: any secret read inside `${{ }}`, by property, by index, or through `toJSON(secrets)`, with the `GITHUB_TOKEN` exception kept |
+| `upstreams.py:232` | The pin was any substring of the file | `f93d2fa`: a whole version token (optional `v`) outside comments; this repository's own `GITLEAKS_VERSION` line sits beside exactly such a comment |
+| `python_rules.py:307` | Only regular parameters were read | `0bf88db`: positional-only and keyword-only too |
+| `script_rules.py:201` | The module pattern ran on text that keeps literals | `0bf88db`: the `import`, `from`, or `require` keyword must be code |
+| `register.py:138` | Runner text included comments | `89417f5`: comments removed before the search |
+| `workflows.py:118` | Only `pull_request` required `merge_group` | `f27731d`: `pull_request_target` too |
+| `manifests.py:182` | Only `requirements*` file names were manifests | `0bf88db`: `.txt` and `.in` files in a `requirements/` folder too |
+| `cli.py:60` | The retry setting did not include `reruns` | `0bf88db`: a non-zero `reruns` is refused |
+| `cli.py:279` | Watch mode always printed text | `09866ad`: JSON when asked |
+| `workflows.py:30` | Only a literal `true` was refused | `f27731d`: anything but a literal `false` |
+| `source.py:105` | Shell files were not code | `cfada06`: `.sh`, `.bash`, `.zsh`, `.ksh`, and `.bats` count, with shared-Git-state and fixed-sleep checks |
+
+`6fae41e` applies practice 2 to the scanners. Both now add `detail` to their
+error JSON. The Bash scanner reports the shell's reason ("No such file or
+directory", "Not a directory"). The PowerShell scanner reports the caught
+error's message and line for both an unreadable root and a failed scan.
+`error` stays the stable code that `AGENTS.md` and `CONTRIBUTING.md` tell
+callers to match, and both documents now say to report `detail`.
+
+Running the owner's gates in order exposed a defect with a known cause: a root
+`ruff check .` treated `templates/python/ruff.toml` as a nested project and
+wrote a cache beside it, failing `test_every_template_is_classified` on the
+next suite run. One `ruff check .` reproduced it. `787d06b` excludes
+`templates/python` from the root configuration; Markdown elsewhere in
+`templates/` stays checked (64 files before and after).
+
+### Executed drills
+
+The Python drill table grew from 43 to 58. Five of the new drills break
+negative controls: the `GITHUB_TOKEN` exception, the literal-`false` value, the
+comment removal for pins, the token boundary for pins, and the literal-text
+guard for imports. Three drills were re-anchored because the lines they break
+changed: the `merge_group` condition, the secret detection, and the pin
+check. `cross-platform-smoke.ps1 -RedDrills` grew from 6 to 7: replacing the
+PowerShell scanner's caught message with a fixed sentence fails
+`Unreadable path did not name its cause.` with exit 1, and the restored source
+passes. The new CI check for the Bash scanner was run locally from Git Bash
+against the real script and passed. Hosted CI has not run it.
+
+### Results
+
+All on Windows 11 at `787d06b`, run one after another, with temporary files
+under the ignored `build/tmp/`:
+
+| Gate | Exit |
+|---|---|
+| `ruff format --check .` (64 files) | 0 |
+| `ruff check .` | 0 |
+| mypy, package scripts (26 files) | 0 |
+| mypy, tests (14 files) | 0 |
+| `verify-practices.py --root . --rules CONTRIBUTING.md` (49 code files, no allowances) | 0 |
+| Full suite with coverage: 71 tests, 4 skips, 87.0% against the 82% floor | 0, report 0 |
+| `pre-commit run --all-files` | 0 |
+| `cross-platform-smoke.ps1 -RedDrills`, PowerShell 7.6.6 (7 drills) | 0 |
+| `cross-platform-smoke.ps1 -RedDrills`, Windows PowerShell 5.1 (7 drills) | 0 |
+
+### Limits and open gates
+
+- Hosted CI has not run on `41a4660` and later; nothing is pushed. The new
+  Bash unreadable-root check runs only on the Linux and macOS jobs.
+- The scanners' `scan failed` path cannot be triggered from a test here; its
+  detail uses the same function as the unreadable-root path, which the smoke
+  suite asserts and drills.

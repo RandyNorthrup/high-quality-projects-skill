@@ -567,3 +567,18 @@ a detection. Threads are answered in the report, not on GitHub.
 | R10 | `workflows.py:30` expression `continue-on-error` | Refuse every value except a literal `false` |
 | R11 | `source.py:105` shell-only projects scan nothing | Classify `.sh`, `.bash`, `.zsh`, and `.bats` as code, running the shell checks that exist |
 | R12 | `detect-stack.ps1` reports failures without their cause (practice 2) | Add a `detail` field with the real cause to both scanners' error JSON, keeping `error` as the stable code; update `AGENTS.md` and `CONTRIBUTING.md` |
+
+- [x] R01, R06, R10 `f27731d`
+- [x] R02 `f93d2fa`
+- [x] R03, R04, R07, R08 `0bf88db`
+- [x] R05 `89417f5`
+- [x] R09 `09866ad`
+- [x] R11 `cfada06`
+- [x] R12 `6fae41e`
+- [x] Found while running the gates: a root `ruff check .` wrote a cache into
+      `templates/python/` that failed the template test; fixed in `787d06b`.
+- [x] Gates on `787d06b`: Ruff format and lint, both mypy scopes,
+      `verify-practices` here, the full suite, `pre-commit run --all-files`,
+      and `cross-platform-smoke.ps1 -RedDrills` under PowerShell 7 and 5.1.
+- [ ] Hosted CI passes on the pushed commits, including the new Bash
+      unreadable-root check on Linux and macOS.
