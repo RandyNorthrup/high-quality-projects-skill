@@ -15,13 +15,15 @@ import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
+from pathlib import Path
 from typing import TYPE_CHECKING, NoReturn
 
+from .masking import mask
 from .model import Finding, PracticeInputError
+from .source import dialect_of, language_of, python_comments, read_text
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
-    from pathlib import Path
 
 SCHEMA_VERSION = 1
 KINDS = frozenset(
@@ -44,6 +46,9 @@ GITHUB_REPOSITORY = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 # The REST API version this watch speaks. Listed in upstreams.json, so a new
 # GitHub API version is reviewed like any other upstream change.
 GITHUB_API_VERSION = "2026-03-10"
+# A '#' comment in YAML, TOML, INI, shell, PowerShell, Dockerfiles, and
+# requirements files starts a line or follows whitespace.
+HASH_COMMENT = re.compile(r"(?:^|(?<=\s))#.*$", re.MULTILINE)
 GITHUB_RELEASE_URL = "https://api.github.com/repos/{repository}/releases/latest"
 USER_AGENT = "high-quality-projects-skill-verify-practices"
 
@@ -226,13 +231,35 @@ def staleness_findings(
             findings.append(Finding(relative, 1, "upstream-behind", message))
         for used in item.used_in:
             target = root / used
-            text = (
-                target.read_text(encoding="utf-8", errors="replace") if target.is_file() else None
-            )
-            if text is None or item.pinned not in text:
-                message = f"{item.name} pin {item.pinned} is not written in {used}"
+            if not target.is_file() or not pin_written(read_text(target), used, item.pinned):
+                message = (
+                    f"{item.name} pin {item.pinned} is not written as a version in the code "
+                    f"of {used}"
+                )
                 findings.append(Finding(relative, 1, "upstream-pin-drift", message))
     return findings
+
+
+def code_without_comments(text: str, relative: str) -> str:
+    """Remove comments so a version kept only in a note never counts as the pin."""
+    suffix = Path(relative).suffix.lower()
+    if suffix == ".json":
+        return text
+    if suffix == ".py":
+        lines = text.splitlines()
+        for number, comment in python_comments(text):
+            lines[number - 1] = lines[number - 1].removesuffix(comment)
+        return "\n".join(lines)
+    language = language_of(Path(relative))
+    if language and language not in {"powershell", "shell"}:
+        return mask(text, dialect_of(language)).code
+    return HASH_COMMENT.sub("", text)
+
+
+def pin_written(text: str, relative: str, pinned: str) -> bool:
+    """Report the pin written as a whole version token outside comments."""
+    pattern = rf"(?<![\w.])v?{re.escape(pinned.removeprefix('v'))}(?![\w.])"
+    return re.search(pattern, code_without_comments(text, relative)) is not None
 
 
 def release_version(body: bytes) -> str:

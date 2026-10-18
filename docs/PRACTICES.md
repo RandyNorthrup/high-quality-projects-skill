@@ -265,7 +265,7 @@ The staleness gate runs in the merge gate, offline and deterministic:
 
 | Check | Fails when |
 |---|---|
-| `upstream-pin-drift` | The pinned string is missing from a `used_in` file: the one place and the code disagree |
+| `upstream-pin-drift` | A `used_in` file does not write the pin as a whole version (an optional leading `v` allowed) outside its comments: the one place and the code disagree. A comment, a file name, or a longer version does not count |
 | `upstream-review-overdue` | `reviewed` is older than `max_age_days`: nobody looked at releases or changelogs |
 | `upstream-behind` | `latest_seen` differs from `pinned` with no hold |
 | `upstream-hold-expired` | A hold's end date passed |

@@ -193,8 +193,20 @@ DRILLS = (
     ),
     (
         "scripts/practices/upstreams.py",
-        "if text is None or item.pinned not in text:",
+        "if not target.is_file() or not pin_written(read_text(target), used, item.pinned):",
         "if False:",
+        f"{PRACTICES}.test_upstream_currency",
+    ),
+    (
+        "scripts/practices/upstreams.py",
+        "return re.search(pattern, code_without_comments(text, relative)) is not None",
+        "return re.search(pattern, text) is not None",
+        f"{PRACTICES}.test_upstream_currency",
+    ),
+    (
+        "scripts/practices/upstreams.py",
+        """pattern = rf"(?<![\\w.])v?{re.escape(pinned.removeprefix('v'))}(?![\\w.])\"""",
+        "pattern = re.escape(pinned)",
         f"{PRACTICES}.test_upstream_currency",
     ),
     (

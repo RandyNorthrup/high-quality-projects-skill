@@ -75,6 +75,26 @@ BASE_FILES = {
 }
 
 
+def pin_location_cases() -> list[Case]:
+    """A pin counts only as a whole version in code, never inside a note or a longer token."""
+    drift = "upstream-pin-drift"
+
+    def pinned_in(name: str, text: str) -> dict[str, str]:
+        return {"upstreams.json": upstreams_json(upstream(used_in=[name])), name: text}
+
+    rows: list[tuple[str, Mapping[str, str | None], str | None]] = [
+        ("pin only in a comment", {"tools.txt": "example-cli 1.2.4  # was 1.2.3\n"}, drift),
+        ("pin in a longer version", {"tools.txt": "example-cli 1.2.30\n"}, drift),
+        ("pin in a file name", {"tools.txt": "get example-cli_1.2.3_linux.tar.gz\n"}, drift),
+        ("pin with a v prefix", {"tools.txt": "example-cli v1.2.3\n"}, None),
+        ("python comment", pinned_in("pins.py", 'VERSION = "1.2.4"  # 1.2.3\n'), drift),
+        ("python pin", pinned_in("pins.py", 'VERSION = "1.2.3"\n'), None),
+        ("script comment", pinned_in("pins.ts", 'export const v = "1.2.4"; // 1.2.3\n'), drift),
+        ("json pin", pinned_in("pins.json", '{"example-cli": "1.2.3"}\n'), None),
+    ]
+    return [(label, files, "upstreams.json", check) for label, files, check in rows]
+
+
 def hand_written_cases() -> list[Case]:
     """Doubles written by hand, with no mocking library, and the real objects beside them."""
     double = "hand-written-double"
@@ -971,6 +991,7 @@ class PracticeCommandTests(unittest.TestCase):
                 "upstreams.json",
                 "upstream-pin-drift",
             ),
+            *pin_location_cases(),
         ]
         self.assert_cases(cases)
         malformed = (
