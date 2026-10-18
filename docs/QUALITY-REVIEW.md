@@ -427,3 +427,95 @@ Environment: Windows 11, Python 3.14.0 with the hash-locked tools (Ruff
   review work.
 - Live agent trials were not rerun for the changed workflow wording. Enabling
   a merge queue and branch protection are repository settings for the owner.
+
+## Seven general practices: 2026-10-17
+
+Scope: commits `6e00973` (plan), `1022541`, `e30be59`, and `d0c2ad1` on branch
+`lessons/2026-10-17`, from base `d69b3f8`. Each practice is general; nothing
+in it names a kind of product, tool vendor, or contributor.
+
+| Practice | Where it landed | Kind |
+|---|---|---|
+| Check flagged dead code against unmerged branches and open plans | `PRACTICES.md`, `quality_retrofit` phase 5 and "Refuse to", rules template | Documented |
+| Error messages name the real cause | `error-cause` check; `PRACTICES.md`, `CODE-QUALITY.md`, `quality_retrofit` phase 7, rules template | Enforced |
+| A hand-written object, scripted port, or local server is a stand-in | `hand-written-double` check and the inline-handler `fake-server` form; `PRACTICES.md`, the workflows, rules template | Enforced for named and inline forms |
+| Small single-outcome tasks, finish first, merge small, release-candidate integration | `PRACTICES.md` "Parallel work", `DELIVERY.md`, all three workflows, rules template | Documented |
+| Files every change edits become per-item files joined by a script | `PRACTICES.md`, `DELIVERY.md`, `project_setup`, `feature_delivery`, rules template | Documented |
+| Worktrees without `git stash` or base-branch checkouts | `git-shared-state` check; `PRACTICES.md`, `feature_delivery`, `quality_retrofit`, rules template | Enforced in checked-in automation |
+| Local gates run only touched suites; hosted CI is the full gate | `local-full-suite` check; `PRACTICES.md`, the workflows, rules template, `CONTRIBUTING.md` | Enforced for hook configuration |
+
+The documented practices, and the parts of the enforced ones that no file
+pattern shows, are listed under "What the command cannot see" in
+`PRACTICES.md`. The four new checks accept reviewed allowances: each matches
+names or command text, which can misread a legitimate case.
+
+### Executed drills
+
+The maintained table in `tests/test_red_drills.py` grew from 27 to 43 drills.
+Each new drill breaks one rule in a disposable copy, requires the named test
+to fail with `AssertionError` and a non-zero exit, restores the bytes
+(SHA-256 compared), and requires green again. Four of them break negative
+controls instead of detections: the caught-error name, the C#/C++ rethrow, the
+three-argument `type()` builder, and the `-b`/`--detach` worktree exception. A
+checker that fired on everything fails those, as one that fired on nothing
+fails the others.
+
+| Rule | Drills |
+|---|---|
+| `error-cause` | Python handler condition, caught-name recognition, masked-body emission, rethrow recognition |
+| `hand-written-double` and `fake-server` | Python class, `type()` arity, JavaScript-family class, JavaScript-family function binding, inline `createServer`, C-family and Go types |
+| `git-shared-state` | Stash pattern, base-worktree pattern, `-b`/`--detach` exception, Python process calls |
+| `local-full-suite` | pre-commit change-ignoring settings, Git hook scripts |
+
+### Results
+
+All on Windows 11 at `d0c2ad1`, with temporary files kept under the
+repository's ignored `build/tmp/`:
+
+| Gate | Exit |
+|---|---|
+| `ruff format --check .` (64 files) | 0 |
+| `ruff check .` | 0 |
+| mypy, package scripts (26 files) | 0 |
+| mypy, tests (14 files) | 0 |
+| `verify-practices.py --root . --rules CONTRIBUTING.md` (47 code files, no allowances) | 0 |
+| Full suite with coverage: 71 tests, 4 skips, 86.3% against the 82% floor | 0, report 0 |
+| `pre-commit run --all-files` | 0 |
+| `cross-platform-smoke.ps1 -RedDrills`, PowerShell 7.6.6 | 0 |
+| `cross-platform-smoke.ps1 -RedDrills`, Windows PowerShell 5.1.26100.9711 | 0 |
+
+The four skips are the same as before: two POSIX mode-bit tests, the POSIX
+umask test, and the symlinked start (WinError 1314).
+
+Real use: a scratch project with one planted violation per new check made the
+command, started as a child process, exit 1 with exactly `error-cause`,
+`hand-written-double`, `git-shared-state`, and `local-full-suite`. With each
+violation replaced by its legitimate form (a chained error, a real import, a
+branch switch, a related-tests hook) it exited 0. The project was removed.
+
+The new rules found nothing in this repository's code. Applying the practices
+by review found two places they apply here:
+
+- `scripts/detect-stack.ps1` reports any internal failure as
+  `{"error":"scan failed"}` and drops the cause. PowerShell handlers are
+  outside `error-cause`, so no check caught it. Adding the cause changes a JSON
+  contract that `detect-stack.sh`, `AGENTS.md`, and `CONTRIBUTING.md` share,
+  so it is left for the owner to decide.
+- This repository's `CHANGELOG.md` and `PLAN.md` are files every change edits.
+  Moving them to per-item files joined by a script is separate work.
+
+A first full-suite run, started while `pre-commit run --all-files` ran in
+parallel, failed `test_every_template_is_classified`: a
+`templates/python/.ruff_cache/` had appeared, and that cache already held an
+older `0.15.9` directory from August. After removing it, pre-commit alone and
+the suite alone each passed and left no cache there. The process that wrote it
+was not identified.
+
+Environment: Windows 11, Python 3.14.0, Ruff 0.16.8, mypy 2.3.1, coverage
+7.16.1, pre-commit 4.6.2, PowerShell 7.6.6 and Windows PowerShell 5.1.
+
+### Limits and open gates
+
+- Hosted CI has not run on these commits; nothing is pushed. Linux and macOS
+  ran nothing locally for this change.
+- Live agent trials were not rerun for the changed workflow wording.

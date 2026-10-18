@@ -516,23 +516,31 @@ and publication.
 | ID | Practice | Where it goes | Kind |
 |---|---|---|---|
 | P07 | Check "dead" code against unmerged branches and open plans before removing it; finish unfinished work | `PRACTICES.md` new section; `quality_retrofit` phase 5 and "Refuse to"; rules template | Documented: needs Git history and plans, the checker reads one tree |
-| P08 | Error messages name the real cause; no catch-all message replaces the error | New check `error-cause` (Python syntax tree, JavaScript family): a broad handler that drops the caught error and emits a fixed message; `PRACTICES.md`, `CODE-QUALITY.md`, rules template | Enforced |
+| P08 | Error messages name the real cause; no catch-all message replaces the error | New check `error-cause` (Python syntax tree; JavaScript family, C#, Java, Kotlin, C++, Go, and Rust patterns): a catch-all handler that drops the caught error and emits a fixed message; `PRACTICES.md`, `CODE-QUALITY.md`, `quality_retrofit` phase 7, rules template | Enforced; PowerShell and shell handlers are documented |
 | P09 | A hand-written object, scripted port, or local server that pretends to be a dependency is a stand-in | New check `hand-written-double` (test classes named as doubles, several languages); `fake-server` extended to inline-handler servers in JavaScript-family tests; `PRACTICES.md`, rules template | Enforced (named and inline forms); a neutrally named double is documented |
 | P10 | Small single-outcome tasks with an observable done and an early first result; finish first; merge small and often; integrate on a release-candidate branch | `PRACTICES.md` new section; `DELIVERY.md` loop; `feature_delivery`; rules template | Documented: task size and cadence are plan judgment |
 | P11 | Files every change edits are split into per-item files or fragments joined by a script | `PRACTICES.md`; `DELIVERY.md` plan ownership; rules template | Documented: edit frequency is a history property |
 | P12 | Parallel work in worktrees: no `git stash`, no shared base branch checked out in a worktree | New check `git-shared-state` over scripts, Git hooks, workflows, and task runners; `PRACTICES.md`; `feature_delivery`; rules template | Enforced in checked-in automation; commands typed by hand are documented |
 | P13 | Local gates run format, lint, typecheck, build, and only the touched suites; hosted CI is the full gate | New check `local-full-suite` (a pre-commit hook or Git hook that runs a whole test suite); `PRACTICES.md`; rules template; `feature_delivery`; `CONTRIBUTING.md` | Enforced for hook configuration; which suites a change touches is documented |
 
-- [ ] P07
-- [ ] P08
-- [ ] P09
-- [ ] P10
-- [ ] P11
-- [ ] P12
-- [ ] P13
-- [ ] Gates on the final tree: Ruff format and lint, both mypy scopes,
+- [x] P07 `PRACTICES.md` section and blind spot; `quality_retrofit` phase 5
+      and "Refuse to"; rules template.
+- [x] P08 `error-cause` in `scripts/practices/error_rules.py`; 20 cases in
+      `test_errors_name_their_cause`; 4 drills.
+- [x] P09 `hand-written-double` and the inline-handler `fake-server` form; 14
+      cases added to the doubles table; 6 drills.
+- [x] P10 `PRACTICES.md` "Parallel work"; `DELIVERY.md` loop step 3; all three
+      workflows; rules template.
+- [x] P11 `PRACTICES.md` "Parallel work"; `DELIVERY.md` ownership;
+      `project_setup` changelog and plan guidance; rules template.
+- [x] P12 `git-shared-state` in `scripts/practices/parallel_rules.py`; cases in
+      `test_parallel_work_and_local_hooks`; 4 drills.
+- [x] P13 `local-full-suite` in the same module and test; 2 drills;
+      `CONTRIBUTING.md` and the workflows run only the touched suites locally.
+- [x] Gates on the final tree: Ruff format and lint, both mypy scopes,
       `verify-practices` here, the full suite, `pre-commit run --all-files`,
-      and `cross-platform-smoke.ps1 -RedDrills`.
+      and `cross-platform-smoke.ps1 -RedDrills` under PowerShell 7 and 5.1.
+- [ ] Hosted cross-platform CI passes on the pushed commits, including macOS.
 
 Evidence: `docs/QUALITY-REVIEW.md`, section "Seven general practices:
 2026-10-17".
