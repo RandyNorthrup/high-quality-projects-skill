@@ -241,6 +241,12 @@ DRILLS = (
     ),
     (
         "scripts/practices/register.py",
+        "code_without_comments(read_text(item), item.name) for item in candidates",
+        "read_text(item) for item in candidates",
+        f"{PRACTICES}.test_pitfalls_register_is_enforced_by_code",
+    ),
+    (
+        "scripts/practices/register.py",
         'return [Finding(rules, 1, "register-missing", message)]',
         "return []",
         f"{PRACTICES}.test_pitfalls_register_is_enforced_by_code",

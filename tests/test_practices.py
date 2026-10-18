@@ -1092,6 +1092,16 @@ class PracticeCommandTests(unittest.TestCase):
                 "register-unenforced",
             ),
             (
+                "script named only in a comment",
+                {
+                    "scripts/check_x.py": "print('x')\n",
+                    ".github/workflows/ci.yml": WORKFLOW + "      # TODO: run scripts/check_x.py\n",
+                    "AGENTS.md": register({"path": "scripts/check_x.py"}),
+                },
+                "AGENTS.md",
+                "register-unenforced",
+            ),
+            (
                 "unknown check",
                 {"AGENTS.md": register({"check": "vibes"})},
                 "AGENTS.md",

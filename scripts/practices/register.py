@@ -13,8 +13,8 @@ from pathlib import Path
 from typing import NoReturn
 
 from .model import KNOWN_CHECKS, Finding, PracticeInputError
-from .source import is_test_path
-from .upstreams import reject_duplicates
+from .source import is_test_path, read_text
+from .upstreams import code_without_comments, reject_duplicates
 
 FENCE = re.compile(
     r"^```pitfalls-register[ \t]*\n(?P<body>.*?)^```[ \t]*$", re.DOTALL | re.MULTILINE
@@ -113,18 +113,14 @@ def load_register(path: Path, rules: str) -> list[Pitfall] | None:
 
 def runner_text(root: Path) -> str:
     """Concatenate the CI workflows and gate-runner files, where enforcement must be named."""
-    texts: list[str] = []
     workflows = root / ".github" / "workflows"
-    if workflows.is_dir():
-        texts.extend(
-            item.read_text(encoding="utf-8", errors="replace")
-            for item in sorted(workflows.glob("*.y*ml"))
-        )
-    for name in RUNNER_FILES:
-        candidate = root / name
-        if candidate.is_file():
-            texts.append(candidate.read_text(encoding="utf-8", errors="replace"))
-    return "\n".join(texts)
+    candidates = sorted(workflows.glob("*.y*ml")) if workflows.is_dir() else []
+    candidates.extend(root / name for name in RUNNER_FILES)
+    # A path named only in a comment, such as "TODO: run scripts/check.py", is
+    # never run, so comments are removed before the search.
+    return "\n".join(
+        code_without_comments(read_text(item), item.name) for item in candidates if item.is_file()
+    )
 
 
 def path_problem(root: Path, relative: str, runners: str) -> str | None:

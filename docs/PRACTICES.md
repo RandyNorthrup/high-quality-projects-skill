@@ -303,7 +303,7 @@ skill, or a suggestion is read once and then forgotten.
 | Check | Fails when |
 |---|---|
 | `register-missing` | The rules file has no register block |
-| `register-unenforced` | An entry names nothing, a document, a missing file, a script that no workflow or gate runner (`.pre-commit-config.yaml`, `package.json`, `Makefile`, `justfile`, `Taskfile.yml`, `tox.ini`, `noxfile.py`, `pyproject.toml`) runs, or an unknown check |
+| `register-unenforced` | An entry names nothing, a document, a missing file, a script that no workflow or gate runner (`.pre-commit-config.yaml`, `package.json`, `Makefile`, `justfile`, `Taskfile.yml`, `tox.ini`, `noxfile.py`, `pyproject.toml`) names outside a comment, or an unknown check |
 
 ## Allowances
 
