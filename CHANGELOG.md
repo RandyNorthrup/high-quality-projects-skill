@@ -45,7 +45,7 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   fixture, a `requirements/` folder, and pytest's `reruns` key are refused,
   and a module name inside a JavaScript string literal is no longer read as an
   import. A pitfall's gate script named only in a workflow or runner comment
-  no longer counts as enforced.
+  no longer counts as enforced. `--watch --format json` prints JSON.
 - `docs/PRACTICES.md`: each rule with its reason, the check that enforces it,
   the allowance syntax, and what the command cannot see.
 - Templates for a new project: the `templates/ci/quality.yml` merge gate, the

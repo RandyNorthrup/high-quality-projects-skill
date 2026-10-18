@@ -75,6 +75,12 @@ DRILLS = (
         f"{PRACTICES}.test_allowances_are_reviewed_exceptions",
     ),
     (
+        "scripts/practices/cli.py",
+        "render_watch(findings, notes, len(upstreams), options.output_format)",
+        'render_watch(findings, notes, len(upstreams), "text")',
+        f"{PRACTICES}.test_command_exit_contract",
+    ),
+    (
         "scripts/practices/workflows.py",
         'if workflow.triggers & PULL_REQUEST_TRIGGERS and "merge_group" not in workflow.triggers:',
         "if False:",

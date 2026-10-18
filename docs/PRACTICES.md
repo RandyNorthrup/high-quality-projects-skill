@@ -37,7 +37,8 @@ of this package in CI.
 A project with no code files, no `upstreams.json`, or no pitfalls register
 fails: missing input is never a pass. `--watch` asks each watched upstream for
 its latest release and exits 1 when one moved since the last review; a failed
-query exits 2. `--format json` emits the same findings for tooling.
+query exits 2. `--format json` emits the same findings for tooling, in both
+modes; the watch report adds `changed`, `upstreams_watched`, and `notes`.
 
 ## Tests run real code
 

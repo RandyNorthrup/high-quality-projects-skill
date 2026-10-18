@@ -251,6 +251,15 @@ class PracticeCommandTests(unittest.TestCase):
         missing = self.command(SCRIPT, Path(tempfile.gettempdir()) / "practices-missing-root")
         self.assertEqual(missing.returncode, 2, missing.stdout)
         self.assertIn("not a directory", missing.stdout)
+        # A manual watch needs no network, so the JSON watch report runs offline.
+        watched = PracticeProject(self, {})
+        code, output = run(["--root", str(watched.root), "--watch", "--format", "json"])
+        self.assertEqual(code, 0, output)
+        self.assertTrue(output.startswith("{"), output)
+        report = json.loads(output)
+        summary = (report["changed"], report["upstreams_watched"], report["findings"])
+        self.assertEqual(summary, (False, 1, []))
+        self.assertIn("example-cli: manual watch", report["notes"][0])
 
     def test_command_started_through_symlink(self) -> None:
         """An installed link to the entry script still finds its package and fails on violations."""

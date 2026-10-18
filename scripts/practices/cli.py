@@ -262,6 +262,24 @@ def render(
     return "\n".join(lines)
 
 
+def render_watch(
+    findings: list[Finding], notes: list[str], watched: int, output_format: str
+) -> str:
+    """Render upstream releases found by the watch as text or JSON."""
+    if output_format == "json":
+        payload = {
+            "changed": bool(findings),
+            "upstreams_watched": watched,
+            "findings": [asdict(item) for item in findings],
+            "notes": notes,
+        }
+        return json.dumps(payload, indent=2, sort_keys=True)
+    lines = [f"{item.path}: {item.check}: {item.message}" for item in findings] + notes
+    verdict = f"CHANGED: {len(findings)} upstream releases" if findings else "CURRENT"
+    lines.append(f"{verdict}; {watched} upstreams watched")
+    return "\n".join(lines)
+
+
 def execute(options: Options) -> tuple[int, str]:
     """Check the project, or query upstream releases in watch mode."""
     if not options.root.is_dir():
@@ -274,10 +292,8 @@ def execute(options: Options) -> tuple[int, str]:
             message = "upstreams.json lists no upstream to watch"
             raise PracticeInputError(message)
         findings, notes = watch_findings(options.upstreams, upstreams, options.timeout)
-        lines = [f"{item.path}: {item.check}: {item.message}" for item in findings] + notes
-        verdict = f"CHANGED: {len(findings)} upstream releases" if findings else "CURRENT"
-        lines.append(f"{verdict}; {len(upstreams)} upstreams watched")
-        return (EXIT_FINDINGS if findings else EXIT_OK), "\n".join(lines)
+        code = EXIT_FINDINGS if findings else EXIT_OK
+        return code, render_watch(findings, notes, len(upstreams), options.output_format)
     findings, accepted, scanned = project_findings(options, today)
     return (EXIT_FINDINGS if findings else EXIT_OK), render(
         findings, accepted, scanned, options.output_format
