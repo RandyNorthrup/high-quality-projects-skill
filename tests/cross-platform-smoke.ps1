@@ -137,6 +137,13 @@ try {
                 Diagnostic = 'Unreadable path did not return JSON error contract.'
             },
             @{
+                Name = 'unreadable-path cause'
+                Path = 'scripts/detect-stack.ps1'
+                Before = '$detail = $ErrorRecord.Exception.Message'
+                After = '$detail = ''cause withheld'''
+                Diagnostic = 'Unreadable path did not name its cause.'
+            },
+            @{
                 Name = 'case-insensitive directory pruning'
                 Path = 'scripts/detect-stack.ps1'
                 Before = '[StringComparer]::OrdinalIgnoreCase'
@@ -350,6 +357,9 @@ try {
     $scanError = $errorJson | ConvertFrom-Json
     Confirm-Equal -Actual $scanError.error -Expected 'unreadable path' `
         -Message 'Unreadable path did not return JSON error contract.'
+    # The code is stable for callers; the detail must name the actual path and failure.
+    Confirm-Condition -Condition (([string] $scanError.detail).Contains($missingPath)) `
+        -Message 'Unreadable path did not name its cause.'
 
     Write-Output 'PASS: package contract, PowerShell root resolution, and stack detection'
 }

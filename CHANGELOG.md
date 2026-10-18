@@ -97,6 +97,11 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   Files every change edits become per-item files joined by a script. Parallel
   work uses worktrees without `git stash` or base-branch checkouts. Local gates
   run only the touched suites, and hosted CI runs every suite.
+- Both `detect-stack` scanners add `detail`, the real cause, to their error
+  JSON: the shell's reason for an unreadable root (missing, or not a
+  directory) and, in PowerShell, the caught error and line for a failed scan.
+  `error` stays the stable code. The smoke suite asserts the cause and drills
+  its removal, and CI checks the Bash scanner's unreadable-root contract.
 
 ### Removed
 

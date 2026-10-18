@@ -128,7 +128,10 @@ command stored in a plan or runs project code.
 
 Always inspect the returned JSON for an `error` property. Exit 0 means the
 scanner returned its JSON contract; it does not turn `unreadable path` or
-`scan failed` into a successful inventory.
+`scan failed` into a successful inventory. Match on `error`, which is a stable
+code, and report `detail`, which names the real cause, such as a missing root,
+a root that is not a directory, or the failing scanner line. Its wording comes
+from the shell and can differ between platforms.
 
 Python tools are detected by importability, not by `PATH`. Use the interpreter
 in `python_runtime.bin`; `python_runtime.module_only_tools` lists importable

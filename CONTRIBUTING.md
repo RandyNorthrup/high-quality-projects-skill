@@ -99,9 +99,13 @@ Both implementations must return the same JSON contract. Each must:
 
 - Exit 0 always. A scan that finds nothing is not an error.
 - Emit valid JSON on stdout, unconditionally. All workflows inspect it.
-- Return `{"error":"unreadable path"}` for an invalid root and
-  `{"error":"scan failed"}` for an internal inventory failure. Exit 0 is the
-  transport contract, not proof that the scan succeeded.
+- Return `{"error":"unreadable path","detail":"..."}` for an invalid root and
+  `{"error":"scan failed","detail":"..."}` for an internal inventory failure
+  (only the PowerShell scanner has one). `error` is the stable code callers
+  match; `detail` is the real cause from the shell or the caught error, such
+  as a missing directory versus one that is not a directory, and its wording
+  may differ by platform. Never replace it with a fixed sentence. Exit 0 is
+  the transport contract, not proof that the scan succeeded.
 - Never write anything. It is a read-only inventory.
 - Stay fast on large trees — prune `node_modules`, `target`, `.git`, `venv`.
 
@@ -127,8 +131,8 @@ both POSIX runners.
 
 `-RedDrills` reuses the same smoke suite in a temporary copy of current source.
 It runs a passing baseline, separately breaks directory pruning (including its
-case-insensitive match), the explicit root override, the unreadable-path error,
-`knip.jsonc` detection, and the release workflow's SHA-pinned action, and
+case-insensitive match), the explicit root override, the unreadable-path error
+and its cause, `knip.jsonc` detection, and the release workflow's SHA-pinned action, and
 requires each existing assertion to fail with a non-zero child exit. Every mutation is restored
 byte-for-byte before a fresh green run. The parent command fails on surviving
 mutations, wrong failures, timeouts, or failed restoration. CI uses this mode,

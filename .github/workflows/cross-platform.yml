@@ -165,7 +165,11 @@ jobs:
           touch "$awkward/src/App.PY"
           bash scripts/detect-stack.sh "$awkward" > "$scratch/awkward.json"
 
-          python - "$scratch/bash.json" "$scratch/powershell.json" "$scratch/awkward.json" "$awkward" <<'PY'
+          # An unreadable root keeps the error contract and names its cause.
+          bash scripts/detect-stack.sh "$scratch/missing" > "$scratch/missing.json"
+
+          python - "$scratch/bash.json" "$scratch/powershell.json" "$scratch/awkward.json" \
+            "$awkward" "$scratch/missing.json" "$scratch/missing" <<'PY'
           import json
           import os
           import sys
@@ -193,4 +197,11 @@ jobs:
               raise SystemExit("scanner root was not escaped as the exact directory name")
           if awkward_scan["languages"]["python"] != 1:
               raise SystemExit("uppercase extension was not counted")
+
+          with open(sys.argv[5], encoding="utf-8") as missing_file:
+              missing_scan = json.load(missing_file)
+          if missing_scan.get("error") != "unreadable path":
+              raise SystemExit("unreadable root did not return the error contract")
+          if sys.argv[6] not in missing_scan.get("detail", ""):
+              raise SystemExit("unreadable root did not name its cause")
           PY
