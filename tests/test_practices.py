@@ -837,8 +837,37 @@ class PracticeCommandTests(unittest.TestCase):
             'name: R\n"on":\n  pull_request:\n  merge_group:\njobs:\n  gates:\n'
             "    uses: ./.github/workflows/other.yml\n"
         )
+
+        def env(value: str) -> dict[str, str]:
+            return {gate: WORKFLOW + f"        env:\n          KEY: {value}\n"}
+
+        def keep_going(value: str) -> dict[str, str]:
+            timeout = "    timeout-minutes: 15\n"
+            setting = f"{timeout}    continue-on-error: {value}\n"
+            return {gate: WORKFLOW.replace(timeout, setting)}
+
+        target_only = WORKFLOW.replace(
+            "  pull_request:\n  merge_group:\n", "  pull_request_target:\n"
+        )
         cases: list[Case] = [
             ("clean gate", {gate: WORKFLOW}, gate, None),
+            ("indexed secret", env("${{ secrets['API_KEY'] }}"), gate, "ci-secret"),
+            (
+                "secret in a condition",
+                env("${{ github.ref && secrets.Api_Key }}"),
+                gate,
+                "ci-secret",
+            ),
+            ("every secret", env("${{ toJSON(secrets) }}"), gate, "ci-secret"),
+            ("indexed automatic token", env('${{ secrets["GITHUB_TOKEN"] }}'), gate, None),
+            ("target trigger without queue", {gate: target_only}, gate, "ci-merge-group"),
+            (
+                "expression keep-going",
+                keep_going("${{ matrix.experimental }}"),
+                gate,
+                "ci-continue-on-error",
+            ),
+            ("static false", keep_going("false"), gate, None),
             (
                 "no merge_group",
                 {gate: WORKFLOW.replace("  merge_group:\n", "")},

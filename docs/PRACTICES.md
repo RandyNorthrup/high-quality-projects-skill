@@ -182,10 +182,10 @@ for a hung runner. Never raise it to make room for slow setup.
 
 | Check | Refuses | Allowance |
 |---|---|---|
-| `ci-secret` | `secrets.*` other than `GITHUB_TOKEN`, or `secrets: inherit`, in a workflow triggered by `pull_request`, `pull_request_target`, or `merge_group` | none |
-| `ci-merge-group` | A `pull_request` workflow without `merge_group` | reviewed |
+| `ci-secret` | A secret other than `GITHUB_TOKEN` read anywhere in an expression, by property (`secrets.KEY`), by index (`secrets['KEY']`), or all at once (`toJSON(secrets)`), or `secrets: inherit`, in a workflow triggered by `pull_request`, `pull_request_target`, or `merge_group` | none |
+| `ci-merge-group` | A `pull_request` or `pull_request_target` workflow without `merge_group` | reviewed |
 | `ci-path-filter` | `paths` or `paths-ignore` on a merge-gate trigger | reviewed |
-| `ci-continue-on-error` | `continue-on-error: true` in a merge gate | reviewed |
+| `ci-continue-on-error` | `continue-on-error` set to anything but a literal `false`, an expression included, in a merge gate | reviewed |
 | `ci-timeout` | A job without `timeout-minutes` (reusable-workflow calls excepted) | reviewed |
 | `local-full-suite` | A test runner started with options only, so it runs the whole suite: in a `.pre-commit-config.yaml` hook with `pass_filenames: false` or `always_run: true`, a Git hook script under `.husky/` or `.githooks/`, or a lefthook configuration | reviewed |
 

@@ -36,6 +36,10 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   tasks, finishing before starting, merging small and often, release-candidate
   integration, per-item files instead of files every change edits, and
   worktrees without stashes or base-branch checkouts.
+- Gaps found in review of `verify-practices.py` are closed. A merge gate's
+  secret read by index, inside a longer expression, or through
+  `toJSON(secrets)` is refused; `pull_request_target` gates need `merge_group`;
+  `continue-on-error` passes only as a literal `false`.
 - `docs/PRACTICES.md`: each rule with its reason, the check that enforces it,
   the allowance syntax, and what the command cannot see.
 - Templates for a new project: the `templates/ci/quality.yml` merge gate, the

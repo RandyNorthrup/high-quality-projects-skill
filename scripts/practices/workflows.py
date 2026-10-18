@@ -19,15 +19,29 @@ if TYPE_CHECKING:
 ON_KEY = re.compile(r"^(?:\"on\"|'on'|on|true)\s*:\s*(?P<inline>.*)$")
 TOP_LEVEL_KEY = re.compile(r"^[^\s#][^:]*:")
 NESTED_KEY = re.compile(r"^(?P<indent>\s+)(?:-\s*)?(?P<key>[A-Za-z_][\w-]*)\s*:?")
-GATE_TRIGGERS = frozenset({"pull_request", "pull_request_target", "merge_group"})
-SECRET_USE = re.compile(r"\$\{\{\s*secrets\.(?!GITHUB_TOKEN\b)(?P<name>\w+)|\bsecrets:\s*inherit\b")
+PULL_REQUEST_TRIGGERS = frozenset({"pull_request", "pull_request_target"})
+GATE_TRIGGERS = PULL_REQUEST_TRIGGERS | {"merge_group"}
+EXPRESSION = re.compile(r"\$\{\{(?P<body>.*?)\}\}")
+# Context and property names in expressions are case-insensitive. A secret is
+# read by property, by index, or all at once through toJSON.
+SECRET_REFERENCE = re.compile(
+    r"\btoJSON\s*\(\s*secrets\s*\)"
+    r"|\bsecrets\s*(?:\.\s*(?P<dotted>[\w-]+)|\[\s*(?P<indexed>[^\]]*)\])",
+    re.IGNORECASE,
+)
+INHERITED_SECRETS = re.compile(r"\bsecrets:\s*inherit\b")
+# The automatic token is read-only for forks, so a gate may use it.
+FORK_SAFE_NAME = "GITHUB_TOKEN"
 RETRY_USE = re.compile(
     r"uses:\s*(?:nick-fields/retry|wandalen/wretry\.action|step-security/retry)@"
     r"|\bgh\s+run\s+rerun\b|--reruns\b|--retries[= ]+0*[1-9]|--retry-failed\b",
     re.IGNORECASE,
 )
 SLEEP = re.compile(r"(?:^|[\s;&|(])(?:sleep\s+\d|Start-Sleep\b)", re.IGNORECASE)
-CONTINUE_ON_ERROR = re.compile(r"^\s*continue-on-error:\s*true\s*(?:#.*)?$")
+CONTINUE_ON_ERROR = re.compile(r"^\s*continue-on-error:\s*(?P<value>[^#\n]*?)\s*(?:#.*)?$")
+# Only a value that is false before the run starts keeps a failing step failing;
+# an expression can evaluate to true for some matrix entry or event.
+STATICALLY_FALSE = re.compile(r"""["']?(?:false|\$\{\{\s*false\s*\}\})["']?""", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -115,9 +129,9 @@ def gate_findings(workflow: Workflow) -> list[Finding]:
     """Check a workflow that guards merges: queue trigger, filters, and secrets."""
     findings = []
     first, last = workflow.on_lines
-    if "pull_request" in workflow.triggers and "merge_group" not in workflow.triggers:
+    if workflow.triggers & PULL_REQUEST_TRIGGERS and "merge_group" not in workflow.triggers:
         message = (
-            "runs on pull_request but not merge_group; a merge queue then never receives "
+            "runs on pull requests but not merge_group; a merge queue then never receives "
             "its required checks"
         )
         findings.append(Finding(workflow.relative, first + 1, "ci-merge-group", message))
@@ -129,13 +143,29 @@ def gate_findings(workflow: Workflow) -> list[Finding]:
             )
             findings.append(Finding(workflow.relative, index + 1, "ci-path-filter", message))
     for index, line in enumerate(workflow.lines):
-        if SECRET_USE.search(line.split("#", 1)[0]):
+        if uses_secret(line.split("#", 1)[0]):
             message = "a merge gate must run without secrets or keys, including for forks"
             findings.append(Finding(workflow.relative, index + 1, "ci-secret", message))
-        if CONTINUE_ON_ERROR.match(line):
+        setting = CONTINUE_ON_ERROR.match(line)
+        if setting and setting["value"] and not STATICALLY_FALSE.fullmatch(setting["value"]):
             message = "continue-on-error lets a failing step report success"
             findings.append(Finding(workflow.relative, index + 1, "ci-continue-on-error", message))
     return findings
+
+
+def uses_secret(code: str) -> bool:
+    """Report a secret read by property, index, or toJSON, or secrets inherited by a call."""
+    if INHERITED_SECRETS.search(code):
+        return True
+    for expression in EXPRESSION.finditer(code):
+        for reference in SECRET_REFERENCE.finditer(expression["body"]):
+            dotted, indexed = reference["dotted"], reference["indexed"]
+            if dotted is None and indexed is None:
+                return True  # toJSON(secrets) exposes every secret
+            name = dotted or indexed.strip().strip("'\"")
+            if name.upper() != FORK_SAFE_NAME:
+                return True
+    return False
 
 
 def workflow_findings(path: Path, relative: str) -> list[Finding]:

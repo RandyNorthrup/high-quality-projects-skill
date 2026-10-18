@@ -52,8 +52,38 @@ DRILLS = (
     ),
     (
         "scripts/practices/workflows.py",
-        'if "pull_request" in workflow.triggers and "merge_group" not in workflow.triggers:',
+        'if workflow.triggers & PULL_REQUEST_TRIGGERS and "merge_group" not in workflow.triggers:',
         "if False:",
+        f"{PRACTICES}.test_merge_gate_workflows",
+    ),
+    (
+        "scripts/practices/workflows.py",
+        'PULL_REQUEST_TRIGGERS = frozenset({"pull_request", "pull_request_target"})',
+        'PULL_REQUEST_TRIGGERS = frozenset({"pull_request"})',
+        f"{PRACTICES}.test_merge_gate_workflows",
+    ),
+    (
+        "scripts/practices/workflows.py",
+        r'|\[\s*(?P<indexed>[^\]]*)\])"',
+        r'|\[\s*(?P<indexed>UNMATCHED)\])"',
+        f"{PRACTICES}.test_merge_gate_workflows",
+    ),
+    (
+        "scripts/practices/workflows.py",
+        "if name.upper() != FORK_SAFE_NAME:",
+        "if True:",
+        f"{PRACTICES}.test_merge_gate_workflows",
+    ),
+    (
+        "scripts/practices/workflows.py",
+        'if setting and setting["value"] and not STATICALLY_FALSE.fullmatch(setting["value"]):',
+        'if setting and setting["value"] == "true":',
+        f"{PRACTICES}.test_merge_gate_workflows",
+    ),
+    (
+        "scripts/practices/workflows.py",
+        r"(?:false|\$\{\{",
+        r"(?:UNMATCHED|\$\{\{",
         f"{PRACTICES}.test_merge_gate_workflows",
     ),
     (
@@ -142,7 +172,7 @@ DRILLS = (
     ),
     (
         "scripts/practices/workflows.py",
-        'if SECRET_USE.search(line.split("#", 1)[0]):',
+        'if uses_secret(line.split("#", 1)[0]):',
         "if False:",
         f"{PRACTICES}.test_merge_gate_workflows",
     ),
