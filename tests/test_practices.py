@@ -271,6 +271,14 @@ class PracticeCommandTests(unittest.TestCase):
         summary = (report["changed"], report["upstreams_watched"], report["findings"])
         self.assertEqual(summary, (False, 1, []))
         self.assertIn("example-cli: manual watch", report["notes"][0])
+        # Unreadable input stays in the format the caller asked for.
+        broken = PracticeProject(self, {"upstreams.json": "{"})
+        code, output = run(["--root", str(broken.root), "--format", "json"])
+        self.assertEqual(code, 2, output)
+        self.assertTrue(output.startswith("{"), output)
+        failure = json.loads(output)
+        self.assertEqual(failure["passed"], False)
+        self.assertIn("upstreams.json", failure["error"])
 
     def test_command_started_through_symlink(self) -> None:
         """An installed link to the entry script still finds its package and fails on violations."""
@@ -667,6 +675,18 @@ class PracticeCommandTests(unittest.TestCase):
             ),
             ("pytest reruns key", {"pytest.ini": "[pytest]\nreruns = 3\n"}, "pytest.ini", "rerun"),
             (
+                "pytest zero reruns flag",
+                {"pyproject.toml": '[tool.pytest.ini_options]\naddopts = "--reruns 0"\n'},
+                "pyproject.toml",
+                None,
+            ),
+            (
+                "workflow zero reruns",
+                {".github/workflows/ci.yml": WORKFLOW + "      - run: pytest --reruns=0\n"},
+                ".github/workflows/ci.yml",
+                None,
+            ),
+            (
                 "pytest no reruns",
                 {"pytest.ini": "[pytest]\nreruns = 0\nreruns_delay = 2\n"},
                 "pytest.ini",
@@ -862,8 +882,29 @@ class PracticeCommandTests(unittest.TestCase):
         sleep = "import time\ntime.sleep(2)"
         reviewed = "  # verify-practices: allow fixed-delay -- documented server backoff\n"
         no_reason = "  # verify-practices: allow fixed-delay\n"
+        gate = ".github/workflows/ci.yml"
+        directive = "verify-practices: allow ci-continue-on-error -- upstream outage"
+        timeout = "    timeout-minutes: 15\n"
+        # The '#' follows a space inside the quotes, so only quote tracking keeps
+        # this value from reading as a comment.
+        as_data = (
+            f'{timeout}    env:\n      NOTE: "data # {directive}"\n    continue-on-error: true\n'
+        )
+        as_comment = f"{timeout}    # {directive}\n    continue-on-error: true\n"
         cases: list[Case] = [
             ("reviewed allowance", {"tests/t.py": sleep + reviewed}, "tests/t.py", None),
+            (
+                "allowance text inside a quoted value",
+                {gate: WORKFLOW.replace(timeout, as_data)},
+                gate,
+                "ci-continue-on-error",
+            ),
+            (
+                "allowance in a YAML comment",
+                {gate: WORKFLOW.replace(timeout, as_comment)},
+                gate,
+                None,
+            ),
             (
                 "allowance without reason keeps the finding",
                 {"tests/t.py": sleep + no_reason},
@@ -921,8 +962,39 @@ class PracticeCommandTests(unittest.TestCase):
         target_only = WORKFLOW.replace(
             "  pull_request:\n  merge_group:\n", "  pull_request_target:\n"
         )
+
+        def target_gate(permissions: str, value: str) -> dict[str, str]:
+            triggers = "  pull_request_target:\n  merge_group:\n"
+            text = WORKFLOW.replace("  pull_request:\n  merge_group:\n", triggers)
+            text = text.replace("jobs:\n", f"{permissions}jobs:\n")
+            return {gate: text + f"        env:\n          KEY: {value}\n"}
+
+        automatic = "${{ secrets.GITHUB_TOKEN }}"
+        folded = "${{\n            secrets.API_KEY\n            }}"
+        push_filter = WORKFLOW.replace('"on":\n', '"on":\n  push:\n    paths: [docs/**]\n')
         cases: list[Case] = [
             ("clean gate", {gate: WORKFLOW}, gate, None),
+            ("folded secret", env(folded), gate, "ci-secret"),
+            ("secret after a quoted hash", env('"#${{ secrets.API_KEY }}"'), gate, "ci-secret"),
+            (
+                "target token with write",
+                target_gate("permissions:\n  contents: write\n", automatic),
+                gate,
+                "ci-secret",
+            ),
+            (
+                "target token, no permissions",
+                target_gate("", "${{ github.token }}"),
+                gate,
+                "ci-secret",
+            ),
+            (
+                "target token read-only",
+                target_gate("permissions:\n  contents: read\n", automatic),
+                gate,
+                None,
+            ),
+            ("filtered push beside a gate", {gate: push_filter}, gate, None),
             ("indexed secret", env("${{ secrets['API_KEY'] }}"), gate, "ci-secret"),
             (
                 "secret in a condition",

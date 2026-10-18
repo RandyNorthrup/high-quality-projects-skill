@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING
 
 from .masking import matching_close
 from .model import Finding
-from .source import language_of
+from .source import language_of, strip_hash_comment
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -139,7 +139,7 @@ def git_state_findings(relative: str, line: int, command: str) -> list[Finding]:
 def code_lines(text: str, *, comments: bool) -> Iterator[tuple[int, str]]:
     """Yield numbered lines, without '#' comments when the format has them."""
     for number, line in enumerate(text.splitlines(), start=1):
-        yield number, (line.split("#", 1)[0] if comments else line)
+        yield number, (strip_hash_comment(line) if comments else line)
 
 
 def command_text_findings(relative: str, text: str) -> list[Finding]:
@@ -200,7 +200,7 @@ def hook_findings(relative: str, text: str) -> list[Finding]:
     """Refuse a local hook that runs the whole test suite."""
     findings = []
     if relative == PRE_COMMIT:
-        lines = [line.split("#", 1)[0] for line in text.splitlines()]
+        lines = [strip_hash_comment(line) for line in text.splitlines()]
         for start, item in yaml_items(lines):
             entry = entry_command(item)
             if (

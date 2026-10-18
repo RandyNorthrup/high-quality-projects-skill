@@ -52,6 +52,9 @@ TEST_FILE = re.compile(
     r"|.+\.tests\.ps1|.+tests?\.(?:cs|java|kt)|.+\.bats)$",
     re.IGNORECASE,
 )
+QUOTES = frozenset("'\"")
+# Characters after which a quote begins a value: a key, an assignment, a list.
+QUOTE_OPENERS = frozenset(":=[{(,")
 ALLOWANCE = re.compile(
     r"verify-practices:\s*allow\s+(?P<check>[a-z][a-z-]*)"
     r"(?:\s+--\s*(?P<reason>.*?))?\s*(?:\*/|#>)?\s*$"
@@ -161,11 +164,43 @@ def python_comments(text: str) -> list[tuple[int, str]]:
     return []
 
 
+def hash_comment_start(line: str) -> int:
+    """Return where a '#' comment starts on a line, or -1 when it has none.
+
+    In YAML, TOML, INI, shell, and PowerShell a '#' starts a comment at the
+    start of a line or after whitespace, never inside a quoted value. A quote
+    opens a value only where a token can start, so the apostrophe in `don't`
+    stays text.
+    """
+    quote = ""
+    index = 0
+    while index < len(line):
+        char = line[index]
+        previous = line[index - 1] if index else " "
+        if quote:
+            if char == "\\" and quote == '"':
+                index += 1
+            elif char == quote:
+                quote = ""
+        elif char in QUOTES and (previous.isspace() or previous in QUOTE_OPENERS):
+            quote = char
+        elif char == "#" and previous.isspace():
+            return index
+        index += 1
+    return -1
+
+
+def strip_hash_comment(line: str) -> str:
+    """Return a line without its '#' comment."""
+    start = hash_comment_start(line)
+    return line if start < 0 else line[:start]
+
+
 def hash_comments(text: str) -> list[tuple[int, str]]:
-    """Return '#' comments from YAML, TOML, INI, and PowerShell by line."""
+    """Return '#' comments from YAML, TOML, INI, shell, and PowerShell by line."""
     comments = []
     for number, line in enumerate(text.splitlines(), start=1):
-        index = line.find("#")
+        index = hash_comment_start(line)
         if index >= 0:
             comments.append((number, line[index:]))
     return comments

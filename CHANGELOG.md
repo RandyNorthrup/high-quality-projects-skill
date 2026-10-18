@@ -48,6 +48,12 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   no longer counts as enforced. `--watch --format json` prints JSON. Shell
   scripts and Bats suites count as code, so a shell-only project can pass, and
   a fixed `sleep` in a shell test is refused.
+- A second review closed more gaps. A secret in an expression that YAML folds
+  over several lines is refused; on `pull_request_target` the automatic token
+  is refused unless top-level permissions are read-only; a path filter on
+  `push` beside a gate is no longer refused; `--reruns 0` passes; a `#` inside
+  a quoted value no longer reads as a comment, so it cannot hide code or allow
+  a finding; input errors honor `--format json`.
 - `docs/PRACTICES.md`: each rule with its reason, the check that enforces it,
   the allowance syntax, and what the command cannot see.
 - Templates for a new project: the `templates/ci/quality.yml` merge gate, the

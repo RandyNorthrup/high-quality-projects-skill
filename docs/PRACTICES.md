@@ -40,7 +40,8 @@ family, PowerShell, shell (`.sh`, `.bash`, `.zsh`, `.ksh`, `.bats`), and the
 C family, Go, Rust, Java, and Kotlin. `--watch` asks each watched upstream for
 its latest release and exits 1 when one moved since the last review; a failed
 query exits 2. `--format json` emits the same findings for tooling, in both
-modes; the watch report adds `changed`, `upstreams_watched`, and `notes`.
+modes; the watch report adds `changed`, `upstreams_watched`, and `notes`, and
+an exit 2 prints `{"passed": false, "error": ...}`.
 
 ## Tests run real code
 
@@ -117,7 +118,7 @@ use. A false claim is fixed in the code, never by rewording it.
 | `one-off` | Three or more tests in a file whose bodies differ only in literal values; a test named after a numbered finding, item, checklist entry, rule, lesson, pitfall, issue, ticket, or bug | reviewed |
 | `fixed-delay` | `time.sleep`, `waitForTimeout`, a sleeping `setTimeout` promise, `Thread.Sleep`, `time.Sleep`, `Start-Sleep`, and shell `sleep` in tests (Bats included); `sleep` in workflow steps | reviewed |
 | `timeout-override` | `@pytest.mark.timeout`, `jest.setTimeout`, `this.timeout`, `testTimeout`, a per-test timeout argument | reviewed |
-| `rerun` | Retry and re-run settings in test code, runner configuration, package scripts, and workflows (`retries`, `reruns`, `--reruns`, `retryTimes`, flaky markers, retry actions, `gh run rerun`) | none |
+| `rerun` | Retry and re-run settings in test code, runner configuration, package scripts, and workflows (`retries` and `reruns` above zero, `--reruns` and `--retries` with a positive count, `retryTimes`, flaky markers, retry actions, `gh run rerun`) | none |
 
 ## Errors name their cause
 
@@ -187,9 +188,9 @@ for a hung runner. Never raise it to make room for slow setup.
 
 | Check | Refuses | Allowance |
 |---|---|---|
-| `ci-secret` | A secret other than `GITHUB_TOKEN` read anywhere in an expression, by property (`secrets.KEY`), by index (`secrets['KEY']`), or all at once (`toJSON(secrets)`), or `secrets: inherit`, in a workflow triggered by `pull_request`, `pull_request_target`, or `merge_group` | none |
+| `ci-secret` | A secret other than `GITHUB_TOKEN` read anywhere in an expression, including one YAML folds over several lines, by property (`secrets.KEY`), by index (`secrets['KEY']`), or all at once (`toJSON(secrets)`), or `secrets: inherit`, in a workflow triggered by `pull_request`, `pull_request_target`, or `merge_group`. On `pull_request_target` the automatic token (`secrets.GITHUB_TOKEN`, `github.token`) carries the base repository's permissions, so it is refused there unless top-level permissions are declared and none is `write` | none |
 | `ci-merge-group` | A `pull_request` or `pull_request_target` workflow without `merge_group` | reviewed |
-| `ci-path-filter` | `paths` or `paths-ignore` on a merge-gate trigger | reviewed |
+| `ci-path-filter` | `paths` or `paths-ignore` under `pull_request`, `pull_request_target`, or `merge_group`; a filter on another trigger, such as `push`, is fine | reviewed |
 | `ci-continue-on-error` | `continue-on-error` set to anything but a literal `false`, an expression included, in a merge gate | reviewed |
 | `ci-timeout` | A job without `timeout-minutes` (reusable-workflow calls excepted) | reviewed |
 | `local-full-suite` | A test runner started with options only, so it runs the whole suite: in a `.pre-commit-config.yaml` hook with `pass_filenames: false` or `always_run: true`, a Git hook script under `.husky/` or `.githooks/`, or a lefthook configuration | reviewed |
@@ -310,7 +311,8 @@ skill, or a suggestion is read once and then forgotten.
 
 ## Allowances
 
-A reviewed exception is a comment on the finding's line or the line above it:
+A reviewed exception is a comment on the finding's line or the line above it.
+A `#` inside a quoted value is data, not a comment, and allows nothing:
 
 ```python
 # verify-practices: allow fixed-delay -- the server documents a fixed 2 s backoff

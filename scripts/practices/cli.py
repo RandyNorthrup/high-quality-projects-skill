@@ -58,7 +58,10 @@ CONFIG_NAMES = re.compile(
 )
 # `reruns` is pytest-rerunfailures' configuration key for default reruns.
 RETRY_SETTING = re.compile(r"\b(?:retr(?:y|ies)|reruns)\s*[:=]\s*(?P<value>[^,\n}]*)")
-RETRY_FLAG = re.compile(r"--reruns\b|--retries[= ]+0*[1-9]|\bretryTimes\b|-p\s*rerunfailures")
+# `--reruns 0` disables reruns, so only a positive count is refused.
+RETRY_FLAG = re.compile(
+    r"--reruns[= ]+0*[1-9]|--retries[= ]+0*[1-9]|\bretryTimes\b|-p\s*rerunfailures"
+)
 
 
 @dataclass
@@ -313,4 +316,11 @@ def run(argv: list[str] | None = None) -> tuple[int, str]:
     try:
         return execute(options)
     except (PracticeInputError, OSError, UnicodeError) as error:
-        return EXIT_INPUT, f"ERROR: {error}"
+        return EXIT_INPUT, render_input_error(error, options.output_format)
+
+
+def render_input_error(error: Exception, output_format: str) -> str:
+    """Report unreadable input in the format the caller asked for."""
+    if output_format == "json":
+        return json.dumps({"passed": False, "error": str(error)}, indent=2, sort_keys=True)
+    return f"ERROR: {error}"

@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, NoReturn
 
 from .masking import mask
 from .model import Finding, PracticeInputError
-from .source import dialect_of, language_of, python_comments, read_text
+from .source import dialect_of, language_of, python_comments, read_text, strip_hash_comment
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -46,9 +46,6 @@ GITHUB_REPOSITORY = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 # The REST API version this watch speaks. Listed in upstreams.json, so a new
 # GitHub API version is reviewed like any other upstream change.
 GITHUB_API_VERSION = "2026-03-10"
-# A '#' comment in YAML, TOML, INI, shell, PowerShell, Dockerfiles, and
-# requirements files starts a line or follows whitespace.
-HASH_COMMENT = re.compile(r"(?:^|(?<=\s))#.*$", re.MULTILINE)
 GITHUB_RELEASE_URL = "https://api.github.com/repos/{repository}/releases/latest"
 USER_AGENT = "high-quality-projects-skill-verify-practices"
 
@@ -253,7 +250,7 @@ def code_without_comments(text: str, relative: str) -> str:
     language = language_of(Path(relative))
     if language and language not in {"powershell", "shell"}:
         return mask(text, dialect_of(language)).code
-    return HASH_COMMENT.sub("", text)
+    return "\n".join(strip_hash_comment(line) for line in text.splitlines())
 
 
 def pin_written(text: str, relative: str, pinned: str) -> bool:

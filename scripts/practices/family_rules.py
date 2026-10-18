@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 
 from .model import Finding
 from .python_rules import DOUBLE_MESSAGES, DOUBLE_PREFIXES
+from .source import strip_hash_comment
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -144,7 +145,7 @@ def powershell_findings(source: SourceFile, text: str) -> list[Finding]:
         return []
     findings = []
     for number, line in enumerate(text.splitlines(), start=1):
-        code = line.split("#", 1)[0]
+        code = strip_hash_comment(line)
         if PESTER_MOCK.match(code):
             message = f"Pester Mock {DOUBLE_MESSAGES['mock']}"
             findings.append(Finding(source.relative, number, "mock", message))
@@ -166,5 +167,5 @@ def shell_findings(source: SourceFile, text: str) -> list[Finding]:
             "sleeps for a fixed delay; wait until the expected condition holds",
         )
         for number, line in enumerate(text.splitlines(), start=1)
-        if SHELL_SLEEP.search(line.split("#", 1)[0])
+        if SHELL_SLEEP.search(strip_hash_comment(line))
     ]
