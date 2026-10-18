@@ -582,3 +582,24 @@ a detection. Threads are answered in the report, not on GitHub.
       and `cross-platform-smoke.ps1 -RedDrills` under PowerShell 7 and 5.1.
 - [ ] Hosted CI passes on the pushed commits, including the new Bash
       unreadable-root check on Linux and macOS.
+
+## Second review round (2026-10-18)
+
+Baseline: `193f09e`, pushed. The re-review raised 12 new threads; the 11
+earlier ones are resolved. Each new thread reproduces at `193f09e` and is fixed
+at its cause with a refused case, a negative control, and a drill.
+
+| ID | Thread | Fix |
+|---|---|---|
+| S01 | `workflows.py:146` folded `${{ }}` over several lines | Match expressions across the whole comment-free workflow text, reporting the line where `${{` starts |
+| S02 | `workflows.py:166` `GITHUB_TOKEN` exempt on `pull_request_target` | On `pull_request_target`, refuse the automatic token (`secrets.GITHUB_TOKEN`, `github.token`) unless the workflow declares top-level permissions and none is `write` |
+| S03 | `cli.py:316` input errors ignore `--format json` | Emit `{"passed": false, "error": ...}` for exit 2 when JSON was requested |
+| S04 | `cli.py:61` `--reruns 0` refused | Require a positive count for `--reruns`, in runner files and workflows |
+| S05 | `source.py:170` `#` inside quoted values read as a comment | One quote-aware `#` comment finder for YAML, TOML, INI, shell, and PowerShell, used for allowances and for stripping comments before checks |
+| S06 | `register.py:134` any file under `tests/` counts as a test | Require test code in a recognized language |
+| S07 | `error_rules.py:103` `exc_info=False` counts as keeping the cause | Count `exc_info` only when it is not statically false |
+| S08 | `workflows.py:144` path filter on `push` refused | Read the trigger nesting; refuse `paths` only under `pull_request`, `pull_request_target`, or `merge_group` |
+| S09 | `manifests.py:69` NuGet `Include` must be first and double-quoted | Read the `Include` attribute in any position and either quote, for `PackageReference`, `PackageVersion`, and `GlobalPackageReference` |
+| S10 | `family_rules.py:117` Rust `#[cfg(test)] mod` in product files | Treat the body of a `#[cfg(test)]` module as test code |
+| S11 | `upstreams.py:226` SHA pin never equals a release tag (P1) | New required `version` field: the release a SHA or digest pin identifies, or null when `pinned` is the version; `upstream-behind` compares `latest_seen` with it |
+| S12 | `parallel_rules.py:233` command held in a variable | Resolve names bound to literal commands earlier in the same scope |
