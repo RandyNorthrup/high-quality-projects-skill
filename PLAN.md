@@ -628,3 +628,9 @@ cause with a refused case, a negative control, and a drill.
 | T06 | `workflows.py:246` reusable workflow called by a gate | Apply the gate checks to local workflows that a gate calls with `jobs.<id>.uses`, transitively |
 | T07 | `parallel_rules.py:109` `pass_filenames: False` | Read every YAML boolean spelling pre-commit's loader accepts (`true/false`, `yes/no`, `on/off`, any case) |
 | T08 | `workflows.py:33` `github['token']`, `toJSON(github)` | Treat an indexed token property and whole-context serialization as the automatic token |
+
+- [x] T01 to T08 `de5cb26`
+- [x] Gates on `de5cb26`: Ruff format and lint, both mypy scopes,
+      `verify-practices` here, the full suite, `pre-commit run --all-files`,
+      and `cross-platform-smoke.ps1 -RedDrills` under PowerShell 7 and 5.1.
+- [ ] Hosted CI passes on the pushed commits.

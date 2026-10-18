@@ -653,3 +653,54 @@ All on Windows 11 at `ee76585`, run one after another:
 - The read-only test for `pull_request_target` reads declared permissions. It
   cannot see a repository's default token setting, so a target workflow that
   declares no permissions is refused even where the default is read-only.
+
+## Third review round: 2026-10-18
+
+Scope: commits `1874841` (plan) and `de5cb26`, from `1a1e734`. The re-review
+of `1a1e734` resolved the 12 second-round threads and raised 8 new ones. Each
+reproduced at `1a1e734` and was fixed at its cause in `de5cb26`; none was
+answered as no longer applying. Threads were not resolved or replied to on
+GitHub.
+
+| Thread | Cause | Fix |
+|---|---|---|
+| `workflows.py:80` | A flow-style `on:` value was read as a bag of words, with no trigger nesting | Parsed as a flow list or mapping: triggers are its first-level keys, and `paths` under a merge-gate trigger is refused; `paths` under `push` is not |
+| `parallel_rules.py:277` | The scope walk visits statements in reverse, and the last binding in visit order was the oldest | The binding with the greatest line at or above the call wins |
+| `workflows.py:36` | `secrets:` had to touch its colon | `secrets : inherit` matches |
+| `workflows.py:109` | The jobs key had to be exactly `jobs:` | The comment is stripped first |
+| `manifests.py:166` | References were matched in raw XML, comments included | XML comments are blanked, keeping line numbers, before matching |
+| `workflows.py:246` | Gate checks ran only on workflows with a merge-gate trigger | A repository workflow a gate calls through `jobs.<id>.uses`, directly or transitively, gets them too; one called only from `push` does not |
+| `parallel_rules.py:109` | Only lowercase `false` and `true` counted | Every YAML 1.1 boolean spelling that pre-commit's loader accepts, in any case |
+| `workflows.py:33` (security) | Only dotted `github.token` was the automatic token | `github['token']`, a computed `github[...]` index, and `toJSON(github)` count; `github['event_name']` does not |
+
+### Executed drills
+
+The Python drill table grew from 74 to 86. Four of the new drills break
+negative controls: the merge-gate condition on flow-style path filters, the
+gate-caller condition for called workflows (a `push` caller must not count),
+the literal-index test for `github[...]`, and the latest-binding choice. The
+control for a workflow called only from `push` was added when it became clear
+that the called-workflow drill had nothing to fail against without it.
+
+### Results
+
+All on Windows 11 at `de5cb26`, run one after another:
+
+| Gate | Exit |
+|---|---|
+| `ruff format --check .` (64 files) | 0 |
+| `ruff check .` | 0 |
+| mypy, package scripts (26 files) | 0 |
+| mypy, tests (14 files) | 0 |
+| `verify-practices.py --root . --rules CONTRIBUTING.md` (49 code files, no allowances) | 0 |
+| Full suite with coverage: 71 tests, 4 skips, 88.0% against the 82% floor | 0, report 0 |
+| `pre-commit run --all-files` | 0 |
+| `cross-platform-smoke.ps1 -RedDrills`, PowerShell 7.6.6 (7 drills) | 0 |
+| `cross-platform-smoke.ps1 -RedDrills`, Windows PowerShell 5.1 (7 drills) | 0 |
+
+### Limits and open gates
+
+- Hosted CI has not run on `1874841` and later; nothing is pushed.
+- Called-workflow tracing follows `uses: ./.github/workflows/...` inside this
+  repository only. A reusable workflow from another repository is pinned and
+  reviewed as an upstream, not checked as part of the gate.
