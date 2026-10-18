@@ -75,6 +75,18 @@ DRILLS = (
         f"{PRACTICES}.test_allowances_are_reviewed_exceptions",
     ),
     (
+        "scripts/practices/source.py",
+        '    if suffix in SHELL_SUFFIXES:\n        return "shell"\n',
+        "",
+        f"{PRACTICES}.test_command_exit_contract",
+    ),
+    (
+        "scripts/practices/family_rules.py",
+        'if SHELL_SLEEP.search(line.split("#", 1)[0])',
+        "if False",
+        f"{PRACTICES}.test_waits_timeouts_and_retries",
+    ),
+    (
         "scripts/practices/cli.py",
         "render_watch(findings, notes, len(upstreams), options.output_format)",
         'render_watch(findings, notes, len(upstreams), "text")',

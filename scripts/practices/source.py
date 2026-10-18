@@ -44,10 +44,12 @@ C_FAMILY_SUFFIXES = {
     ".hh": "cpp",
 }
 POWERSHELL_SUFFIXES = frozenset({".ps1", ".psm1"})
+# Bats files are shell test suites.
+SHELL_SUFFIXES = frozenset({".sh", ".bash", ".zsh", ".ksh", ".bats"})
 TEST_DIRECTORIES = frozenset({"test", "tests", "__tests__", "spec", "specs", "e2e"})
 TEST_FILE = re.compile(
     r"^(?:test_.+\.py|.+_test\.(?:py|go)|.+\.(?:test|spec)\.[cm]?[jt]sx?"
-    r"|.+\.tests\.ps1|.+tests?\.(?:cs|java|kt))$",
+    r"|.+\.tests\.ps1|.+tests?\.(?:cs|java|kt)|.+\.bats)$",
     re.IGNORECASE,
 )
 ALLOWANCE = re.compile(
@@ -102,6 +104,8 @@ def language_of(path: Path) -> str | None:
         return "script"
     if suffix in POWERSHELL_SUFFIXES:
         return "powershell"
+    if suffix in SHELL_SUFFIXES:
+        return "shell"
     return C_FAMILY_SUFFIXES.get(suffix)
 
 

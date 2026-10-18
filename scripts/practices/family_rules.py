@@ -98,6 +98,7 @@ GO_DOUBLE_TYPE = re.compile(
 )
 PESTER_MOCK = re.compile(r"^\s*Mock\s+[-\w]", re.IGNORECASE)
 POWERSHELL_SLEEP = re.compile(r"\bStart-Sleep\b", re.IGNORECASE)
+SHELL_SLEEP = re.compile(r"(?:^|[\s;&|(])sleep\s+\d")
 
 
 def family_findings(source: SourceFile, masked: Masked) -> list[Finding]:
@@ -151,3 +152,19 @@ def powershell_findings(source: SourceFile, text: str) -> list[Finding]:
             message = "sleeps for a fixed delay; wait until the expected condition holds"
             findings.append(Finding(source.relative, number, "fixed-delay", message))
     return findings
+
+
+def shell_findings(source: SourceFile, text: str) -> list[Finding]:
+    """Refuse fixed sleeps in shell tests, such as Bats suites."""
+    if not source.is_test:
+        return []
+    return [
+        Finding(
+            source.relative,
+            number,
+            "fixed-delay",
+            "sleeps for a fixed delay; wait until the expected condition holds",
+        )
+        for number, line in enumerate(text.splitlines(), start=1)
+        if SHELL_SLEEP.search(line.split("#", 1)[0])
+    ]

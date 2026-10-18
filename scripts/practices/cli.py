@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from .error_rules import masked_error_findings
-from .family_rules import family_findings, powershell_findings
+from .family_rules import family_findings, powershell_findings, shell_findings
 from .manifests import is_manifest, manifest_findings
 from .model import (
     ALLOWABLE_CHECKS,
@@ -117,6 +117,10 @@ def analyze_source(source: SourceFile, collected: Collected) -> None:
     elif source.language == "powershell":
         collected.findings.extend(powershell_findings(source, text))
         collected.findings.extend(command_text_findings(source.relative, text))
+        collected.allowances.extend(allowances_in(source.relative, hash_comments(text)))
+    elif source.language == "shell":
+        collected.findings.extend(shell_findings(source, text))
+        collected.findings.extend(command_file_findings(source.relative, text))
         collected.allowances.extend(allowances_in(source.relative, hash_comments(text)))
     else:
         masked = masked_source(source)

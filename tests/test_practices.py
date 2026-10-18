@@ -241,6 +241,17 @@ class PracticeCommandTests(unittest.TestCase):
             ("no upstreams.json", {"upstreams.json": None}, 1, "upstreams-missing"),
             ("unparseable upstreams.json", {"upstreams.json": "{"}, 2, "cannot be read as JSON"),
             ("no code", {"src/app.py": None, "tests/test_app.py": None}, 1, "nothing-scanned"),
+            (
+                "shell project",
+                {
+                    "src/app.py": None,
+                    "tests/test_app.py": None,
+                    "src/run.sh": 'echo "$1"\n',
+                    "tests/run.bats": '@test "echoes" {\n  run src/run.sh a\n}\n',
+                },
+                0,
+                "PASS: no refused practices; 2 code files checked",
+            ),
         )
         for label, files, code, text in cases:
             with self.subTest(label):
@@ -599,6 +610,13 @@ class PracticeCommandTests(unittest.TestCase):
                 "timeout-override",
             ),
             ("product sleep", {"src/poll.py": "import time\ntime.sleep(2)\n"}, "src/poll.py", None),
+            (
+                "bats sleep",
+                {"tests/a.bats": '@test "a" {\n  sleep 2\n}\n'},
+                "tests/a.bats",
+                "fixed-delay",
+            ),
+            ("product shell sleep", {"src/poll.sh": "sleep 2\n"}, "src/poll.sh", None),
             (
                 "playwright wait",
                 {"tests/a.spec.ts": "await page.waitForTimeout(500);\n"},

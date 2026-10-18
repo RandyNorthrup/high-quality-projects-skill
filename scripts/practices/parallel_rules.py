@@ -12,10 +12,12 @@ from __future__ import annotations
 
 import ast
 import re
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from .masking import matching_close
 from .model import Finding
+from .source import language_of
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -62,7 +64,6 @@ SUITE_MESSAGE = (
 # Quotes, commas, and brackets separate the words of a command written as a
 # string or an argument list; spaces stand in for them before matching.
 SEPARATORS = str.maketrans(dict.fromkeys("\"'`,[]", " "))
-SHELL_SUFFIXES = (".sh", ".bash", ".zsh", ".ksh")
 HOOK_DIRECTORIES = (".husky/", ".githooks/", ".git-hooks/")
 HOOK_RUNNERS = frozenset(
     {"lefthook.yml", "lefthook.yaml", ".lefthook.yml", ".lefthook.yaml", "lefthook-local.yml"}
@@ -116,13 +117,12 @@ def is_hook_file(relative: str) -> bool:
 
 
 def is_command_file(relative: str) -> bool:
-    """Recognize a shell script, Git hook, or task runner that holds commands."""
+    """Recognize a Git hook or task runner that holds commands and is not a code file."""
     name = relative.rsplit("/", 1)[-1]
-    return (
-        relative.endswith(SHELL_SUFFIXES)
-        or is_hook_file(relative)
-        or (relative == name and name in TASK_RUNNERS)
-    )
+    # Shell scripts are code files, checked with their language's rules instead.
+    if language_of(Path(relative)) is not None:
+        return False
+    return is_hook_file(relative) or (relative == name and name in TASK_RUNNERS)
 
 
 def git_state_findings(relative: str, line: int, command: str) -> list[Finding]:
