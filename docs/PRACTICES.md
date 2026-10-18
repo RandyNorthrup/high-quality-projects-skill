@@ -87,7 +87,7 @@ These apply to code and to dependency manifests (`package.json`,
 `requirements/` folder, `Cargo.toml`, `.csproj`, `go.mod`): a mocking library
 that is installed gets used. A module name inside a string literal is text,
 not an import. NuGet references are read with their attributes in any order
-and either quote. Test code is a file in a test directory or with a test name,
+and either quote; a reference inside an XML comment installs nothing and is ignored. Test code is a file in a test directory or with a test name,
 plus the body of a Rust `#[cfg(test)]` module in any file.
 
 ## Tests that can fail a user
@@ -191,12 +191,16 @@ for a hung runner. Never raise it to make room for slow setup.
 
 | Check | Refuses | Allowance |
 |---|---|---|
-| `ci-secret` | A secret other than `GITHUB_TOKEN` read anywhere in an expression, including one YAML folds over several lines, by property (`secrets.KEY`), by index (`secrets['KEY']`), or all at once (`toJSON(secrets)`), or `secrets: inherit`, in a workflow triggered by `pull_request`, `pull_request_target`, or `merge_group`. On `pull_request_target` the automatic token (`secrets.GITHUB_TOKEN`, `github.token`) carries the base repository's permissions, so it is refused there unless top-level permissions are declared and none is `write` | none |
+| `ci-secret` | A secret other than `GITHUB_TOKEN` read anywhere in an expression, including one YAML folds over several lines, by property (`secrets.KEY`), by index (`secrets['KEY']`), or all at once (`toJSON(secrets)`), or `secrets: inherit` (spaces before the colon included), in a workflow triggered by `pull_request`, `pull_request_target`, or `merge_group`. On `pull_request_target` the automatic token (`secrets.GITHUB_TOKEN`, `github.token`, `github['token']`, or the whole context through `toJSON(github)`) carries the base repository's permissions, so it is refused there unless top-level permissions are declared and none is `write` | none |
 | `ci-merge-group` | A `pull_request` or `pull_request_target` workflow without `merge_group` | reviewed |
-| `ci-path-filter` | `paths` or `paths-ignore` under `pull_request`, `pull_request_target`, or `merge_group`; a filter on another trigger, such as `push`, is fine | reviewed |
+| `ci-path-filter` | `paths` or `paths-ignore` under `pull_request`, `pull_request_target`, or `merge_group`, in block or flow style (`on: {pull_request: {paths: [...]}}`); a filter on another trigger, such as `push`, is fine | reviewed |
 | `ci-continue-on-error` | `continue-on-error` set to anything but a literal `false`, an expression included, in a merge gate | reviewed |
 | `ci-timeout` | A job without `timeout-minutes` (reusable-workflow calls excepted) | reviewed |
-| `local-full-suite` | A test runner started with options only, so it runs the whole suite: in a `.pre-commit-config.yaml` hook with `pass_filenames: false` or `always_run: true`, a Git hook script under `.husky/` or `.githooks/`, or a lefthook configuration | reviewed |
+| `local-full-suite` | A test runner started with options only, so it runs the whole suite: in a `.pre-commit-config.yaml` hook with `pass_filenames` false or `always_run` true in any YAML spelling (`False`, `no`, `off`; `True`, `yes`, `on`), a Git hook script under `.husky/` or `.githooks/`, or a lefthook configuration | reviewed |
+
+A repository workflow that a gate calls through `jobs.<id>.uses`, directly or
+through other calls, gets the same merge-gate checks: its jobs are the gate's
+jobs.
 
 [`templates/ci/quality.yml`](../templates/ci/quality.yml) is a merge gate in
 this shape.

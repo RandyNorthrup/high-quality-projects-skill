@@ -47,7 +47,7 @@ from .upstreams import (
     today_utc,
     watch_findings,
 )
-from .workflows import is_workflow, workflow_findings
+from .workflows import called_by_gates, is_workflow, workflow_findings
 
 if TYPE_CHECKING:
     from datetime import date
@@ -149,7 +149,9 @@ def retry_config_findings(path: Path, relative: str) -> list[Finding]:
     return findings
 
 
-def analyze_file(path: Path, relative: str, collected: Collected) -> None:
+def analyze_file(
+    path: Path, relative: str, collected: Collected, gate_callees: frozenset[str]
+) -> None:
     """Run the checks for manifests, runner configuration, workflows, and command files."""
     if is_manifest(path):
         collected.findings.extend(manifest_findings(path, relative))
@@ -159,7 +161,8 @@ def analyze_file(path: Path, relative: str, collected: Collected) -> None:
             collected.allowances.extend(allowances_in(relative, hash_comments(read_text(path))))
     if is_workflow(relative):
         text = read_text(path)
-        collected.findings.extend(workflow_findings(path, relative))
+        called = relative in gate_callees
+        collected.findings.extend(workflow_findings(path, relative, called_by_gate=called))
         collected.findings.extend(command_text_findings(relative, text))
         collected.allowances.extend(allowances_in(relative, hash_comments(text)))
     elif is_command_file(relative):
@@ -176,8 +179,11 @@ def scan_files(root: Path, collected: Collected) -> int:
     for source in sources:
         analyze_source(source, collected)
     mock_directories = set()
+    gate_callees = called_by_gates(
+        root, [relative for _, relative in files if is_workflow(relative)]
+    )
     for path, relative in files:
-        analyze_file(path, relative, collected)
+        analyze_file(path, relative, collected, gate_callees)
         if "__mocks__" in relative.split("/")[:-1]:
             mock_directories.add(relative.rsplit("/__mocks__/", 1)[0] + "/__mocks__")
     collected.findings.extend(

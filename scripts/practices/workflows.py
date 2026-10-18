@@ -26,14 +26,21 @@ GATE_TRIGGERS = PULL_REQUEST_TRIGGERS | {"merge_group"}
 # YAML folds a scalar over several lines, so an expression can span them.
 EXPRESSION = re.compile(r"\$\{\{(?P<body>.*?)\}\}", re.DOTALL)
 # Context and property names in expressions are case-insensitive. A secret is
-# read by property, by index, or all at once through toJSON.
+# read by property, by index, or all at once through toJSON; the automatic
+# token is also read from the github context, by property, index, or toJSON.
 SECRET_REFERENCE = re.compile(
-    r"\btoJSON\s*\(\s*secrets\s*\)"
+    r"\btoJSON\s*\(\s*(?:(?P<all_secrets>secrets)|(?P<all_github>github))\s*\)"
     r"|\bsecrets\s*(?:\.\s*(?P<dotted>[\w-]+)|\[\s*(?P<indexed>[^\]]*)\])"
-    r"|\bgithub\s*\.\s*(?P<context>token)\b",
+    r"|\bgithub\s*(?:\.\s*(?P<context>token)\b|\[\s*(?P<github_index>[^\]]*)\])",
     re.IGNORECASE,
 )
-INHERITED_SECRETS = re.compile(r"\bsecrets:\s*inherit\b")
+INHERITED_SECRETS = re.compile(r"\bsecrets\s*:\s*inherit\b")
+JOBS_KEY = re.compile(r"^jobs\s*:\s*$")
+# A job that calls a reusable workflow in this repository.
+LOCAL_CALL = re.compile(r"^\s+uses\s*:\s*['\"]?\./(?P<path>\.github/workflows/[^\s'\"@#]+)")
+FLOW_TOKEN = re.compile(r"""[{}\[\],:]|"[^"]*"|'[^']*'|[^\s{}\[\],:'"]+""")
+# In `{trigger: {setting: ...}}` a trigger's settings sit two containers deep.
+SETTING_DEPTH = 2
 # The automatic token is read-only for forks on pull_request. On
 # pull_request_target it carries the base repository's permissions.
 FORK_SAFE_NAME = "GITHUB_TOKEN"
@@ -65,6 +72,8 @@ class Workflow:
     lines: tuple[str, ...]
     triggers: frozenset[str]
     on_lines: tuple[int, int]
+    # Merge-gate triggers that a flow-style `on:` value filters by path.
+    inline_filters: frozenset[str] = frozenset()
 
 
 def read_workflow(path: Path, relative: str) -> Workflow:
@@ -76,13 +85,46 @@ def read_workflow(path: Path, relative: str) -> Workflow:
             continue
         inline = strip_hash_comment(match["inline"]).strip()
         if inline:
-            names = frozenset(re.findall(r"[A-Za-z_]+", inline))
-            return Workflow(relative, lines, names, (index, index + 1))
+            children = flow_triggers(inline)
+            filtered = frozenset(
+                trigger
+                for trigger, keys in children.items()
+                if trigger in GATE_TRIGGERS and keys & PATH_FILTERS
+            )
+            return Workflow(relative, lines, frozenset(children), (index, index + 1), filtered)
         end = index + 1
         while end < len(lines) and not TOP_LEVEL_KEY.match(lines[end]):
             end += 1
         return Workflow(relative, lines, block_keys(lines[index + 1 : end]), (index, end))
     return Workflow(relative, lines, frozenset(), (0, 0))
+
+
+def flow_triggers(inline: str) -> dict[str, set[str]]:
+    """Read a flow-style `on:` value: each trigger name and the keys nested under it.
+
+    `on: push`, `on: [push, pull_request]`, and
+    `on: {pull_request: {paths: [src/**]}, merge_group: {}}` are all valid YAML.
+    In a mapping only keys name triggers; in a list every item does.
+    """
+    tokens = [token.strip("'\"") for token in FLOW_TOKEN.findall(inline)]
+    children: dict[str, set[str]] = {}
+    containers: list[str] = []
+    current = ""
+    for position, token in enumerate(tokens):
+        if token in {"{", "["}:
+            containers.append(token)
+        elif token in {"}", "]"}:
+            if containers:
+                containers.pop()
+        elif token not in {",", ":"}:
+            is_key = position + 1 < len(tokens) and tokens[position + 1] == ":"
+            depth = len(containers)
+            if depth == 0 or (depth == 1 and (containers[0] == "[" or is_key)):
+                current = token
+                children.setdefault(token, set())
+            elif depth == SETTING_DEPTH and is_key and current:
+                children[current].add(token)
+    return children
 
 
 def block_keys(block: tuple[str, ...]) -> frozenset[str]:
@@ -104,7 +146,11 @@ def jobs(workflow: Workflow) -> list[tuple[str, int, tuple[str, ...]]]:
     """Return (job id, line, body lines) for each job in the workflow."""
     lines = workflow.lines
     try:
-        start = next(index for index, line in enumerate(lines) if line.rstrip() == "jobs:")
+        start = next(
+            index
+            for index, line in enumerate(lines)
+            if JOBS_KEY.match(strip_hash_comment(line).rstrip())
+        )
     except StopIteration:
         return []
     end = start + 1
@@ -148,7 +194,10 @@ def gate_findings(workflow: Workflow) -> list[Finding]:
             "its required checks"
         )
         findings.append(Finding(workflow.relative, first + 1, "ci-merge-group", message))
-    for index in filtered_gate_triggers(workflow):
+    filtered = filtered_gate_triggers(workflow)
+    if workflow.inline_filters:
+        filtered.append(first)
+    for index in filtered:
         message = (
             "filters a merge-gate trigger by path; a skipped required check stays Pending "
             "and blocks the merge, so skip work inside the job instead"
@@ -228,22 +277,71 @@ def secret_findings(workflow: Workflow) -> list[Finding]:
 
 def reference_problem(reference: re.Match[str], *, unsafe_token: bool) -> str | None:
     """Explain why one secret or token reference does not belong in a merge gate."""
-    dotted, indexed, context = reference["dotted"], reference["indexed"], reference["context"]
-    if dotted is None and indexed is None and context is None:
+    if reference["all_secrets"]:
         return KEY_REFUSAL  # toJSON(secrets) exposes every secret
-    name = FORK_SAFE_NAME if context else (dotted or (indexed or "").strip().strip("'\""))
-    if name.upper() != FORK_SAFE_NAME:
-        return KEY_REFUSAL
+    github_index = reference["github_index"]
+    reads_token = (
+        reference["all_github"] is not None
+        or reference["context"] is not None
+        or (github_index is not None and names_token(github_index))
+    )
+    if github_index is not None and not reads_token:
+        return None  # another github property, such as github['event_name']
+    if not reads_token:
+        name = reference["dotted"] or (reference["indexed"] or "").strip().strip("'\"")
+        if name.upper() != FORK_SAFE_NAME:
+            return KEY_REFUSAL
     return TARGET_REFUSAL if unsafe_token else None
 
 
-def workflow_findings(path: Path, relative: str) -> list[Finding]:
-    """Check one workflow file."""
+def names_token(index: str) -> bool:
+    """Report an index into github that is the literal 'token' or computed at run time."""
+    literal = index.strip()
+    if len(literal) > 1 and literal[0] == literal[-1] and literal[0] in "'\"":
+        return literal[1:-1].lower() == "token"
+    return True
+
+
+def local_calls(workflow: Workflow) -> list[str]:
+    """Return the repository workflows that this workflow's jobs call."""
+    return [
+        match["path"]
+        for line in workflow.lines
+        if (match := LOCAL_CALL.match(strip_hash_comment(line)))
+    ]
+
+
+def called_by_gates(root: Path, relatives: list[str]) -> frozenset[str]:
+    """Return the workflows that a merge gate calls, directly or through other calls.
+
+    A reusable workflow has only the `workflow_call` trigger, yet its jobs are
+    the gate's jobs: a `continue-on-error` there turns the gate green as surely.
+    """
+    workflows = {relative: read_workflow(root / relative, relative) for relative in relatives}
+    pending = [
+        callee
+        for workflow in workflows.values()
+        if workflow.triggers & GATE_TRIGGERS
+        for callee in local_calls(workflow)
+    ]
+    called: set[str] = set()
+    while pending:
+        callee = pending.pop()
+        if callee in called or callee not in workflows:
+            continue
+        called.add(callee)
+        pending.extend(local_calls(workflows[callee]))
+    return frozenset(called)
+
+
+def workflow_findings(path: Path, relative: str, *, called_by_gate: bool = False) -> list[Finding]:
+    """Check one workflow file; a gate's checks apply to gates and the workflows they call."""
     workflow = read_workflow(path, relative)
     if not workflow.triggers:
         message = "no trigger block was found, so this workflow was not checked"
         return [Finding(relative, 1, "unparsed", message)]
-    findings = gate_findings(workflow) if workflow.triggers & GATE_TRIGGERS else []
+    is_gate = bool(workflow.triggers & GATE_TRIGGERS) or called_by_gate
+    findings = gate_findings(workflow) if is_gate else []
     for key, start, body in jobs(workflow):
         if not job_level(body, "timeout-minutes") and not job_level(body, "uses"):
             message = f"job {key} has no timeout-minutes; a hung runner then holds the gate"

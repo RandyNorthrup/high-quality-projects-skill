@@ -106,7 +106,12 @@ LIST_ITEM = re.compile(r"^(?P<indent>\s*)-\s+[\w-]+\s*:")
 ENTRY = re.compile(r"^(?P<lead>\s*(?:-\s+)?)entry\s*:\s*(?P<value>.*)$")
 YAML_KEY = re.compile(r"^\s*(?:-\s+)?[\w-]+\s*:")
 # A hook that runs without the changed file names, or even when none changed.
-IGNORES_CHANGES = re.compile(r"^\s*(?:-\s+)?(?:pass_filenames\s*:\s*false|always_run\s*:\s*true)\b")
+# pre-commit loads its configuration as YAML 1.1, where false, no, and off in
+# any case are False, and true, yes, and on are True.
+IGNORES_CHANGES = re.compile(
+    r"^\s*(?:-\s+)?(?:pass_filenames\s*:\s*(?i:false|no|off)|always_run\s*:\s*(?i:true|yes|on))"
+    r"\s*$"
+)
 
 
 def is_hook_file(relative: str) -> bool:
@@ -272,9 +277,12 @@ def literal_bindings(nodes: list[ast.AST]) -> dict[str, list[tuple[int, str]]]:
 def command_words(argument: ast.expr, bindings: dict[str, list[tuple[int, str]]], line: int) -> str:
     """Render an argument, reading a name from its latest literal binding above the call."""
     if isinstance(argument, ast.Name):
-        earlier = [words for bound, words in bindings.get(argument.id, []) if bound <= line]
+        # The walk visits statements out of order, so choose by source line.
+        earlier = sorted(
+            (bound, words) for bound, words in bindings.get(argument.id, []) if bound <= line
+        )
         if earlier:
-            return earlier[-1]
+            return earlier[-1][1]
     return literal_words(argument)
 
 

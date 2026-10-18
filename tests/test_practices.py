@@ -12,7 +12,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import override
@@ -91,6 +91,46 @@ def python_named(*arguments: str) -> str:
     return f"import subprocess\n\n\ndef sync():\n{body}"
 
 
+def third_round_gate_cases(
+    gate: str, target_gate: Callable[[str, str], dict[str, str]]
+) -> list[Case]:
+    """Flow-style triggers, spacing and comments in keys, token aliases, and called workflows."""
+    block = '"on":\n  pull_request:\n  merge_group:\n'
+    flow_filtered = WORKFLOW.replace(
+        block, '"on": {pull_request: {paths: [src/**]}, merge_group: {}}\n'
+    )
+    flow_push = WORKFLOW.replace(
+        block, '"on": {push: {paths: [docs/**]}, pull_request: {}, merge_group: {}}\n'
+    )
+    caller = 'name: R\n"on":\n  pull_request:\n  merge_group:\njobs:\n  gates:\n'
+    calls = f"{caller}    uses: ./.github/workflows/called.yml\n"
+    push_calls = calls.replace("  pull_request:\n  merge_group:\n", "  push:\n")
+    called = (
+        'name: C\n"on":\n  workflow_call:\njobs:\n  test:\n    runs-on: ubuntu-latest\n'
+        "    timeout-minutes: 15\n    continue-on-error: true\n    steps:\n      - run: make\n"
+    )
+    callee = ".github/workflows/called.yml"
+    write = "permissions:\n  contents: write\n"
+    no_timeout = WORKFLOW.replace("    timeout-minutes: 15\n", "")
+    return [
+        ("flow trigger with a path filter", {gate: flow_filtered}, gate, "ci-path-filter"),
+        ("flow trigger filtering push", {gate: flow_push}, gate, None),
+        ("inherited secrets, spaced", {gate: f"{calls}    secrets : inherit\n"}, gate, "ci-secret"),
+        (
+            "jobs key with a comment",
+            {gate: no_timeout.replace("jobs:\n", "jobs: # gates\n")},
+            gate,
+            "ci-timeout",
+        ),
+        ("workflow a gate calls", {gate: calls, callee: called}, callee, "ci-continue-on-error"),
+        ("workflow no gate calls", {callee: called}, callee, None),
+        ("workflow a push calls", {gate: push_calls, callee: called}, callee, None),
+        ("indexed token", target_gate(write, "${{ github['token'] }}"), gate, "ci-secret"),
+        ("whole github context", target_gate(write, "${{ toJSON(github) }}"), gate, "ci-secret"),
+        ("another github property", target_gate(write, "${{ github['event_name'] }}"), gate, None),
+    ]
+
+
 def commit_pin_cases() -> list[Case]:
     """A commit SHA pin is compared with releases through the version it records."""
     sha = "0123456789abcdef0123456789abcdef01234567"
@@ -108,6 +148,16 @@ def commit_pin_cases() -> list[Case]:
             "upstream-behind",
         ),
     ]
+
+
+def rebound(first: str, last: str) -> str:
+    """Return Python that binds a git command twice and starts the latest one."""
+    lines = (f'    command = ["git", "{first}"]', f'    command = ["git", "{last}"]')
+    return (
+        "import subprocess\n\n\ndef sync():\n"
+        + "\n".join(lines)
+        + "\n    subprocess.run(command)\n"
+    )
 
 
 def pin_location_cases() -> list[Case]:
@@ -555,6 +605,28 @@ class PracticeCommandTests(unittest.TestCase):
                 None,
             ),
             (
+                "nuget reference in a comment",
+                {
+                    "tests/App.Tests.csproj": (
+                        '<Project><ItemGroup><!-- <PackageReference Include="Moq" /> -->'
+                        '<PackageReference Include="xunit" /></ItemGroup></Project>'
+                    )
+                },
+                "tests/App.Tests.csproj",
+                None,
+            ),
+            (
+                "nuget reference after a comment",
+                {
+                    "tests/App.Tests.csproj": (
+                        "<Project><ItemGroup><!-- retired: NSubstitute -->\n"
+                        '<PackageReference Include="Moq" /></ItemGroup></Project>'
+                    )
+                },
+                "tests/App.Tests.csproj",
+                "mock",
+            ),
+            (
                 "go manifest",
                 {"go.mod": "module x\nrequire go.uber.org/mock v0.4.0\n"},
                 "go.mod",
@@ -940,6 +1012,18 @@ class PracticeCommandTests(unittest.TestCase):
                 shared,
             ),
             ("python safe command name", {"src/s.py": python_named("status")}, "src/s.py", None),
+            (
+                "python rebound to stash",
+                {"src/s.py": rebound("status", "stash")},
+                "src/s.py",
+                shared,
+            ),
+            (
+                "python rebound to status",
+                {"src/s.py": rebound("stash", "status")},
+                "src/s.py",
+                None,
+            ),
             ("hook suite", pre_commit("pytest -q", "pass_filenames: false"), hook, suite),
             ("hook every commit", pre_commit("npm test", "always_run: true"), hook, suite),
             (
@@ -949,6 +1033,14 @@ class PracticeCommandTests(unittest.TestCase):
                 suite,
             ),
             ("hook changed files", pre_commit("pytest"), hook, None),
+            (
+                "hook capitalized false",
+                pre_commit("pytest -q", "pass_filenames: False"),
+                hook,
+                suite,
+            ),
+            ("hook yes", pre_commit("npm test", "always_run: yes"), hook, suite),
+            ("hook passes names", pre_commit("pytest", "pass_filenames: True"), hook, None),
             (
                 "hook non-test",
                 pre_commit("python -m mypy src", "pass_filenames: false"),
@@ -1079,6 +1171,7 @@ class PracticeCommandTests(unittest.TestCase):
                 None,
             ),
             ("filtered push beside a gate", {gate: push_filter}, gate, None),
+            *third_round_gate_cases(gate, target_gate),
             ("indexed secret", env("${{ secrets['API_KEY'] }}"), gate, "ci-secret"),
             (
                 "secret in a condition",

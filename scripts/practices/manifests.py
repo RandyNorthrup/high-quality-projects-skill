@@ -66,6 +66,8 @@ GO_MODULES: Mapping[str, str] = {
     "github.com/benbjohnson/clock": "fake-timer",
 }
 REQUIREMENT_NAME = re.compile(r"^\s*([A-Za-z0-9][A-Za-z0-9._-]*)")
+XML_SUFFIXES = frozenset({".csproj", ".fsproj", ".props"})
+XML_COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
 # MSBuild reads attributes in any order and with either quote.
 NUGET_ELEMENT = re.compile(
     r"<(?:Global)?Package(?:Reference|Version)\b(?P<attributes>[^>]*)>", re.IGNORECASE
@@ -205,6 +207,9 @@ def line_of(text: str, package: str) -> int:
 def manifest_findings(path: Path, relative: str) -> list[Finding]:
     """Refuse doubling and re-run packages declared in one manifest."""
     text = path.read_text(encoding="utf-8-sig", errors="replace")
+    if path.suffix.lower() in XML_SUFFIXES:
+        # A commented reference installs nothing; blank it, keeping its lines.
+        text = XML_COMMENT.sub(lambda match: "\n" * match.group().count("\n"), text)
     try:
         entries = list(manifest_entries(path, text))
     except (ValueError, AttributeError, TypeError) as error:

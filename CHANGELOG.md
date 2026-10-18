@@ -58,6 +58,12 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   keeping an error's cause; NuGet references are read in any attribute order
   and quote style; the body of a Rust `#[cfg(test)]` module is test code; and a
   Python git command bound to a name before it runs is checked.
+- A third review closed more gaps. A path filter in a flow-style `on:`
+  mapping, `secrets : inherit`, `github['token']`, and `toJSON(github)` are
+  found; a `jobs:` key with a comment no longer hides every job; a repository
+  workflow that a gate calls gets the gate checks; every YAML boolean spelling
+  counts in pre-commit hooks; a commented NuGet reference is ignored; and the
+  latest binding of a Python command name wins.
 - Each `upstreams.json` entry has a required `version`: the release that a
   commit SHA or digest in `pinned` identifies, or null when `pinned` is the
   version. Releases are compared with it, so the practices checker pinned by
