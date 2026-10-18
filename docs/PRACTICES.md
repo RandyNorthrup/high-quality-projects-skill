@@ -134,6 +134,19 @@ an outside caller still records the cause where the maintainer looks.
 The Python template's Ruff rules `BLE001` and `B904` overlap this check; the
 check also covers the other languages, and projects without that template.
 
+## Dead code is checked against unfinished work
+
+A dead-code tool sees one checkout. Code it flags may be the first half of a
+change whose caller lives on an unmerged branch or in the next task of an open
+plan. Deleting it breaks that work at its next merge, and someone rebuilds what
+was already written.
+
+Before removing flagged code, list unmerged branches
+(`git branch -a --no-merged <base>`), search every ref for the symbol
+(`git log --all -S '<symbol>'`), and read open pull requests and plans.
+Unfinished work is finished, not deleted: report the code to whoever owns that
+work. Code that no branch, plan, or caller needs is deleted with its tests.
+
 ## Hosted CI is the merge gate
 
 Hosted CI is the gate for merges and releases, and it needs no secret or key:
@@ -181,9 +194,9 @@ this shape.
 
 ## Parallel work
 
-Several contributors, people or agents, change one repository at once. Work
-stays parallel only while each change is small, owns its files, and touches no
-state that another worktree depends on.
+Several contributors change one repository at once. Work stays parallel only
+while each change is small, owns its files, and touches no state that another
+worktree depends on.
 
 Cut work into small tasks with one outcome each and an observable "done": a
 command, a test, or a behavior anyone can check. Order each task so a first
@@ -316,6 +329,8 @@ tests and the product work.
 
 These forms also stay review work:
 
+- Whether flagged code is unfinished work on an unmerged branch or in an open
+  plan. The command reads one tree and never runs Git.
 - A hand-written double with a neutral name, an object literal or dictionary
   passed in place of a dependency, a stand-in defined in product code and
   imported by tests, and a test-started server whose handler is defined

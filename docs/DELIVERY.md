@@ -19,6 +19,10 @@ framework.
   location. Reference artifacts from the plan rather than copying their contents.
 - A root roadmap may link to separate feature plans when scale requires it. It
   must not maintain a second copy of their task states.
+- When contributors work in parallel, keep one plan per work unit so parallel
+  changes never edit the same plan, and generate any combined roadmap, index,
+  or changelog from per-item files with a script instead of editing it by hand
+  ([parallel work](PRACTICES.md#parallel-work)).
 
 Scan paths, symbols, responsibilities, callers, tests, assets, and configuration
 before creating work. Scope is the requested change and its necessary
@@ -36,7 +40,11 @@ decisions require clarification.
    metrics that require later observation.
 3. **Plan the smallest justified increments.** Map tasks to acceptance, canonical
    change paths, and dependencies. Explain why any new implementation is needed.
-   Do not add a task merely to populate a template.
+   Do not add a task merely to populate a template. Give each task one outcome,
+   an observable "done", and an early first result. Finish a task before
+   activating the next, unless parallel tasks own disjoint paths. Merge small
+   and often; integrate finished tasks that ship together on one
+   release-candidate branch and verify them there.
 4. **Review readiness.** Check clarity, contradictory requirements, terminology,
    missing failure behavior, scope, rules, coverage, and dependency ordering.
    Record the review separately from behavior-test results. Run structural

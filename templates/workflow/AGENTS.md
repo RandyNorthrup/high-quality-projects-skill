@@ -16,6 +16,19 @@ adapters such as `CLAUDE.md`, `.cursor/rules/`, and
 - Scan, reuse, then create. Search by path, symbol, behavior, and
   responsibility; extend the canonical implementation; record why new code is
   needed when nothing existing can serve.
+- Before removing code a tool reports as dead, check unmerged branches and
+  open plans. Unfinished work is finished, not deleted.
+
+## Working in parallel
+
+- Cut work into small tasks with one outcome, an observable "done", and an
+  early first result. Finish a task before starting the next. Merge small and
+  often; prove changes that ship together on one release-candidate branch.
+- Never hand-edit a file that every change edits. Add a per-item file or
+  fragment, and let the script that joins them write the combined file.
+- Work in separate worktrees, one branch each. Never use `git stash`: every
+  worktree shares one stash list. Never check out the shared base branch in a
+  worktree.
 
 ## Code
 
@@ -42,9 +55,9 @@ adapters such as `CLAUDE.md`, `.cursor/rules/`, and
 
 ## Checks and CI
 
-- Before pushing, run format, lint, typecheck, every suite that depends on a
-  changed file, and `verify-practices`. A change to a shared hub file runs the
-  integration suite.
+- Before pushing, run format, lint, typecheck, build, only the suites that
+  depend on a changed file, and `verify-practices`. A change to a shared hub
+  file runs the integration suite. Hosted CI runs every suite.
 - Hosted CI is the merge gate and needs no secret or key. A check is green on
   its first run; a red check is diagnosed and fixed, never re-run into green.
 - Report a skipped, deferred, or failing check as exactly that.

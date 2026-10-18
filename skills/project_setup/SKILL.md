@@ -243,8 +243,10 @@ and each documents its own deliberate loosenings.
 Cross-cutting regardless of stack: `gitleaks` (secrets; use `gitleaks git` for
 reachable checked-out history), `semgrep` (multi-language SAST), `jscpd`
 (copy-paste detection), OSV-Scanner across all lockfiles, and
-`${SKILL_ROOT}/scripts/verify-practices.py` (test doubles, presence-only and
-one-off tests, re-runs, merge-gate defects, stale pins, and the
+`${SKILL_ROOT}/scripts/verify-practices.py` (test doubles, hand-written
+stand-ins, presence-only and one-off tests, re-runs, error handlers that drop
+the cause, shared Git state in automation, full suites in local hooks,
+merge-gate defects, stale pins, and the
 pitfalls register; see `${SKILL_ROOT}/docs/PRACTICES.md`). Coverage floors,
 mutation testing, property/fuzz tests, and benchmarks per stack are in
 `${SKILL_ROOT}/docs/CODE-QUALITY.md`.
@@ -284,6 +286,12 @@ date before merge" rule when more than one change merges at a time. Enabling
 it, and adding branch protection, are repository settings for the owner; ask
 before changing them. The first push must be green on its first run. Never
 re-run a red check into green.
+
+Local hooks run format, lint, typecheck, build, and only the test suites a
+change touches; CI runs every suite. A hook that runs the whole suite on every
+commit gets skipped, and `verify-practices` refuses it. When the brief confirms
+parallel contributors, keep changelog entries as one fragment per change,
+joined by a script at release, so parallel changes never edit the same file.
 
 ### The flags that make a linter a gate
 
@@ -529,6 +537,11 @@ doc updates · required security checks · required performance checks ·
 certification checklist.
 
 **A milestone is not complete until its certification checklist passes.**
+
+Split each milestone into small tasks with one outcome, an observable "done",
+and an early first result. With parallel contributors, keep a plan per work
+unit and generate any combined roadmap with a script; see
+`${SKILL_ROOT}/docs/PRACTICES.md#parallel-work`.
 
 For scoped implementation, use `${SKILL_ROOT}/docs/DELIVERY.md` and the native
 plan asset under `templates/workflow/PLAN.md`. Enhance the canonical plan rather

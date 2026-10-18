@@ -170,7 +170,11 @@ python -m venv .venv
 .venv/bin/python -m pre_commit install
 ```
 
-With that environment active, run before a change:
+With that environment active, run the hooks and the test modules your change
+touches before pushing, for example
+`python -m unittest tests.test_practices tests.test_red_drills` after a
+checker change. Hosted CI runs every suite with coverage on three platforms.
+Run the full set locally when CI cannot run, such as before a release:
 
 ```console
 python -m pre_commit run --all-files

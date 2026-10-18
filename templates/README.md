@@ -136,7 +136,8 @@ osv-scanner scan source -r .      # every lockfile against OSV advisories
 actionlint
 zizmor --offline .github
 
-# Test doubles, re-runs, presence-only tests, merge-gate defects, stale pins
+# Test doubles, re-runs, presence-only tests, dropped error causes, git stash
+# in automation, full suites in local hooks, merge-gate defects, stale pins
 python "$SKILL_ROOT/scripts/verify-practices.py" --root .
 ```
 

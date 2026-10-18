@@ -283,8 +283,10 @@ Without that file, reformatted lines blame the formatting commit instead of the
 earlier change. This step is not optional.
 
 ### Phase 2 — config and gates (no product-source change)
-Install or extend the strict configs. Wire the gate scripts. Add pre-commit.
-Add or extend the CI workflow, hardened per the CI section of
+Install or extend the strict configs. Wire the gate scripts. Add pre-commit
+with format, lint, typecheck, build, and only the test suites a change touches;
+a local hook that runs every suite on every commit gets skipped, so the full
+suite belongs to CI. Add or extend the CI workflow, hardened per the CI section of
 `${SKILL_ROOT}/docs/CODE-QUALITY.md`: actions pinned to commit SHAs, read-only
 default permissions, `persist-credentials: false`, job timeouts, and actionlint
 plus zizmor as gates. Install dependencies from lockfiles in CI. Nothing under
@@ -378,10 +380,15 @@ on:
 - public API of a library — "unused" internally is the entire point
 - test-only helpers, fixtures, conftest
 - entry points invoked by a framework, not by your code
+- unfinished work: code whose first caller lives on an unmerged branch or in
+  the next task of an open plan
 
 Grep for the symbol name across the whole repo, including config, templates, and
-docs, before deleting. When in doubt, list it in the report rather than removing
-it.
+docs, before deleting. Check it against unfinished work too: list unmerged
+branches with `git branch -a --no-merged <base>`, search every ref with
+`git log --all -S '<symbol>'`, and read open pull requests and plans. Code that
+unfinished work needs is finished, not deleted: report it to the owner of that
+work. When in doubt, list it in the report rather than removing it.
 
 ### Phase 6 — magic numbers and literals
 The judgment-heavy phase. Extract unexplained literals into named constants,
@@ -419,7 +426,10 @@ each change drilled. Rules and reasons are in `${SKILL_ROOT}/docs/PRACTICES.md`.
   tests call it with inputs they construct, and test the I/O against the real
   dependency in an integration run. Never replace an outside service with a
   recording or a fixture of its replies. Remove the mocking library from the
-  manifest last.
+  manifest last. A hand-written fake class, scripted port, or local server is
+  a double too, even with no library installed.
+- **Replace catch-all messages** that drop the caught error with handlers that
+  re-raise, chain, log, or include it, so each failure names its real cause.
 - **Rewrite presence-only and one-off tests** as behavior assertions in the
   behavior's table-driven test. Delete a test only after the replacement is
   drilled and catches the defect the old test claimed to.
@@ -537,6 +547,10 @@ NOT DONE
 - Modify a dirty working tree.
 - Bulk-modify code that is not under version control.
 - Delete code you have not verified is unreachable.
+- Delete code an unmerged branch or an open plan still needs; that work is
+  finished, not removed.
+- Run `git stash`, or check out the shared base branch in a worktree; other
+  worktrees share both.
 - Rewrite git history to remove a leaked secret without explicit instruction.
 - Weaken an existing rule that is already stricter than the template.
 - Create a parallel implementation without scanning and evaluating canonical work.

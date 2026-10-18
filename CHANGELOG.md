@@ -56,7 +56,7 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   and the behavioral oracle observes calls into the canonical helper through a
   profiling hook instead of replacing it.
 - `tests/test_red_drills.py` replaces `tests/test_delivery_red_drills.py`. Its
-  table of 27 drills breaks the validator, the practices checker, and the
+  table of 43 drills breaks the validator, the practices checker, and the
   behavioral oracle one defect at a time. Each drill requires the named test to
   fail with an assertion, then restores the source and compares its SHA-256.
 - `project_setup` scaffolds the practices from the first commit: the merge-gate
@@ -77,6 +77,14 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `DELIVERY.md`, `CODE-QUALITY.md`, `PHILOSOPHY.md`, the brief, and the plan
   template keep process rules apart from product rules and rewrite superseded
   decisions. They route test, CI, and pin rules to `PRACTICES.md`.
+- The workflows, `DELIVERY.md`, and the rules template carry seven more general
+  practices. Code a dead-code tool flags is checked against unmerged branches
+  and open plans before removal. Error messages name the real cause. A
+  hand-written stand-in counts as a double. Tasks are small, single-outcome,
+  and finished before the next starts, with release-candidate integration.
+  Files every change edits become per-item files joined by a script. Parallel
+  work uses worktrees without `git stash` or base-branch checkouts. Local gates
+  run only the touched suites, and hosted CI runs every suite.
 
 ### Removed
 
