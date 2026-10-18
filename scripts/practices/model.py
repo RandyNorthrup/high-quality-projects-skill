@@ -39,6 +39,8 @@ ALLOWABLE_CHECKS = frozenset(
         "ci-timeout",
         "error-cause",
         "hand-written-double",
+        "git-shared-state",
+        "local-full-suite",
     }
 )
 

@@ -722,6 +722,69 @@ class PracticeCommandTests(unittest.TestCase):
         ]
         self.assert_cases(cases)
 
+    def test_parallel_work_and_local_hooks(self) -> None:
+        """Automation never stashes or takes a base branch; local hooks run touched suites."""
+        shared, suite = "git-shared-state", "local-full-suite"
+        hook, gate = ".pre-commit-config.yaml", ".github/workflows/ci.yml"
+
+        def pre_commit(entry: str, *settings: str) -> dict[str, str]:
+            lines = ["repos:", "  - repo: local", "    hooks:", "      - id: tests"]
+            lines.extend(f"        {line}" for line in (f"entry: {entry}", *settings))
+            return {hook: "\n".join(lines) + "\n"}
+
+        python_stash = 'import subprocess\nsubprocess.run(["git", "-C", root, "stash"])\n'
+        private = (
+            "git stash list\ngit worktree add -b fix/x ../wt main\n"
+            "git worktree add --detach ../build main\n# never git stash here\n"
+        )
+        lefthook = "pre-push:\n  commands:\n    test:\n      run: go test -race ./...\n"
+        cases: list[Case] = [
+            (
+                "shell",
+                {"tools/sync.sh": "git stash\ngit pull\ngit stash pop\n"},
+                "tools/sync.sh",
+                shared,
+            ),
+            ("git hook", {".husky/pre-commit": "git stash push -k\n"}, ".husky/pre-commit", shared),
+            ("workflow", {gate: WORKFLOW + "      - run: git stash\n"}, gate, shared),
+            (
+                "package",
+                {"package.json": '{"scripts": {"up": "git stash && git pull"}}'},
+                "package.json",
+                shared,
+            ),
+            ("python", {"src/sync.py": python_stash}, "src/sync.py", shared),
+            ("script", {"src/sync.ts": 'execSync("git stash pop");\n'}, "src/sync.ts", shared),
+            ("powershell", {"tools/sync.ps1": "git stash push\n"}, "tools/sync.ps1", shared),
+            (
+                "base worktree",
+                {"tools/wt.sh": "git worktree add ../review main\n"},
+                "tools/wt.sh",
+                shared,
+            ),
+            ("private state", {"tools/wt.sh": private}, "tools/wt.sh", None),
+            ("python text", {"src/notes.py": 'NOTE = "git stash"\n'}, "src/notes.py", None),
+            ("hook suite", pre_commit("pytest -q", "pass_filenames: false"), hook, suite),
+            ("hook every commit", pre_commit("npm test", "always_run: true"), hook, suite),
+            (
+                "hook discover",
+                pre_commit("python -m unittest discover -s t", "always_run: true"),
+                hook,
+                suite,
+            ),
+            ("hook changed files", pre_commit("pytest"), hook, None),
+            (
+                "hook non-test",
+                pre_commit("python -m mypy src", "pass_filenames: false"),
+                hook,
+                None,
+            ),
+            ("pre-push", {".husky/pre-push": "npm test\n"}, ".husky/pre-push", suite),
+            ("lefthook", {"lefthook.yml": lefthook}, "lefthook.yml", suite),
+            ("related", {".husky/pre-push": "npx vitest related --run\n"}, ".husky/pre-push", None),
+        ]
+        self.assert_cases(cases)
+
     def test_allowances_are_reviewed_exceptions(self) -> None:
         """An allowance needs a reason, a matching finding, and a check that permits one."""
         sleep = "import time\ntime.sleep(2)"

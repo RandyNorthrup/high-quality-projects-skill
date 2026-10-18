@@ -21,6 +21,12 @@ from .model import (
     Finding,
     PracticeInputError,
 )
+from .parallel_rules import (
+    command_file_findings,
+    command_text_findings,
+    is_command_file,
+    script_command_findings,
+)
 from .python_rules import analyze
 from .register import register_findings
 from .script_rules import double_findings, shape_findings
@@ -79,8 +85,9 @@ def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(
         description=(
             "Refuse test doubles, hand-written stand-ins, re-runs, presence-only and "
-            "one-off tests, error handlers that drop the cause, merge-gate defects, "
-            "stale pins, and unenforced pitfalls."
+            "one-off tests, error handlers that drop the cause, shared Git state in "
+            "automation, full suites in local hooks, merge-gate defects, stale pins, "
+            "and unenforced pitfalls."
         )
     )
     result.add_argument("--root", type=Path, default=Path.cwd(), help="Project root to check")
@@ -108,6 +115,7 @@ def analyze_source(source: SourceFile, collected: Collected) -> None:
         collected.allowances.extend(allowances_in(source.relative, python_comments(text)))
     elif source.language == "powershell":
         collected.findings.extend(powershell_findings(source, text))
+        collected.findings.extend(command_text_findings(source.relative, text))
         collected.allowances.extend(allowances_in(source.relative, hash_comments(text)))
     else:
         masked = masked_source(source)
@@ -115,6 +123,7 @@ def analyze_source(source: SourceFile, collected: Collected) -> None:
         collected.findings.extend(masked_error_findings(source, masked))
         if source.language == "script":
             collected.findings.extend(double_findings(source, masked))
+            collected.findings.extend(script_command_findings(source, masked))
             if source.is_test:
                 collected.findings.extend(shape_findings(source, masked))
         else:
@@ -132,6 +141,26 @@ def retry_config_findings(path: Path, relative: str) -> list[Finding]:
     return findings
 
 
+def analyze_file(path: Path, relative: str, collected: Collected) -> None:
+    """Run the checks for manifests, runner configuration, workflows, and command files."""
+    if is_manifest(path):
+        collected.findings.extend(manifest_findings(path, relative))
+    if CONFIG_NAMES.match(path.name):
+        collected.findings.extend(retry_config_findings(path, relative))
+        if path.suffix in {".toml", ".ini", ".cfg"}:
+            collected.allowances.extend(allowances_in(relative, hash_comments(read_text(path))))
+    if is_workflow(relative):
+        text = read_text(path)
+        collected.findings.extend(workflow_findings(path, relative))
+        collected.findings.extend(command_text_findings(relative, text))
+        collected.allowances.extend(allowances_in(relative, hash_comments(text)))
+    elif is_command_file(relative):
+        text = read_text(path)
+        collected.findings.extend(command_file_findings(relative, text))
+        if path.suffix != ".json":
+            collected.allowances.extend(allowances_in(relative, hash_comments(text)))
+
+
 def scan_files(root: Path, collected: Collected) -> int:
     """Run file-level checks and return how many code files were analyzed."""
     files = owned_files(root)
@@ -140,15 +169,7 @@ def scan_files(root: Path, collected: Collected) -> int:
         analyze_source(source, collected)
     mock_directories = set()
     for path, relative in files:
-        if is_manifest(path):
-            collected.findings.extend(manifest_findings(path, relative))
-        if CONFIG_NAMES.match(path.name):
-            collected.findings.extend(retry_config_findings(path, relative))
-            if path.suffix in {".toml", ".ini", ".cfg"}:
-                collected.allowances.extend(allowances_in(relative, hash_comments(read_text(path))))
-        if is_workflow(relative):
-            collected.findings.extend(workflow_findings(path, relative))
-            collected.allowances.extend(allowances_in(relative, hash_comments(read_text(path))))
+        analyze_file(path, relative, collected)
         if "__mocks__" in relative.split("/")[:-1]:
             mock_directories.add(relative.rsplit("/__mocks__/", 1)[0] + "/__mocks__")
     collected.findings.extend(

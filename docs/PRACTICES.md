@@ -6,6 +6,8 @@ Lint and type gates catch defects in code. These failures pass them:
 - tests that check a sentence exists;
 - error handlers that replace the real cause with one fixed message;
 - CI that blocks merges forever, or turns green when re-run;
+- local hooks so slow that people skip them;
+- parallel work that collides on shared files and shared Git state;
 - pins that rot unnoticed;
 - lessons that live only in a document.
 
@@ -156,9 +158,11 @@ workflows to run on `merge_group`. Use merge trains where the host offers
 those instead of queues. Declaring `merge_group` is harmless before a queue is
 enabled.
 
-Run every suite that depends on a changed file before pushing; a change to a
-hub file that many modules import means an integration run. The merge gate
-runs every suite.
+Local gates stay fast enough to run on every change: format, lint, typecheck,
+build, and only the test suites the change touches, which means the
+integration suite when it touches a hub file that many modules import. Hosted
+CI is the full gate and runs every suite. A local hook that runs the whole
+suite on every commit gets skipped with `--no-verify`, and then checks nothing.
 
 Set `timeout-minutes` on every job from one repository default, as a ceiling
 for a hung runner. Never raise it to make room for slow setup.
@@ -170,9 +174,47 @@ for a hung runner. Never raise it to make room for slow setup.
 | `ci-path-filter` | `paths` or `paths-ignore` on a merge-gate trigger | reviewed |
 | `ci-continue-on-error` | `continue-on-error: true` in a merge gate | reviewed |
 | `ci-timeout` | A job without `timeout-minutes` (reusable-workflow calls excepted) | reviewed |
+| `local-full-suite` | A test runner started with options only, so it runs the whole suite: in a `.pre-commit-config.yaml` hook with `pass_filenames: false` or `always_run: true`, a Git hook script under `.husky/` or `.githooks/`, or a lefthook configuration | reviewed |
 
 [`templates/ci/quality.yml`](../templates/ci/quality.yml) is a merge gate in
 this shape.
+
+## Parallel work
+
+Several contributors, people or agents, change one repository at once. Work
+stays parallel only while each change is small, owns its files, and touches no
+state that another worktree depends on.
+
+Cut work into small tasks with one outcome each and an observable "done": a
+command, a test, or a behavior anyone can check. Order each task so a first
+result shows early, while a wrong direction still costs minutes. Finish a task,
+merged or explicitly abandoned, before starting the next: half-finished work
+on several branches conflicts with everything and proves nothing. Merge small
+and often; a change that waits for days drifts from its base and conflicts with
+every change merged meanwhile. When several finished changes must ship
+together, integrate them on one release-candidate branch and prove them there
+together with the full gate.
+
+A file that every change edits, such as a plan, a changelog, or an index,
+conflicts between every pair of parallel changes. Split it into per-item files
+(a plan per work unit, a changelog fragment per change, a file per registry
+entry) and generate the combined file with a script, in CI or at release. Tools
+such as towncrier, Changesets, and scriv do this for changelogs. Nobody
+hand-edits the generated file.
+
+Run parallel work in separate Git worktrees, one branch each. Never use
+`git stash`: every worktree of a repository shares one stash list, so a `pop`
+in one worktree can apply another's work, and a `drop` or `clear` loses it.
+Commit unfinished work to its own branch instead. Never check out the shared
+base branch (`main`, `trunk`, `develop`) in a worktree: Git lets a branch be
+checked out in only one worktree, so it blocks the primary checkout and
+invites commits straight onto the base. Create a branch with
+`git worktree add -b <branch> <path> <base>`, or use `--detach` for a
+read-only build.
+
+| Check | Refuses | Allowance |
+|---|---|---|
+| `git-shared-state` | `git stash` other than `list` and `show`, and `git worktree add` that checks out `main`, `master`, `trunk`, or `develop` without `-b` or `--detach`: in shell scripts, Git hooks, workflow steps, task runners (`Makefile`, `justfile`, `Taskfile.yml`, `package.json`, `.pre-commit-config.yaml`), PowerShell, and commands that Python or JavaScript-family code starts | reviewed |
 
 ## Upstream currency
 
@@ -282,3 +324,13 @@ These forms also stay review work:
   cause dropped by code outside a handler (a returned sentinel error, a
   logged string instead of the error), and handlers in PowerShell, shell, and
   other languages not listed above.
+- Task size, an observable "done", finishing before starting, and merge
+  cadence. These are plan and review judgment.
+- Which files every change edits. That is a property of the history, not of
+  one tree, so the command cannot tell a hot file from a quiet one.
+- Git commands typed by hand or run from prose instructions, `git checkout` or
+  `git switch` of a base branch inside an existing worktree, and base branches
+  with other names.
+- Which suites a change touches. That follows the import graph; a hook that
+  selects a suite that is still too large, and hooks declared inside
+  `package.json`, are not recognized.

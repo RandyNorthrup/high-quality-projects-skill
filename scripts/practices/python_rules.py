@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 from .error_rules import python_error_findings
 from .model import Finding
+from .parallel_rules import python_command_findings
 
 if TYPE_CHECKING:
     from collections.abc import Iterator, Mapping
@@ -410,6 +411,7 @@ def analyze(source: SourceFile, text: str) -> list[Finding]:
     visitor.visit(tree)
     findings = visitor.findings
     findings.extend(python_error_findings(source, tree))
+    findings.extend(python_command_findings(source, tree))
     if source.is_test:
         findings.extend(test_shape_findings(source, tree))
     return findings

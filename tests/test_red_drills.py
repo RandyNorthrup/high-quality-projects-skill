@@ -240,6 +240,42 @@ DRILLS = (
         f"{PRACTICES}.test_test_doubles_are_refused_in_every_language",
     ),
     (
+        "scripts/practices/parallel_rules.py",
+        "if STASH.search(words):",
+        "if False:",
+        f"{PRACTICES}.test_parallel_work_and_local_hooks",
+    ),
+    (
+        "scripts/practices/parallel_rules.py",
+        "if BASE_WORKTREE.search(words):",
+        "if False:",
+        f"{PRACTICES}.test_parallel_work_and_local_hooks",
+    ),
+    (
+        "scripts/practices/parallel_rules.py",
+        r'r"worktree\s+add\b(?![^\n;&|]*\s(?:-b|-B|--detach|-d)(?=\s|$))"',
+        r'r"worktree\s+add\b"',
+        f"{PRACTICES}.test_parallel_work_and_local_hooks",
+    ),
+    (
+        "scripts/practices/parallel_rules.py",
+        "if isinstance(node, ast.Call) and called_name(node) in PROCESS_CALLS:",
+        "if False:",
+        f"{PRACTICES}.test_parallel_work_and_local_hooks",
+    ),
+    (
+        "scripts/practices/parallel_rules.py",
+        "and any(IGNORES_CHANGES.match(line) for line in item)",
+        "and True",
+        f"{PRACTICES}.test_parallel_work_and_local_hooks",
+    ),
+    (
+        "scripts/practices/parallel_rules.py",
+        "if WHOLE_SUITE.search(line.translate(SEPARATORS)):",
+        "if False:",
+        f"{PRACTICES}.test_parallel_work_and_local_hooks",
+    ),
+    (
         "tests/behavioral/probe.py",
         " or 12 not in arguments",
         "",

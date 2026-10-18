@@ -26,6 +26,16 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   namespace named as a double in test code, written without any mocking
   library. `fake-server` also refuses a JavaScript-family `createServer` with an
   inline handler in a test.
+- `verify-practices.py` keeps parallel work and local gates apart.
+  `git-shared-state` refuses `git stash` (other than `list` and `show`) and a
+  `git worktree add` that checks out `main`, `master`, `trunk`, or `develop`, in
+  shell scripts, Git hooks, workflows, task runners, PowerShell, and commands
+  started from Python or the JavaScript family. `local-full-suite` refuses a
+  pre-commit, Husky, `.githooks`, or lefthook hook that runs a whole test suite.
+  `docs/PRACTICES.md` gains a "Parallel work" section: small single-outcome
+  tasks, finishing before starting, merging small and often, release-candidate
+  integration, per-item files instead of files every change edits, and
+  worktrees without stashes or base-branch checkouts.
 - `docs/PRACTICES.md`: each rule with its reason, the check that enforces it,
   the allowance syntax, and what the command cannot see.
 - Templates for a new project: the `templates/ci/quality.yml` merge gate, the
