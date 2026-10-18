@@ -66,7 +66,11 @@ GO_MODULES: Mapping[str, str] = {
     "github.com/benbjohnson/clock": "fake-timer",
 }
 REQUIREMENT_NAME = re.compile(r"^\s*([A-Za-z0-9][A-Za-z0-9._-]*)")
-NUGET_REFERENCE = re.compile(r"<Package(?:Reference|Version)\s+Include=\"([^\"]+)\"", re.IGNORECASE)
+# MSBuild reads attributes in any order and with either quote.
+NUGET_ELEMENT = re.compile(
+    r"<(?:Global)?Package(?:Reference|Version)\b(?P<attributes>[^>]*)>", re.IGNORECASE
+)
+NUGET_INCLUDE = re.compile(r"\bInclude\s*=\s*([\"'])(?P<name>.*?)\1", re.IGNORECASE)
 NPM_SECTIONS = ("dependencies", "devDependencies", "optionalDependencies", "peerDependencies")
 CARGO_SECTIONS = ("dependencies", "dev-dependencies", "build-dependencies")
 
@@ -158,10 +162,11 @@ def manifest_entries(path: Path, text: str) -> Iterator[tuple[str, str]]:
             (item, CARGO_PACKAGES[item]) for item in cargo_names(text) if item in CARGO_PACKAGES
         )
     elif path.suffix.lower() in {".csproj", ".fsproj", ".props"}:
-        for match in NUGET_REFERENCE.finditer(text):
-            check = NUGET_PACKAGES.get(match.group(1).lower())
-            if check:
-                yield match.group(1), check
+        for element in NUGET_ELEMENT.finditer(text):
+            include = NUGET_INCLUDE.search(element["attributes"])
+            check = NUGET_PACKAGES.get(include["name"].lower()) if include else None
+            if include and check:
+                yield include["name"], check
     elif name == "go.mod":
         for module in go_names(text):
             check = next(

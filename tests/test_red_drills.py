@@ -87,6 +87,48 @@ DRILLS = (
         f"{PRACTICES}.test_waits_timeouts_and_retries",
     ),
     (
+        "scripts/practices/family_rules.py",
+        "for match in RUST_TEST_MODULE.finditer(masked.bare):",
+        "for match in ():",
+        f"{PRACTICES}.test_test_doubles_are_refused_in_every_language",
+    ),
+    (
+        "scripts/practices/family_rules.py",
+        '    if source.language != "rust":\n        return []\n',
+        '    if source.language == "rust":\n        return [(0, len(masked.bare))]\n',
+        f"{PRACTICES}.test_test_doubles_are_refused_in_every_language",
+    ),
+    (
+        "scripts/practices/register.py",
+        "is_test_code = is_test_path(relative) and language_of(Path(relative)) is not None",
+        "is_test_code = is_test_path(relative)",
+        f"{PRACTICES}.test_pitfalls_register_is_enforced_by_code",
+    ),
+    (
+        "scripts/practices/error_rules.py",
+        'keyword.arg == "exc_info" and not statically_false(keyword.value)',
+        'keyword.arg == "exc_info"',
+        f"{PRACTICES}.test_errors_name_their_cause",
+    ),
+    (
+        "scripts/practices/manifests.py",
+        r"""=\s*([\"'])(?P<name>""",
+        r"""=\s*(\")(?P<name>""",
+        f"{PRACTICES}.test_test_doubles_are_refused_in_every_language",
+    ),
+    (
+        "scripts/practices/manifests.py",
+        'include = NUGET_INCLUDE.search(element["attributes"])',
+        'include = NUGET_INCLUDE.match(element["attributes"].strip())',
+        f"{PRACTICES}.test_test_doubles_are_refused_in_every_language",
+    ),
+    (
+        "scripts/practices/parallel_rules.py",
+        "command_words(argument, bindings, node.lineno) for argument in node.args",
+        "literal_words(argument) for argument in node.args",
+        f"{PRACTICES}.test_parallel_work_and_local_hooks",
+    ),
+    (
         "scripts/practices/cli.py",
         "render_watch(findings, notes, len(upstreams), options.output_format)",
         'render_watch(findings, notes, len(upstreams), "text")',

@@ -75,6 +75,21 @@ BASE_FILES = {
 }
 
 
+# Rust unit tests live in a cfg(test) module inside a product file.
+RUST_LIB = (
+    "pub fn add(a: u8, b: u8) -> u8 { a + b }\n#[cfg(test)]\nmod tests {\n"
+    "    struct FakeStore;\n    #[test]\n"
+    "    fn adds() { std::thread::sleep(std::time::Duration::from_secs(1)); }\n}\n"
+)
+
+
+def python_named(*arguments: str) -> str:
+    """Return Python that binds a git command to a name, then starts it by that name."""
+    words = ", ".join(f'"{word}"' for word in ("git", *arguments))
+    body = f"    command = [{words}]\n    subprocess.run(command)\n"
+    return f"import subprocess\n\n\ndef sync():\n{body}"
+
+
 def pin_location_cases() -> list[Case]:
     """A pin counts only as a whole version in code, never inside a note or a longer token."""
     drift = "upstream-pin-drift"
@@ -169,6 +184,13 @@ def hand_written_cases() -> list[Case]:
             double,
         ),
         ("rust", {"tests/store.rs": "struct InMemoryStore;\n"}, "tests/store.rs", double),
+        ("rust test module", {"src/lib.rs": RUST_LIB}, "src/lib.rs", double),
+        (
+            "rust product type",
+            {"src/lib.rs": "pub struct FakeStore;\nfn wait() { std::thread::sleep(d); }\n"},
+            "src/lib.rs",
+            None,
+        ),
     ]
 
 
@@ -491,6 +513,28 @@ class PracticeCommandTests(unittest.TestCase):
                 "mock",
             ),
             (
+                "nuget attribute order and quotes",
+                {
+                    "tests/App.Tests.csproj": (
+                        "<Project><ItemGroup><PackageReference Version='4.20' Include='Moq' />"
+                        "</ItemGroup></Project>"
+                    )
+                },
+                "tests/App.Tests.csproj",
+                "mock",
+            ),
+            (
+                "nuget real package",
+                {
+                    "tests/App.Tests.csproj": (
+                        "<Project><ItemGroup><PackageReference Version='2.9' Include='xunit' />"
+                        "</ItemGroup></Project>"
+                    )
+                },
+                "tests/App.Tests.csproj",
+                None,
+            ),
+            (
                 "go manifest",
                 {"go.mod": "module x\nrequire go.uber.org/mock v0.4.0\n"},
                 "go.mod",
@@ -655,6 +699,7 @@ class PracticeCommandTests(unittest.TestCase):
                 "app_test.go",
                 "fixed-delay",
             ),
+            ("rust test-module sleep", {"src/lib.rs": RUST_LIB}, "src/lib.rs", "fixed-delay"),
             (
                 "playwright retries",
                 {"playwright.config.ts": "export default { retries: process.env.CI ? 2 : 0 };\n"},
@@ -752,6 +797,18 @@ class PracticeCommandTests(unittest.TestCase):
                 "python test",
                 python("Exception", f"raise {not_available}", "tests/h.py"),
                 "tests/h.py",
+                None,
+            ),
+            (
+                "python exc_info false",
+                python("Exception", 'log.error("not available", exc_info=False)'),
+                "src/a.py",
+                "error-cause",
+            ),
+            (
+                "python exc_info true",
+                python("Exception", 'log.error("load failed", exc_info=True)'),
+                "src/a.py",
                 None,
             ),
             (
@@ -856,6 +913,13 @@ class PracticeCommandTests(unittest.TestCase):
             ),
             ("private state", {"tools/wt.sh": private}, "tools/wt.sh", None),
             ("python text", {"src/notes.py": 'NOTE = "git stash"\n'}, "src/notes.py", None),
+            (
+                "python command name",
+                {"src/s.py": python_named("stash", "push")},
+                "src/s.py",
+                shared,
+            ),
+            ("python safe command name", {"src/s.py": python_named("status")}, "src/s.py", None),
             ("hook suite", pre_commit("pytest -q", "pass_filenames: false"), hook, suite),
             ("hook every commit", pre_commit("npm test", "always_run: true"), hook, suite),
             (
@@ -1197,6 +1261,12 @@ class PracticeCommandTests(unittest.TestCase):
                     ".github/workflows/ci.yml": WORKFLOW + "      # TODO: run scripts/check_x.py\n",
                     "AGENTS.md": register({"path": "scripts/check_x.py"}),
                 },
+                "AGENTS.md",
+                "register-unenforced",
+            ),
+            (
+                "data file in a test directory",
+                {"tests/cases.json": "[]\n", "AGENTS.md": register({"path": "tests/cases.json"})},
                 "AGENTS.md",
                 "register-unenforced",
             ),

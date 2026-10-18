@@ -240,13 +240,60 @@ def called_name(node: ast.Call) -> str:
     return node.func.id if isinstance(node.func, ast.Name) else ""
 
 
+def scope_nodes(scope: ast.AST) -> Iterator[ast.AST]:
+    """Walk one scope without entering the functions defined inside it."""
+    pending = list(ast.iter_child_nodes(scope))
+    while pending:
+        node = pending.pop()
+        yield node
+        if not isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+            pending.extend(ast.iter_child_nodes(node))
+
+
+def literal_bindings(nodes: list[ast.AST]) -> dict[str, list[tuple[int, str]]]:
+    """Map each name bound to a literal command in a scope to (line, words) bindings."""
+    bindings: dict[str, list[tuple[int, str]]] = {}
+    target: ast.expr
+    value: ast.expr | None  # `name: type` with no value binds nothing
+    for node in nodes:
+        if isinstance(node, ast.Assign) and len(node.targets) == 1:
+            target, value = node.targets[0], node.value
+        elif isinstance(node, ast.AnnAssign):
+            target, value = node.target, node.value
+        else:
+            continue
+        if isinstance(target, ast.Name) and isinstance(
+            value, ast.Constant | ast.List | ast.Tuple | ast.JoinedStr
+        ):
+            bindings.setdefault(target.id, []).append((node.lineno, literal_words(value)))
+    return bindings
+
+
+def command_words(argument: ast.expr, bindings: dict[str, list[tuple[int, str]]], line: int) -> str:
+    """Render an argument, reading a name from its latest literal binding above the call."""
+    if isinstance(argument, ast.Name):
+        earlier = [words for bound, words in bindings.get(argument.id, []) if bound <= line]
+        if earlier:
+            return earlier[-1]
+    return literal_words(argument)
+
+
 def python_command_findings(source: SourceFile, tree: ast.Module) -> list[Finding]:
-    """Refuse shared Git state in commands that Python code starts."""
+    """Refuse shared Git state in commands that Python code starts, inline or via a name."""
     findings = []
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Call) and called_name(node) in PROCESS_CALLS:
-            command = " ".join(literal_words(argument) for argument in node.args)
-            findings.extend(git_state_findings(source.relative, node.lineno, command))
+    scopes: list[ast.AST] = [tree]
+    scopes.extend(
+        node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef)
+    )
+    for scope in scopes:
+        nodes = list(scope_nodes(scope))
+        bindings = literal_bindings(nodes)
+        for node in nodes:
+            if isinstance(node, ast.Call) and called_name(node) in PROCESS_CALLS:
+                command = " ".join(
+                    command_words(argument, bindings, node.lineno) for argument in node.args
+                )
+                findings.extend(git_state_findings(source.relative, node.lineno, command))
     return findings
 
 

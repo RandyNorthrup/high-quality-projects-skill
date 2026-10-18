@@ -53,7 +53,11 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   is refused unless top-level permissions are read-only; a path filter on
   `push` beside a gate is no longer refused; `--reruns 0` passes; a `#` inside
   a quoted value no longer reads as a comment, so it cannot hide code or allow
-  a finding; input errors honor `--format json`.
+  a finding; input errors honor `--format json`. A data file under `tests/`
+  no longer counts as a pitfall's test; `exc_info=False` no longer counts as
+  keeping an error's cause; NuGet references are read in any attribute order
+  and quote style; the body of a Rust `#[cfg(test)]` module is test code; and a
+  Python git command bound to a name before it runs is checked.
 - `docs/PRACTICES.md`: each rule with its reason, the check that enforces it,
   the allowance syntax, and what the command cannot see.
 - Templates for a new project: the `templates/ci/quality.yml` merge gate, the

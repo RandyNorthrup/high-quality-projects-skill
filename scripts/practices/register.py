@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import NoReturn
 
 from .model import KNOWN_CHECKS, Finding, PracticeInputError
-from .source import is_test_path, read_text
+from .source import is_test_path, language_of, read_text
 from .upstreams import code_without_comments, reject_duplicates
 
 FENCE = re.compile(
@@ -130,8 +130,10 @@ def path_problem(root: Path, relative: str, runners: str) -> str | None:
         return f"{relative} is a document; a rule enforced by prose is not enforced"
     if not target.is_file():
         return f"{relative} does not exist"
-    if not is_test_path(relative) and relative not in runners:
-        return f"{relative} is neither a test nor named by a CI workflow or gate runner"
+    # A data file in a test directory cannot run or fail; only test code can.
+    is_test_code = is_test_path(relative) and language_of(Path(relative)) is not None
+    if not is_test_code and relative not in runners:
+        return f"{relative} is neither test code nor named by a CI workflow or gate runner"
     return None
 
 

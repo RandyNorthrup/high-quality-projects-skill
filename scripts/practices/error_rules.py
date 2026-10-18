@@ -91,6 +91,12 @@ def handler_nodes(handler: ast.ExceptHandler) -> Iterator[ast.AST]:
             pending.extend(ast.iter_child_nodes(node))
 
 
+def statically_false(node: ast.expr) -> bool:
+    """Report a literal False, None, or zero, which tells a logger to drop the trace."""
+    # 0 == False, so the set also holds zero.
+    return isinstance(node, ast.Constant) and node.value in {False, None}
+
+
 def keeps_cause(handler: ast.ExceptHandler, nodes: list[ast.AST]) -> bool:
     """Report a handler that re-raises, names the caught error, or logs the active one."""
     for node in nodes:
@@ -100,7 +106,10 @@ def keeps_cause(handler: ast.ExceptHandler, nodes: list[ast.AST]) -> bool:
             return True
         if isinstance(node, ast.Call) and (
             type_name(node.func) in CAUSE_RECORDERS
-            or any(keyword.arg == "exc_info" for keyword in node.keywords)
+            or any(
+                keyword.arg == "exc_info" and not statically_false(keyword.value)
+                for keyword in node.keywords
+            )
         ):
             return True
     return False

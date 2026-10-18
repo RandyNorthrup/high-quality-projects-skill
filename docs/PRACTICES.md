@@ -86,7 +86,9 @@ These apply to code and to dependency manifests (`package.json`,
 `pyproject.toml`, requirements files and any `.txt` or `.in` file in a
 `requirements/` folder, `Cargo.toml`, `.csproj`, `go.mod`): a mocking library
 that is installed gets used. A module name inside a string literal is text,
-not an import.
+not an import. NuGet references are read with their attributes in any order
+and either quote. Test code is a file in a test directory or with a test name,
+plus the body of a Rust `#[cfg(test)]` module in any file.
 
 ## Tests that can fail a user
 
@@ -129,7 +131,8 @@ retries what cannot succeed, and the maintainer debugs the wrong layer.
 
 A handler that catches everything keeps the cause: it re-raises, chains the
 caught error (`raise … from error`, `new Error(…, { cause })`, `%w`), logs it
-with its trace, or includes it in the message. Catch the specific error you can
+with its trace (`exc_info=False` drops the trace, so it does not count), or
+includes it in the message. Catch the specific error you can
 explain when you want a specific message. A handler that hides internals from
 an outside caller still records the cause where the maintainer looks.
 
@@ -233,7 +236,7 @@ read-only build.
 
 | Check | Refuses | Allowance |
 |---|---|---|
-| `git-shared-state` | `git stash` other than `list` and `show`, and `git worktree add` that checks out `main`, `master`, `trunk`, or `develop` without `-b` or `--detach`: in shell scripts, Git hooks, workflow steps, task runners (`Makefile`, `justfile`, `Taskfile.yml`, `package.json`, `.pre-commit-config.yaml`), PowerShell, and commands that Python or JavaScript-family code starts | reviewed |
+| `git-shared-state` | `git stash` other than `list` and `show`, and `git worktree add` that checks out `main`, `master`, `trunk`, or `develop` without `-b` or `--detach`: in shell scripts, Git hooks, workflow steps, task runners (`Makefile`, `justfile`, `Taskfile.yml`, `package.json`, `.pre-commit-config.yaml`), PowerShell, and commands that Python or JavaScript-family code starts, including a Python command bound to a name earlier in the same function | reviewed |
 
 ## Upstream currency
 
@@ -307,7 +310,7 @@ skill, or a suggestion is read once and then forgotten.
 | Check | Fails when |
 |---|---|
 | `register-missing` | The rules file has no register block |
-| `register-unenforced` | An entry names nothing, a document, a missing file, a script that no workflow or gate runner (`.pre-commit-config.yaml`, `package.json`, `Makefile`, `justfile`, `Taskfile.yml`, `tox.ini`, `noxfile.py`, `pyproject.toml`) names outside a comment, or an unknown check |
+| `register-unenforced` | An entry names nothing, a document, a missing file, a script that no workflow or gate runner (`.pre-commit-config.yaml`, `package.json`, `Makefile`, `justfile`, `Taskfile.yml`, `tox.ini`, `noxfile.py`, `pyproject.toml`) names outside a comment, a file in a test directory that is not test code (a JSON fixture cannot fail), or an unknown check |
 
 ## Allowances
 
