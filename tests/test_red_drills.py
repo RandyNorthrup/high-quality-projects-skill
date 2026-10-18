@@ -316,11 +316,14 @@ DRILLS = (
     ),
     (
         "scripts/practices/upstreams.py",
-        (
-            'elif item.latest_seen.removeprefix("v") != item.pinned.removeprefix("v")'
-            " and not item.hold:"
-        ),
+        'elif released_version(item) != item.latest_seen.removeprefix("v") and not item.hold:',
         "elif False:",
+        f"{PRACTICES}.test_upstream_currency",
+    ),
+    (
+        "scripts/practices/upstreams.py",
+        'return (item.version or item.pinned).removeprefix("v")',
+        'return item.pinned.removeprefix("v")',
         f"{PRACTICES}.test_upstream_currency",
     ),
     (

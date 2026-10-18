@@ -58,6 +58,10 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   keeping an error's cause; NuGet references are read in any attribute order
   and quote style; the body of a Rust `#[cfg(test)]` module is test code; and a
   Python git command bound to a name before it runs is checked.
+- Each `upstreams.json` entry has a required `version`: the release that a
+  commit SHA or digest in `pinned` identifies, or null when `pinned` is the
+  version. Releases are compared with it, so the practices checker pinned by
+  commit in the CI templates no longer reads as behind forever.
 - `docs/PRACTICES.md`: each rule with its reason, the check that enforces it,
   the allowance syntax, and what the command cannot see.
 - Templates for a new project: the `templates/ci/quality.yml` merge gate, the

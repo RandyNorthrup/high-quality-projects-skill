@@ -34,6 +34,7 @@ ENTRY_FIELDS = frozenset(
         "name",
         "kind",
         "pinned",
+        "version",
         "used_in",
         "watch",
         "reviewed",
@@ -64,6 +65,9 @@ class Upstream:
 
     name: str
     pinned: str
+    # The release that `pinned` identifies when the code pins a commit SHA or
+    # digest; None when `pinned` is the release version itself.
+    version: str | None
     used_in: tuple[str, ...]
     watch_type: str
     watch_target: str
@@ -167,9 +171,13 @@ def upstream_of(entry: object, index: int, today: date) -> Upstream:
     if reviewed > today:
         fail(location, "reviewed is in the future")
     watch_type, watch_target = watch_of(entry["watch"], location)
+    version = entry["version"]
+    if version is not None and not (isinstance(version, str) and version.strip()):
+        fail(location, "version must be the release a SHA or digest pin identifies, or null")
     return Upstream(
         name,
         text_field(entry, "pinned", location),
+        version,
         tuple(used_in),
         watch_type,
         watch_target,
@@ -220,10 +228,11 @@ def staleness_findings(
                 f"{item.name} hold expired on {item.hold.until.isoformat()}: {item.hold.reason}"
             )
             findings.append(Finding(relative, 1, "upstream-hold-expired", message))
-        elif item.latest_seen.removeprefix("v") != item.pinned.removeprefix("v") and not item.hold:
+        elif released_version(item) != item.latest_seen.removeprefix("v") and not item.hold:
             message = (
-                f"{item.name} is pinned at {item.pinned} but {item.latest_seen} is released; "
-                "incorporate it, or record a hold with a reason and an end date"
+                f"{item.name} is pinned at {item.version or item.pinned} but "
+                f"{item.latest_seen} is released; incorporate it, or record a hold with a "
+                "reason and an end date"
             )
             findings.append(Finding(relative, 1, "upstream-behind", message))
         for used in item.used_in:
@@ -235,6 +244,11 @@ def staleness_findings(
                 )
                 findings.append(Finding(relative, 1, "upstream-pin-drift", message))
     return findings
+
+
+def released_version(item: Upstream) -> str:
+    """Return the release a pin stands for: its version, or the pin when it is one."""
+    return (item.version or item.pinned).removeprefix("v")
 
 
 def code_without_comments(text: str, relative: str) -> str:
@@ -311,7 +325,7 @@ def watch_findings(
         if version != item.latest_seen.removeprefix("v"):
             message = (
                 f"{item.name} released {version} (last seen {item.latest_seen}, pinned "
-                f"{item.pinned}); incorporate it or record a hold"
+                f"{item.version or item.pinned}); incorporate it or record a hold"
             )
             findings.append(Finding(relative, 1, "upstream-released", message))
         else:

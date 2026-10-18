@@ -5,6 +5,7 @@
       "name": "REPLACE_WITH_UPSTREAM_NAME",
       "kind": "cli",
       "pinned": "REPLACE_WITH_PINNED_VERSION",
+      "version": null,
       "used_in": [
         "REPLACE_WITH_EACH_FILE_THAT_WRITES_THE_PIN"
       ],

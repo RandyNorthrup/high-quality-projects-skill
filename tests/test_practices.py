@@ -48,6 +48,7 @@ def upstream(**changes: object) -> dict[str, object]:
         "name": "example-cli",
         "kind": "cli",
         "pinned": "1.2.3",
+        "version": None,
         "used_in": ["tools.txt"],
         "watch": {"type": "manual", "url": "https://example.com/releases"},
         "reviewed": TODAY.isoformat(),
@@ -88,6 +89,25 @@ def python_named(*arguments: str) -> str:
     words = ", ".join(f'"{word}"' for word in ("git", *arguments))
     body = f"    command = [{words}]\n    subprocess.run(command)\n"
     return f"import subprocess\n\n\ndef sync():\n{body}"
+
+
+def commit_pin_cases() -> list[Case]:
+    """A commit SHA pin is compared with releases through the version it records."""
+    sha = "0123456789abcdef0123456789abcdef01234567"
+
+    def sha_pinned(version: str, latest: str) -> dict[str, str]:
+        entry = upstream(pinned=sha, version=version, latest_seen=latest, used_in=["ci.txt"])
+        return {"upstreams.json": upstreams_json(entry), "ci.txt": f"ref: {sha}\n"}
+
+    return [
+        ("sha pin at the latest release", sha_pinned("1.2.3", "v1.2.3"), "upstreams.json", None),
+        (
+            "sha pin behind a release",
+            sha_pinned("1.2.3", "1.3.0"),
+            "upstreams.json",
+            "upstream-behind",
+        ),
+    ]
 
 
 def pin_location_cases() -> list[Case]:
@@ -1180,6 +1200,7 @@ class PracticeCommandTests(unittest.TestCase):
                 "upstream-pin-drift",
             ),
             *pin_location_cases(),
+            *commit_pin_cases(),
         ]
         self.assert_cases(cases)
         malformed = (
@@ -1190,6 +1211,12 @@ class PracticeCommandTests(unittest.TestCase):
                 upstreams_json(upstream(reviewed=(TODAY + timedelta(days=2)).isoformat())),
             ),
             ("bad watch", upstreams_json(upstream(watch={"type": "rss", "url": "https://x"}))),
+            ("empty version", upstreams_json(upstream(version=" "))),
+            ("numeric version", upstreams_json(upstream(version=1))),
+            (
+                "no version field",
+                upstreams_json({k: v for k, v in upstream().items() if k != "version"}),
+            ),
             ("duplicate key", '{"schema_version": 1, "schema_version": 1, "upstreams": []}'),
         )
         for label, text in malformed:

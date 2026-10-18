@@ -39,7 +39,8 @@ jobs:
         with:
           persist-credentials: false
       # A nested repository; verify-practices does not scan it as project code.
-      # Record this commit in upstreams.json so a new release is reviewed.
+      # Record this commit in upstreams.json as `pinned`, with the release it
+      # belongs to as `version`, so a new release is reviewed.
       - name: Check out the pinned practices checker
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

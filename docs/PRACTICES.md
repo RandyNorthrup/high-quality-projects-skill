@@ -253,6 +253,7 @@ silently until the upstream removes them.
       "name": "gitleaks",
       "kind": "cli",
       "pinned": "8.30.1",
+      "version": null,
       "used_in": [".github/workflows/ci.yml"],
       "watch": {"type": "github-releases", "repository": "gitleaks/gitleaks"},
       "reviewed": "YYYY-MM-DD",
@@ -270,13 +271,19 @@ silently until the upstream removes them.
 release page. A `hold` is `{"reason": ..., "until": "YYYY-MM-DD"}`. Unknown fields,
 duplicate keys, and future dates are input errors.
 
+`pinned` is exactly what the code writes. When that is a commit SHA or an
+image digest, such as the practices checker's checkout in the CI templates,
+`version` records the release it identifies, and releases are compared with
+`version`; otherwise `version` is null and releases are compared with
+`pinned`.
+
 The staleness gate runs in the merge gate, offline and deterministic:
 
 | Check | Fails when |
 |---|---|
 | `upstream-pin-drift` | A `used_in` file does not write the pin as a whole version (an optional leading `v` allowed) outside its comments: the one place and the code disagree. A comment, a file name, or a longer version does not count |
 | `upstream-review-overdue` | `reviewed` is older than `max_age_days`: nobody looked at releases or changelogs |
-| `upstream-behind` | `latest_seen` differs from `pinned` with no hold |
+| `upstream-behind` | `latest_seen` differs from `version`, or from `pinned` when `version` is null, with no hold |
 | `upstream-hold-expired` | A hold's end date passed |
 
 [`templates/ci/upstream-watch.yml`](../templates/ci/upstream-watch.yml) runs
