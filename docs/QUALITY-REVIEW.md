@@ -593,3 +593,63 @@ under the ignored `build/tmp/`:
 - The scanners' `scan failed` path cannot be triggered from a test here; its
   detail uses the same function as the unreadable-root path, which the smoke
   suite asserts and drills.
+
+## Second review round: 2026-10-18
+
+Scope: commits `7930722` (plan) through `ee76585`, from `193f09e`. The
+re-review of `193f09e` resolved the earlier 11 threads and raised 12 new ones.
+Each reproduced at `193f09e` and was fixed at its cause; none was answered as
+no longer applying. Threads were not resolved or replied to on GitHub.
+
+| Thread | Cause | Fix |
+|---|---|---|
+| `workflows.py:146` (security) | Expressions were matched per physical line, so a folded `${{ … }}` escaped | `1b0a3da`: matched across the comment-free workflow text, reported at the line where `${{` starts |
+| `workflows.py:166` (security) | The `GITHUB_TOKEN` exception held on `pull_request_target`, where the token has the base repository's permissions | `1b0a3da`: on that trigger the token (`secrets.GITHUB_TOKEN` or `github.token`) is refused unless top-level permissions are declared and none is `write` |
+| `cli.py:316` | Input errors were plain text in JSON mode | `1b0a3da`: `{"passed": false, "error": ...}` |
+| `cli.py:61` | `--reruns` was refused at any count | `1b0a3da`: only a positive count, in runner files and workflows |
+| `source.py:170` | Any `#` began a comment, even inside quotes | `1b0a3da`: one quote-aware finder for YAML, TOML, INI, shell, and PowerShell, used for allowances and for stripping comments before checks; a quoted `#` before a secret no longer hides it either |
+| `register.py:134` | Any file under `tests/` counted as a test | `3c8c7fa`: test code in a recognized language only |
+| `error_rules.py:103` | `exc_info=False` counted as keeping the cause | `3c8c7fa`: only a value that is not statically false |
+| `workflows.py:144` | Path filters were refused under any trigger | `1b0a3da`: only under `pull_request`, `pull_request_target`, or `merge_group` |
+| `manifests.py:69` | `Include` had to come first, in double quotes | `3c8c7fa`: any attribute order and either quote, for `PackageReference`, `PackageVersion`, and `GlobalPackageReference` |
+| `family_rules.py:117` | Rust tests in a `#[cfg(test)]` module of a product file were product code | `3c8c7fa`: the module body is test code; a product type outside it is not |
+| `upstreams.py:226` (P1) | A commit SHA in `pinned` never equals a release tag | `ee76585`: a required `version` field records the release a SHA or digest identifies, and `upstream-behind` compares with it; this repository's pins and the templates carry it |
+| `parallel_rules.py:233` | A command held in a name was invisible | `3c8c7fa`: names bound to literal commands earlier in the same scope are resolved |
+
+### Executed drills
+
+The Python drill table grew from 58 to 74. Six of the new drills break
+negative controls: the read-only-permissions test, the merge-gate trigger
+condition on path filters, the quote tracking in comments, the Rust
+product-code boundary, the NuGet attribute order, and the SHA pin's version
+comparison. Four drills were re-anchored because the lines they break moved:
+the secret detection, the path-filter detection, the shell sleep, and the
+`upstream-behind` condition.
+
+One drill first survived. The quoted-value allowance case had its `#` right
+after the quote, which the whitespace rule already rejects, so disabling quote
+tracking changed nothing. The case now puts a space before the `#` inside the
+quotes, and the drill fails as intended.
+
+### Results
+
+All on Windows 11 at `ee76585`, run one after another:
+
+| Gate | Exit |
+|---|---|
+| `ruff format --check .` (64 files) | 0 |
+| `ruff check .` | 0 |
+| mypy, package scripts (26 files) | 0 |
+| mypy, tests (14 files) | 0 |
+| `verify-practices.py --root . --rules CONTRIBUTING.md` (49 code files, no allowances) | 0 |
+| Full suite with coverage: 71 tests, 4 skips, 87.6% against the 82% floor | 0, report 0 |
+| `pre-commit run --all-files` | 0 |
+| `cross-platform-smoke.ps1 -RedDrills`, PowerShell 7.6.6 (7 drills) | 0 |
+| `cross-platform-smoke.ps1 -RedDrills`, Windows PowerShell 5.1 (7 drills) | 0 |
+
+### Limits and open gates
+
+- Hosted CI has not run on `7930722` and later; nothing is pushed.
+- The read-only test for `pull_request_target` reads declared permissions. It
+  cannot see a repository's default token setting, so a target workflow that
+  declares no permissions is refused even where the default is read-only.

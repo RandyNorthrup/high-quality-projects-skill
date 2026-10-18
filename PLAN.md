@@ -603,3 +603,11 @@ at its cause with a refused case, a negative control, and a drill.
 | S10 | `family_rules.py:117` Rust `#[cfg(test)] mod` in product files | Treat the body of a `#[cfg(test)]` module as test code |
 | S11 | `upstreams.py:226` SHA pin never equals a release tag (P1) | New required `version` field: the release a SHA or digest pin identifies, or null when `pinned` is the version; `upstream-behind` compares `latest_seen` with it |
 | S12 | `parallel_rules.py:233` command held in a variable | Resolve names bound to literal commands earlier in the same scope |
+
+- [x] S01, S02, S03, S04, S05, S08 `1b0a3da`
+- [x] S06, S07, S09, S10, S12 `3c8c7fa`
+- [x] S11 `ee76585`
+- [x] Gates on `ee76585`: Ruff format and lint, both mypy scopes,
+      `verify-practices` here, the full suite, `pre-commit run --all-files`,
+      and `cross-platform-smoke.ps1 -RedDrills` under PowerShell 7 and 5.1.
+- [ ] Hosted CI passes on the pushed commits.
