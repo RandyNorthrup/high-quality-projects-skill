@@ -5,6 +5,11 @@
 # satisfy it is not a credible recommendation.
 
 extend = "templates/python/ruff.toml"
+# templates/python holds only the shipped Ruff and mypy configs. Without this, a
+# root `ruff check .` treats templates/python/ruff.toml as a nested project and
+# writes a .ruff_cache beside it, which tests/test_templates.py then rejects as
+# an unclassified template. Markdown elsewhere in templates/ stays checked.
+extend-exclude = ["templates/python"]
 
 [lint.per-file-ignores]
 # scripts/ are command-line tools. print() to stdout/stderr is their entire

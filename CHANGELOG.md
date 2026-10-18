@@ -102,6 +102,8 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   directory) and, in PowerShell, the caught error and line for a failed scan.
   `error` stays the stable code. The smoke suite asserts the cause and drills
   its removal, and CI checks the Bash scanner's unreadable-root contract.
+- A root `ruff check .` no longer writes a cache into `templates/python/`,
+  where it made the template-classification test fail on the next local run.
 
 ### Removed
 
