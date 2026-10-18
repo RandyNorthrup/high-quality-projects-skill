@@ -47,6 +47,10 @@ module defaults as universal choices.
 | `rust/deny.toml` | workspace root | advisories, licenses, bans, sources |
 | `powershell/PSScriptAnalyzerSettings.psd1` | project root | PowerShell |
 | `workflow/PLAN.md` | extend the canonical project plan | native delivery ledger; Python 3.12+ |
+| `workflow/AGENTS.md` | project root, or merge into the canonical rules file | process rules and the enforced pitfalls register |
+| `workflow/upstreams.json` | project root | every pin no update bot covers; staleness gate |
+| `ci/quality.yml` | `.github/workflows/` | merge gate: `merge_group`, no path filters or secrets, `verify-practices` |
+| `ci/upstream-watch.yml` | `.github/workflows/` | weekly release watch that opens an incorporation issue |
 | `.pre-commit-config.yaml` | project root | representative pre-commit hooks |
 
 ## Quick start
@@ -131,7 +135,18 @@ osv-scanner scan source -r .      # every lockfile against OSV advisories
 # GitHub Actions workflows
 actionlint
 zizmor --offline .github
+
+# Test doubles, re-runs, presence-only tests, dropped error causes, git stash
+# in automation, full suites in local hooks, merge-gate defects, stale pins
+python "$SKILL_ROOT/scripts/verify-practices.py" --root .
 ```
+
+The CI templates pin actions to the commit SHAs this package uses on the
+review date and check the practices command out at a release commit you set.
+Both are dated snapshots: the project's update bot and `upstreams.json` keep
+them current after adoption. The placeholder gate step fails until it is
+replaced with the project's own `quality:ci` command, and the pin template
+fails until every placeholder holds a real value.
 
 Shell-project gates use POSIX filename expansion:
 

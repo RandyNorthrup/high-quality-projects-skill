@@ -8,14 +8,11 @@
 #
 #   ./detect-stack.sh [path]     default: cwd
 #
-# Exit codes: 0 always (a scan finding nothing is not an error).
+# Exit codes: 0 always (a scan finding nothing is not an error). An unreadable
+# root is reported as JSON: `error` is a stable code, `detail` the real cause.
 
 set -uo pipefail
 ROOT="${1:-.}"
-cd "${ROOT}" 2> /dev/null || {
-    echo '{"error":"unreadable path"}'
-    exit 0
-}
 
 # ── helpers ─────────────────────────────────────────────────────────────
 # Directory names skipped during the source count, matched case-insensitively
@@ -42,6 +39,19 @@ json_string() {
     done
     printf '"%s"' "${escaped}"
 }
+
+# A missing root and a denied one share the error code; the shell's own reason,
+# captured by entering the root again in a subshell, tells them apart.
+unreadable_root() {
+    local reason detail
+    reason="$(cd -- "${ROOT}" 2>&1 || exit)"
+    reason="${reason##*cd: }"
+    detail="$(json_string "${reason:-cannot enter ${ROOT}}")"
+    printf '{"error":"unreadable path","detail":%s}\n' "${detail}"
+    exit 0
+}
+
+cd -- "${ROOT}" 2> /dev/null || unreadable_root
 
 # Print one JSON member. $3 is the separator: "," or "" for the last member.
 bool_member() {

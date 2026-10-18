@@ -92,8 +92,8 @@ repos:
       - id: mypy-scripts
         name: mypy (package scripts, shipped template)
         entry: python -m mypy --config-file templates/python/mypy.ini --python-version 3.12
-          scripts/delivery scripts/verify-delivery.py scripts/update-delivery.py
-          scripts/verify-format-safe.py
+          scripts/delivery scripts/practices scripts/verify-delivery.py
+          scripts/update-delivery.py scripts/verify-format-safe.py scripts/verify-practices.py
         language: system
         pass_filenames: false
         files: ^(scripts/.*\.py|templates/python/mypy\.ini)$
@@ -111,3 +111,14 @@ repos:
         entry: pwsh -NoLogo -NoProfile -NonInteractive -File tests/powershell-analysis.ps1
         language: system
         files: \.(ps1|psm1|psd1)$
+
+      # Test doubles, re-runs, presence-only tests, dropped error causes, shared
+      # Git state, full local suites, merge-gate defects, stale pins, and
+      # unenforced pitfalls. It reads the whole tree and today's date, so it
+      # runs on every commit rather than on changed files.
+      - id: verify-practices
+        name: verify-practices (this package's own checker)
+        entry: python scripts/verify-practices.py --root . --rules CONTRIBUTING.md
+        language: system
+        pass_filenames: false
+        always_run: true

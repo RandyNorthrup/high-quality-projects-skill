@@ -28,6 +28,10 @@ Select supported runtimes and pin compatible tools in the target project.
   speculative compatibility paths. Empty collections, identity functions,
   abstract declarations, deliberate no-ops, and defaults can be legitimate:
   require a concrete contract and a test, not a blanket syntactic ban.
+- Error messages name the real cause. A handler that catches every error
+  re-raises, chains, logs, or includes the caught error; it never answers a
+  usage limit, a network failure, and a bug with one fixed sentence. See
+  [errors name their cause](PRACTICES.md#errors-name-their-cause).
 - Reject accidental tautologies and contradictions: comparing a value to itself,
   constant assertions, checking a known result instead of performing the work,
   or branches whose outcomes are identical. Prove simplifications preserve
@@ -37,6 +41,10 @@ Select supported runtimes and pin compatible tools in the target project.
   either with line-by-line paraphrases, repeated headings, empty sections, or
   claims copied from planned work. Preserve required language documentation
   conventions; a doc comment beginning with a symbol name is not itself fluff.
+- Tests run real code, test the outside world live or not at all, never through
+  doubles or recordings, and fail when a user would be harmed; presence checks
+  and one-off tests do not count. See
+  [practices](PRACTICES.md#tests-run-real-code), enforced by `verify-practices.py`.
 - Tests use independently specified expected results, observable effects, and
   fixtures where failures can occur. Check non-empty discovery/collections when
   relying on `all`/`every`/`All`; an empty collection can satisfy universal checks.
@@ -96,6 +104,10 @@ here is a starting point: drill it in the project before trusting it as a gate.
 - Automate updates with [Dependabot](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference)
   or [Renovate](https://docs.renovatebot.com/). A short cooldown lets a new
   release age before it is proposed; every update still passes the full gates.
+- Record every pin no update bot covers, such as a CLI downloaded in CI, an API
+  or protocol version, or a data snapshot, in `upstreams.json`. Watch each
+  upstream, and let a staleness gate fail when the project falls behind; see
+  [upstream currency](PRACTICES.md#upstream-currency).
 - When the brief requires an SBOM, generate it from the built artifact with
   [Syft](https://github.com/anchore/syft) and publish it beside provenance.
 - Lint Dockerfiles with [hadolint](https://github.com/hadolint/hadolint), and
@@ -115,12 +127,19 @@ Follow GitHub's [secure use reference](https://docs.github.com/en/actions/refere
   authenticated Git commands.
 - Pass untrusted values such as branch names, PR titles, and issue text into
   `run:` through `env:`; an inline `${{ }}` becomes shell source.
-- Set `timeout-minutes` on every job and verify downloaded binaries against a
-  pinned checksum.
+- Set `timeout-minutes` on every job from one repository default, as a ceiling
+  for a hung runner that is never raised to fit slow setup, and verify
+  downloaded binaries against a pinned checksum.
 
 Gate workflows with [actionlint](https://github.com/rhysd/actionlint) (syntax,
 expressions, embedded shell) and [zizmor](https://docs.zizmor.sh/audits/)
 (security audits); both are in the pre-commit template.
+
+Hardening keeps a workflow safe; it must also work as a merge gate. It runs on
+`merge_group` as well as `pull_request`, reports on every change without path
+filters, needs no secret, and is never re-run into green. See
+[hosted CI is the merge gate](PRACTICES.md#hosted-ci-is-the-merge-gate) and the
+[`templates/ci`](../templates/ci/quality.yml) workflows.
 
 ## Python
 

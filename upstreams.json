@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "upstreams": [
+    {
+      "name": "github-rest-api",
+      "kind": "api",
+      "pinned": "2026-03-10",
+      "version": null,
+      "used_in": [
+        "scripts/practices/upstreams.py"
+      ],
+      "watch": {
+        "type": "manual",
+        "url": "https://docs.github.com/en/rest/about-the-rest-api/api-versions"
+      },
+      "reviewed": "2026-10-17",
+      "latest_seen": "2026-03-10",
+      "max_age_days": 90,
+      "hold": null
+    },
+    {
+      "name": "gitleaks",
+      "kind": "cli",
+      "pinned": "8.30.1",
+      "version": null,
+      "used_in": [
+        ".github/workflows/cross-platform.yml"
+      ],
+      "watch": {
+        "type": "github-releases",
+        "repository": "gitleaks/gitleaks"
+      },
+      "reviewed": "2026-10-17",
+      "latest_seen": "8.30.1",
+      "max_age_days": 45,
+      "hold": null
+    },
+    {
+      "name": "PSScriptAnalyzer",
+      "kind": "tool",
+      "pinned": "1.25.0",
+      "version": null,
+      "used_in": [
+        ".github/workflows/cross-platform.yml"
+      ],
+      "watch": {
+        "type": "github-releases",
+        "repository": "PowerShell/PSScriptAnalyzer"
+      },
+      "reviewed": "2026-10-17",
+      "latest_seen": "1.25.0",
+      "max_age_days": 45,
+      "hold": null
+    }
+  ]
+}

@@ -60,11 +60,13 @@ scripts/skill-root.{ps1,sh}       resolve SKILL_ROOT from anywhere
 scripts/detect-stack.{ps1,sh}     read-only workspace inventory, emits JSON
 scripts/build-release.ps1         exact-commit archives and release metadata
 scripts/verify-format-safe.py     compare Python ASTs before and after formatting
-templates/                        tuned strict configs per language
+scripts/verify-practices.py       refuse doubles, re-runs, merge-gate defects, stale pins
+templates/                        strict configs, CI merge gate, rules and pin files
 docs/PHILOSOPHY.md                why the gates are set the way they are
 docs/RED-DRILLS.md                shared test/gate failure-verification procedure
 docs/CODE-QUALITY.md              language-specific semantic and organization rules
 docs/DELIVERY.md                  shared native lifecycle and evidence schema
+docs/PRACTICES.md                 tests, CI, pins, and pitfalls rules
 scripts/verify-delivery.py        read-only record, coverage, and freshness checks
 scripts/update-delivery.py        atomic plan updates with conflict detection
 ```
@@ -97,6 +99,10 @@ should not need reminding, but they are the ones most often skipped:
 - **Useful, semantic code.** Apply [`docs/CODE-QUALITY.md`](docs/CODE-QUALITY.md)
   for the detected stack. Reject tautological tests, vacuous success paths,
   redundant layers, and comments that add no contract or rationale.
+- **Real code and a real merge gate.** Follow
+  [`docs/PRACTICES.md`](docs/PRACTICES.md) and run `verify-practices.py`: tests
+  run real code, CI is a secret-free merge gate that is never re-run into green,
+  every pin lives in `upstreams.json`, and every pitfall is enforced by code.
 - **Trace delivery to proof.** Use [`docs/DELIVERY.md`](docs/DELIVERY.md) for
   scoped work. Keep one canonical plan, separate requirements readiness from
   implementation verification, reconcile missing work, and reject stale resume
@@ -116,12 +122,16 @@ Python 3. Individual gates need their own tools, and the native `detect-stack`
 script reports which are present — it never installs anything and always exits
 0.
 
-Native delivery validation and atomic updates require Python 3.12 or newer and
-only its standard library. They do not execute commands stored in a plan.
+Native delivery validation, atomic updates, and `verify-practices.py` require
+Python 3.12 or newer and only its standard library. None of them executes a
+command stored in a plan or runs project code.
 
 Always inspect the returned JSON for an `error` property. Exit 0 means the
 scanner returned its JSON contract; it does not turn `unreadable path` or
-`scan failed` into a successful inventory.
+`scan failed` into a successful inventory. Match on `error`, which is a stable
+code, and report `detail`, which names the real cause, such as a missing root,
+a root that is not a directory, or the failing scanner line. Its wording comes
+from the shell and can differ between platforms.
 
 Python tools are detected by importability, not by `PATH`. Use the interpreter
 in `python_runtime.bin`; `python_runtime.module_only_tools` lists importable

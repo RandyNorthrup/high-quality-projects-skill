@@ -93,6 +93,8 @@
   confirmed contract:
 - Public APIs, schemas, events, file formats, and versioning promises:
 - Required integrations, quotas, sandboxes, and failure behavior:
+- Pinned upstreams (SDKs, CLIs, protocols, snapshots) and where each is watched;
+  recorded in `upstreams.json`:
 - Expected and upper-bound scale:
 - Build-versus-buy decisions and evidence:
 - Selected stack, versions, compatibility sources, and rejected alternatives:
@@ -114,6 +116,9 @@
 - Source host, branching, review, ownership, and protected-change rules:
 - CI runners and trusted environments:
 - Commit, pull-request, merge, release, and promotion gates:
+- Merge queue or train, runner capacity for parallel contributors (people or agents),
+  and confirmation that required checks need no secret and report on every
+  change:
 - Artifact registry, retention, reproducibility, and traceability:
 - Versioning, changelog, release notes, compatibility, and deprecation:
 - Deployment and environment-promotion strategy:

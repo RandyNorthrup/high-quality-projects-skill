@@ -26,7 +26,7 @@ if TYPE_CHECKING:
         TaskStatus,
         Work,
     )
-    from tests.test_delivery_red_drills import ValidatorRedDrills
+    from tests.test_red_drills import RedDrills
 
     # Constructed from ledger text by value, for example TaskStatus("planned").
     TaskStatus.PLANNED
@@ -54,4 +54,4 @@ if TYPE_CHECKING:
     cast("Any", None).semantic_review
 
     # unittest discovers test classes by name.
-    ValidatorRedDrills
+    RedDrills

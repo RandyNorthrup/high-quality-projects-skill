@@ -1,0 +1,63 @@
+# Merge gate. Copy to .github/workflows/quality.yml, replace the placeholder
+# gate step with the project's locked install and aggregate quality command,
+# and pin the checker to the installed release of this package.
+#
+# Why it is shaped this way:
+# - pull_request and merge_group: a merge queue runs the same required checks,
+#   so merges do not serialize behind "branch must be up to date" re-runs.
+# - No paths filters: a required check skipped by a filter stays Pending and
+#   blocks the pull request forever. Skip work inside a job instead.
+# - No secrets: forks and the merge queue run the gate with read-only access.
+# - No retries or continue-on-error: a red check is diagnosed, never re-run.
+# - timeout-minutes is a ceiling for a hung runner, not room for slow setup.
+# - Size runner capacity and job splits to the contributors and agents who push
+#   in parallel; a queue only helps when the gate itself keeps up.
+name: Quality
+
+"on":
+  pull_request:
+  merge_group:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  quality:
+    name: Quality gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # A nested repository; verify-practices does not scan it as project code.
+      # Record this commit in upstreams.json as `pinned`, with the release it
+      # belongs to as `version`, so a new release is reviewed.
+      - name: Check out the pinned practices checker
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: RandyNorthrup/high-quality-projects-skill
+          ref: REPLACE_WITH_RELEASE_COMMIT_SHA
+          path: .quality-skill
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      # Replace with the project's locked install and aggregate gate, for
+      # example `npm ci --ignore-scripts && npm run quality:ci`. It runs every
+      # suite, so a change to a shared hub file always gets its integration run.
+      - name: Run the project's quality gates
+        run: |
+          echo "Replace this step with the project's quality:ci command."
+          exit 1
+      - name: Refuse test doubles, re-runs, merge-gate defects, and stale pins
+        run: python .quality-skill/scripts/verify-practices.py --root .

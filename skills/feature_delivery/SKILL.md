@@ -31,8 +31,9 @@ source means feature delivery, not a new-project interview or unsolicited retrof
 
 Read `${SKILL_ROOT}/docs/DELIVERY.md` in full. Apply the common contract and relevant
 language sections of `${SKILL_ROOT}/docs/CODE-QUALITY.md`; use
-`${SKILL_ROOT}/docs/RED-DRILLS.md` for failure verification. Do not duplicate those
-procedures in another rules file.
+`${SKILL_ROOT}/docs/RED-DRILLS.md` for failure verification and
+`${SKILL_ROOT}/docs/PRACTICES.md` for tests, CI, and pins. Do not duplicate
+those procedures in another rules file.
 
 ## Clarify the delta and plan
 
@@ -46,9 +47,14 @@ procedures in another rules file.
    values. Preserve existing IDs; do not create a competing task tracker.
 4. Map every criterion to justified tasks, canonical changes, dependencies, and
    required evidence. Prefer a small complete increment over disconnected layers.
+   Give each task one outcome, an observable "done", and an early first result.
+   Finish and merge a task before starting the next; prove several finished
+   tasks that must ship together on one release-candidate branch.
 5. Record actual runtime context. For Python, the validator's `--observe-context`
    prints the current host/interpreter; independently observe any additional tool
    versions required by the project. Do not copy declared versions as observations.
+6. When the change supersedes a decision, plan the rewrite of every design
+   that applied it.
 
 Review the requirements themselves for clarity, conflicts, missing failure
 behavior, scope, terminology, rules, and task coverage. Save an evidence-linked
@@ -64,14 +70,31 @@ cannot run, record that gate as deferred; manual review does not turn it green.
 
 - Work on tasks whose dependencies are verified. Activate one owner for each
   change path; do not run competing edits to the same file.
+- Run parallel work in separate worktrees on their own branches. Never use
+  `git stash`, which every worktree shares, and never check out the shared base
+  branch in a worktree. Add a per-item file or fragment instead of editing a
+  file that every change edits.
 - Extend canonical code and fixtures. New code needs a distinct responsibility
   or a recorded reason existing work cannot satisfy the requested contract.
+- Tests exercise real code only: no mock, stub, spy, fake server, fake CLI, fake
+  timer, or in-memory stand-in, including hand-written ones that use no mocking
+  library. The outside world is tested live or not at all,
+  never through a recording or a fixture of its replies. Add cases to the
+  behavior's table instead of one-off tests, and assert behavior a user depends
+  on; checking that text exists is not a test.
 - Run the real test commands and inspect actual results and discovery counts.
   No fabricated logs, copied success output, changed expectations to force green,
-  zero-test success, or mock-only proof of behavior bypassed by the mock.
-- Perform meaningful green/red/restored-green drills for affected behavior.
-  Require the intended failure, actual changed inputs, exact restoration, and
-  passing re-verification. Keep defects in disposable copies or fixtures.
+  or zero-test success. Wait for conditions, not fixed delays, and keep the
+  default timeouts.
+- Perform meaningful green/red/restored-green drills for affected behavior and
+  for every new test or gate. Require the intended failure, actual changed inputs,
+  byte-exact restoration (hash compared), and passing re-verification. Keep
+  defects in disposable copies or fixtures.
+- Before pushing, run format, lint, typecheck, build, only the suites that
+  depend on a changed file (the integration suite for a shared hub file), and
+  `verify-practices.py`. Hosted CI is the full gate and runs every suite; it
+  must pass on its first run. Diagnose a red check and fix the cause instead of
+  re-running it.
 - Save actual output and independent observations. Bind receipts to the current
   scope, source, rules, configuration, and environment. Batch receipts may cover
   several criteria only when the executed check actually exercises all of them.
@@ -94,7 +117,10 @@ or decision is needed. Do not silently widen scope or create an endless backlog.
 Run closure validation, project quality gates, and applicable UI/security/release
 checks. On an already-verified unchanged scope, reuse current evidence and leave
 the plan byte-for-byte unchanged; do not append empty reviews or duplicate tasks.
-Update README and changelog from shipped behavior, never from remaining intentions.
+Update the README, changelog, help, and release notes only after real use of
+the built or packed product, never from remaining intentions. Fix a false claim
+in the code, not by rewording it. Add any pitfall the change uncovered to the
+pitfalls register with the test or gate that now catches it.
 
 ## Checkpoint and resume
 
@@ -117,7 +143,8 @@ replay deployment, deletion, payment, messaging, or other consequential operatio
 ## Completion report
 
 State delivered behavior, canonical paths enhanced, justified new code, readiness
-and acceptance coverage, actual test/red-drill results, documentation changes,
-remaining blockers, and the next action. Name skipped or deferred checks and
+and acceptance coverage, actual test/red-drill and `verify-practices` results,
+the first hosted CI result, how the built product was used, documentation
+changes, remaining blockers, and the next action. Name skipped or deferred checks and
 their impact. Validator success is a structural/evidence result, not a substitute
 for semantic review or proof of production behavior.

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "upstreams": [
+    {
+      "name": "REPLACE_WITH_UPSTREAM_NAME",
+      "kind": "cli",
+      "pinned": "REPLACE_WITH_PINNED_VERSION",
+      "version": null,
+      "used_in": [
+        "REPLACE_WITH_EACH_FILE_THAT_WRITES_THE_PIN"
+      ],
+      "watch": {
+        "type": "github-releases",
+        "repository": "REPLACE_OWNER/REPLACE_REPOSITORY"
+      },
+      "reviewed": "REPLACE_WITH_REVIEW_DATE",
+      "latest_seen": "REPLACE_WITH_LATEST_RELEASE_SEEN",
+      "max_age_days": 30,
+      "hold": null
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+# Upstream watch. Copy to .github/workflows/upstream-watch.yml and pin the
+# checker to the installed release of this package.
+#
+# Weekly, it asks each upstream that upstreams.json watches on GitHub for its
+# latest release. A release newer than the one last seen opens one
+# incorporation issue. A failed query fails the run instead of guessing, and a
+# manual watch (a changelog or release page) is enforced by its review date in the
+# merge gate. The automatic token is used only to read releases and file the
+# issue; no secret is needed.
+name: Upstream watch
+
+"on":
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  watch:
+    name: Watch upstream releases
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The same commit as the quality gate: `pinned` in upstreams.json, with
+      # its release as `version`.
+      - name: Check out the pinned practices checker
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: RandyNorthrup/high-quality-projects-skill
+          ref: REPLACE_WITH_RELEASE_COMMIT_SHA
+          path: .quality-skill
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - name: Compare latest releases with upstreams.json
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          python .quality-skill/scripts/verify-practices.py --root . --watch > "$RUNNER_TEMP/watch.txt"
+          status=$?
+          set -e
+          cat "$RUNNER_TEMP/watch.txt"
+          if [ "$status" -eq 1 ]; then
+            title="Upstream releases to incorporate"
+            open=$(gh issue list --state open --search "\"$title\" in:title" --json number --jq length)
+            if [ "$open" -eq 0 ]; then
+              gh issue create --title "$title" --body-file "$RUNNER_TEMP/watch.txt"
+            fi
+          elif [ "$status" -ne 0 ]; then
+            exit "$status"
+          fi

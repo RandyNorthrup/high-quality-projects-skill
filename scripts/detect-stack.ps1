@@ -4,7 +4,8 @@
 # tools, and the best available Python runtime. This is the PowerShell-native
 # counterpart to detect-stack.sh; it does not require Bash or WSL.
 #
-# Exit code: 0 always. An unreadable workspace is reported as JSON.
+# Exit code: 0 always. An unreadable workspace or a failed scan is reported as
+# JSON: `error` is a stable code, and `detail` names the real cause.
 
 [CmdletBinding()]
 param(
@@ -18,10 +19,23 @@ $ErrorActionPreference = 'Stop'
 function Write-ScanError {
     param(
         [Parameter(Mandatory)]
-        [string] $Message
+        [string] $Message,
+
+        # The failure itself. A missing root, a denied one, and a scanner bug
+        # share an error code; only the detail tells them apart.
+        [Parameter(Mandatory)]
+        [Management.Automation.ErrorRecord] $ErrorRecord
     )
 
-    [ordered]@{ error = $Message } | ConvertTo-Json -Compress
+    $detail = $ErrorRecord.Exception.Message
+    if ([string]::IsNullOrWhiteSpace($detail)) {
+        $detail = $ErrorRecord.Exception.GetType().FullName
+    }
+    $line = $ErrorRecord.InvocationInfo.ScriptLineNumber
+    if ($line -gt 0) {
+        $detail = '{0} (line {1})' -f $detail, $line
+    }
+    [ordered]@{ error = $Message; detail = $detail } | ConvertTo-Json -Compress
 }
 
 function Test-CommandAvailable {
@@ -187,7 +201,7 @@ try {
     }
 }
 catch {
-    Write-ScanError -Message 'unreadable path'
+    Write-ScanError -Message 'unreadable path' -ErrorRecord $_
     exit 0
 }
 
@@ -418,7 +432,7 @@ print(' '.join(found))
     $result | ConvertTo-Json -Depth 5
 }
 catch {
-    Write-ScanError -Message 'scan failed'
+    Write-ScanError -Message 'scan failed' -ErrorRecord $_
 }
 
 exit 0

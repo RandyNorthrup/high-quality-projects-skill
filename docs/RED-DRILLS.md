@@ -8,10 +8,12 @@ detect broken production behavior. Coverage alone does not prove this either.
 
 ## When to run
 
-- Before first relying on each configured gate, including the test runner.
+- Before first relying on each configured gate, including the test runner, and
+  once for every new test and gate: a check that has never failed has not been
+  shown to check anything.
 - When adding or changing behavior or its tests: drill the affected assertions,
   prioritizing critical journeys, boundaries, error handling, and regressions.
-- After changing test discovery, fixtures, mocks, include/exclude paths, gate
+- After changing test discovery, fixtures, include/exclude paths, gate
   configuration, tool versions, or local/CI command wiring.
 - At milestone and release verification: run the project's maintained drill
   set. Wire a small deterministic set into CI; document the command, scope, and
@@ -46,7 +48,9 @@ skipped, or an unavailable runner cannot count as verified tests.
 5. **Restore in all outcomes.** Use `finally`/a cleanup trap to restore exactly
    the drill-owned edits and remove only drill-created files. Preserve prior
    user changes and environments; never use blanket reset/clean commands.
-   Verify restoration against the pre-drill bytes or diff, including on error.
+   Verify restoration byte-exact: compare each restored file's SHA-256 with its
+   pre-drill hash, including on error. A restored file that looks right but
+   differs by a line ending or a trailing newline is a different file.
 6. **Prove green again.** Rerun the same command after restoration, then the
    affected aggregate quality command. Verify CI propagates a child gate's
    failure: no swallowed exit codes, success-on-empty options, or allowed-failure
@@ -58,6 +62,22 @@ Never inject defects into production, shared data, live credentials, or an
 externally published branch. Use disposable local resources and synthetic
 canaries. Do not publish the mutated source or artifacts. Interrupted drills
 are incomplete until cleanup and restored-green verification finish.
+
+## Prove a gate script as a command
+
+A gate script runs as a command in CI, so prove it as one. Its test starts it
+as a child process, the way CI does, and requires a non-zero exit for each of:
+
+- a planted violation inside its normal scope;
+- missing input, such as an absent root or configuration file;
+- unparseable input;
+- the planted violation again, with the script started through a symlinked
+  path, as an installed or vendored copy often is.
+
+No input is never a pass: a gate that exits 0 when it read nothing reports a
+check it never made. A script that locates its modules from the link's
+directory instead of its own fails only for the people who installed it.
+`tests/test_practices.py` in this package follows this pattern.
 
 ## Choose meaningful mutations
 
@@ -71,9 +91,10 @@ are incomplete until cleanup and restored-green verification finish.
 | Lint/type/security gate | Add a representative violation | Named diagnostic and failing command exit, then a clean rerun |
 
 Tests must observe the real contract and have fixtures where the failure can
-occur. Avoid assertions that merely search production source for a string,
-duplicate its algorithm to compute the expected answer, or inspect only a mock
-that bypasses the behavior being claimed. Use positive, negative, and boundary
+occur. They run real code, never a mock, fake, or stand-in that bypasses the
+behavior being claimed ([practices](PRACTICES.md#tests-run-real-code)). Avoid
+assertions that merely search production source for a string or duplicate its
+algorithm to compute the expected answer. Use positive, negative, and boundary
 cases where applicable, await asynchronous work, and make side effects possible
 before asserting they were prevented.
 

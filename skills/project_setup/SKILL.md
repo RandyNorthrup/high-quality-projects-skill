@@ -144,6 +144,10 @@ Do not select the stack or begin implementation until the brief establishes:
 - data classes, authentication, trust boundaries, privacy, and review needs;
 - distribution, installation, updates, signing, and store/notarization needs;
 - release environments, CI gates, artifact handling, promotion, and rollback;
+- how many contributors, people or agents, work in parallel, which sizes
+  runner capacity and the merge queue;
+- each upstream the product depends on (SDKs, CLIs, protocols, snapshots) and
+  where its releases are watched;
 - operations, observability, support, incident, backup, and retirement owners;
 - real schedule, team, budget, external approvals, and unresolved dependencies.
 
@@ -175,8 +179,13 @@ library docs when available. `npm info <pkg> peerDependencies`, `cargo info`,
 and `dotnet list package --outdated` query real package metadata and normally
 need network access unless the required metadata is already cached.
 
-Record every version decision and its source in `PLAN.md`. "Latest" is not a
-version; pin what you install.
+"Latest" is not a version; pin what you install. Lockfiles and the update bot
+hold package pins. Every other pin, such as a CLI downloaded in CI, an API or
+protocol version, or a data snapshot, goes in `upstreams.json`, created from
+`${SKILL_ROOT}/templates/workflow/upstreams.json`, with its watch source and
+review date. That file is the one place that holds them. `PLAN.md` records
+why each version was chosen and its source, and links the entry rather than
+repeating the version.
 
 **Worked example — the trap this step exists to catch.** Checked against npm on
 2026-08-20, `npm info typescript version` reports `7.0.2`, while
@@ -233,9 +242,56 @@ and each documents its own deliberate loosenings.
 
 Cross-cutting regardless of stack: `gitleaks` (secrets; use `gitleaks git` for
 reachable checked-out history), `semgrep` (multi-language SAST), `jscpd`
-(copy-paste detection), and OSV-Scanner across all lockfiles. Coverage floors,
+(copy-paste detection), OSV-Scanner across all lockfiles, and
+`${SKILL_ROOT}/scripts/verify-practices.py` (test doubles, hand-written
+stand-ins, presence-only and one-off tests, re-runs, error handlers that drop
+the cause, shared Git state in automation, full suites in local hooks,
+merge-gate defects, stale pins, and the
+pitfalls register; see `${SKILL_ROOT}/docs/PRACTICES.md`). Coverage floors,
 mutation testing, property/fuzz tests, and benchmarks per stack are in
 `${SKILL_ROOT}/docs/CODE-QUALITY.md`.
+
+### Tests run real code from the first test
+
+Set the test suite up so it cannot drift into doubles:
+
+- Install no mocking, fake-server, fake-timer, or stand-in library. A library
+  that is installed gets used, and `verify-practices` refuses it in the
+  manifest.
+- Test the outside world live, or not at all: never through a recording,
+  cassette, fixture of its replies, or local fake server. A live test fails,
+  never skips, when the service is unreachable.
+- Keep decision logic out of the I/O path, so tests call it directly with
+  inputs they construct, and exercise the I/O against the real dependency in
+  an integration suite.
+- Write fewer, meaningful tests: table-driven per behavior, each asserting
+  what a user depends on. Never one test per rule or checklist item.
+- No screenshot or frame comparison in CI. A UI change gets one small local
+  look.
+
+### Hosted CI is the merge gate from commit one
+
+Copy `${SKILL_ROOT}/templates/ci/quality.yml` and
+`${SKILL_ROOT}/templates/ci/upstream-watch.yml` to `.github/workflows/`, then
+replace the placeholder gate step and pin the checker. Keep their shape:
+
+- `pull_request` and `merge_group` triggers, no path filters, so every required
+  check reports on every change and a merge queue can run them;
+- no secret or key, no retries, and no `continue-on-error`;
+- one `timeout-minutes` default per job, never raised to fit slow setup;
+- runner capacity sized to the contributors and agents confirmed in the brief.
+
+Enable the host's merge queue, or merge trains, instead of a strict "up to
+date before merge" rule when more than one change merges at a time. Enabling
+it, and adding branch protection, are repository settings for the owner; ask
+before changing them. The first push must be green on its first run. Never
+re-run a red check into green.
+
+Local hooks run format, lint, typecheck, build, and only the test suites a
+change touches; CI runs every suite. A hook that runs the whole suite on every
+commit gets skipped, and `verify-practices` refuses it. When the brief confirms
+parallel contributors, keep changelog entries as one fragment per change,
+joined by a script at release, so parallel changes never edit the same file.
 
 ### The flags that make a linter a gate
 
@@ -387,14 +443,29 @@ must also carry.
 
 **Honesty**
 - No silent fallbacks, fake implementations, or placeholder production code.
-- No mock data outside test/dev/demo boundaries.
+- No invented data: production never fabricates a result, and tests use real
+  code and live outside systems, never mock data or saved replies.
 - A function that cannot do its job raises or returns an explicit error. It
   does not return an empty result that reads like success.
+- Claims in the README, changelog, help, and release notes follow real use of
+  the built or packed product. A false claim is fixed in the code.
 
 **Tests that can fail**
-- Maintain red-drill recipes and evidence using the shared package procedure.
+- Tests exercise real code only: no mocks, stubs, spies, fake servers, fake
+  CLIs, fake timers, or in-memory stand-ins.
+- A test fails when a user would be harmed. Presence checks and one-off tests
+  per rule or finding are not tests.
+- Maintain red-drill recipes and evidence using the shared package procedure;
+  drill every new test and gate once, restoring byte-exact.
 - Do not claim passing tests from zero discovery, skipped cases, stale builds,
   or failures unrelated to the intended assertion.
+
+**Process is not product**
+- Rules for how contributors, people or agents, work live in `AGENTS.md`; what the
+  product does lives in `PROJECT_BRIEF.md`. Never build a process rule into the
+  product.
+- Record each pitfall the project hits in the pitfalls register, with the test
+  or gate that fails if it returns. A rule enforced only by prose is not enforced.
 
 **Escape hatches**
 - No broad `any`, unchecked casts, suppressed lint rules, or ignored type
@@ -467,14 +538,29 @@ certification checklist.
 
 **A milestone is not complete until its certification checklist passes.**
 
+Split each milestone into small tasks with one outcome, an observable "done",
+and an early first result. With parallel contributors, keep a plan per work
+unit and generate any combined roadmap with a script; see
+`${SKILL_ROOT}/docs/PRACTICES.md#parallel-work`.
+
 For scoped implementation, use `${SKILL_ROOT}/docs/DELIVERY.md` and the native
 plan asset under `templates/workflow/PLAN.md`. Enhance the canonical plan rather
 than creating a second tracker. Keep requirements readiness distinct from code
-completion, and link acceptance to tasks and current evidence.
+completion, and link acceptance to tasks and current evidence. When a decision
+is superseded, rewrite every design section that applied it in the same change;
+the ledger keeps the superseded record, not a stale design.
+
+### `upstreams.json`
+Every pin no update bot covers, with where it is written, its watch source, its
+last review date, and any hold. The merge
+gate fails when it goes stale; the weekly watch opens an issue on a new release.
 
 ### Agent instruction files
-Create project-local files for the active tooling: `AGENTS.md`, `CLAUDE.md`,
-`.cursor/rules/*`, `.github/copilot-instructions.md`.
+Create `AGENTS.md` from `${SKILL_ROOT}/templates/workflow/AGENTS.md`: process
+rules only, a pitfalls register enforced by `verify-practices`, and a rule
+amendment log. Product rules stay in `PROJECT_BRIEF.md`. Add project-local
+adapters for the active tooling, such as `CLAUDE.md`, `.cursor/rules/*`, and
+`.github/copilot-instructions.md`, that point to it.
 
 They must reinforce: code standards, quality gates, documentation rules,
 testing rules, security rules, changelog discipline, planning discipline, and
@@ -514,6 +600,8 @@ Where applicable:
 For UI projects, milestone certification includes visual verification: local
 preview instructions plus screenshots or an explicit manual-check record at the
 confirmed responsive targets. Use available browser automation when possible.
+That is a local look by a person, once per UI change; CI runs no screenshot or
+frame comparison, which fails on fonts and drivers and teaches re-baselining.
 
 ## Execution
 
@@ -522,12 +610,14 @@ confirmed responsive targets. Use available browser automation when possible.
 3. Write and confirm `PROJECT_BRIEF.md`; stop on critical open decisions.
 4. Verify stack and dependency compatibility against current sources.
 5. Write `PLAN.md` — architecture and milestones before code.
-6. Scaffold structure, configs, and gates.
+6. Scaffold structure, configs, and gates, plus `AGENTS.md`, `upstreams.json`,
+   and the merge-gate and upstream-watch workflows from `templates/`.
 7. Install dependencies. Lock them. Verify the install.
-8. Run every applicable gate and its red drill. Record behavior-test drills as
-   pending until runnable behavior exists; zero tests is not a test pass.
+8. Run every applicable gate, `verify-practices`, and each gate's red drill.
+   Record behavior-test drills as pending until runnable behavior exists; zero
+   tests is not a test pass.
 9. Write `README.md` and `CHANGELOG.md` from what actually exists.
-10. Commit.
+10. Commit, push, and confirm the merge gate is green on its first run.
 
 Hand subsequent scoped implementation to `feature_delivery`, carrying the
 confirmed brief, canonical rules, plan, and existing authorization. Do not
@@ -546,6 +636,9 @@ product decision, ask.
 - Quality gates configured, and the command for each
 - Canonical work enhanced, justified new paths, and final duplication check
 - Red-drill evidence: intended failures, restoration, and remaining test gaps
+- `verify-practices` result, the first hosted CI run, and the merge-queue and
+  runner-capacity decisions
+- `upstreams.json` entries and each upstream's watch
 - Commands to run
 - Assumptions made
 - Open questions, with owner, due date, impact, and blocking status

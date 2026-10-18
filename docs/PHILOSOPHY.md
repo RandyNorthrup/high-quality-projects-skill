@@ -140,6 +140,32 @@ longer fuse.
 
 ---
 
+## Real code, or it is not a test
+
+A test double encodes what its author believed the dependency does. A test
+that passes against it proves the belief, not the product, and it keeps
+passing after the real service renames a field or the real CLI changes its
+exit code. The same false green hides in a test that checks a sentence exists,
+in fifty one-off tests that each check a checklist item while the behavior
+between them goes untested, and in a red check re-run until it turns green.
+
+So the rule has no exceptions: tests run real code, the outside world is
+tested live or not at all, and each new test is seen to fail before it is
+trusted. The cost is real: code built around doubles must be restructured so
+its decisions run on inputs the test constructs. That cost is paid once. A double's cost
+recurs every time it lies. `verify-practices.py` enforces what a pattern can
+see; [practices](PRACTICES.md) lists what it cannot.
+
+## Lessons belong in code
+
+A lesson written only in a document, a skill, or a review comment is read once
+and then forgotten; the next contributor or agent repeats the failure. Keep a
+pitfalls register, and give every entry a test or gate that fails when the
+pitfall returns. Keep process rules for contributors apart from the product's
+rules, so a rule about how the team works never ships as product behavior.
+
+---
+
 ## Where this philosophy does not apply
 
 - **Prototypes and spikes.** Code you will delete this week does not need a

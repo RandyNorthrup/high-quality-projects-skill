@@ -5,6 +5,143 @@ All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Added
+
+- `scripts/verify-practices.py`, a standard-library command for failures that
+  lint and type gates cannot see. It refuses test doubles, fake timers, fake
+  servers, and in-memory stand-ins in code and dependency manifests;
+  presence-only and one-off tests in Python and the JavaScript family;
+  configured re-runs, fixed delays, and per-test timeout overrides; merge-gate
+  workflows without `merge_group`, with path filters, secrets, or
+  `continue-on-error`; jobs without timeouts; stale or drifted pins in
+  `upstreams.json`; and pitfalls-register entries that no code enforces. Exit 0
+  passes, 1 lists findings, 2 means unreadable input; missing input never
+  passes. `--watch` asks GitHub for each watched upstream's latest release.
+- `verify-practices.py` refuses two more forms. `error-cause`: a catch-all
+  handler in product code that never uses the caught error and raises a new one
+  or emits a fixed message, in Python, the JavaScript family, C#, Java, Kotlin,
+  C++, Go, and Rust. `hand-written-double`: a class, function, lambda, or
+  namespace named as a double in test code, written without any mocking
+  library. `fake-server` also refuses a JavaScript-family `createServer` with an
+  inline handler in a test.
+- `verify-practices.py` keeps parallel work and local gates apart.
+  `git-shared-state` refuses `git stash` (other than `list` and `show`) and a
+  `git worktree add` that checks out `main`, `master`, `trunk`, or `develop`, in
+  shell scripts, Git hooks, workflows, task runners, PowerShell, and commands
+  started from Python or the JavaScript family. `local-full-suite` refuses a
+  pre-commit, Husky, `.githooks`, or lefthook hook that runs a whole test suite.
+  `docs/PRACTICES.md` gains a "Parallel work" section: small single-outcome
+  tasks, finishing before starting, merging small and often, release-candidate
+  integration, per-item files instead of files every change edits, and
+  worktrees without stashes or base-branch checkouts.
+- Gaps found in review of `verify-practices.py` are closed. A merge gate's
+  secret read by index, inside a longer expression, or through
+  `toJSON(secrets)` is refused; `pull_request_target` gates need `merge_group`;
+  `continue-on-error` passes only as a literal `false`. A pin counts only as a
+  whole version outside comments, so an old version left in a note, a file
+  name, or a longer version no longer hides drift. A keyword-only `mocker`
+  fixture, a `requirements/` folder, and pytest's `reruns` key are refused,
+  and a module name inside a JavaScript string literal is no longer read as an
+  import. A pitfall's gate script named only in a workflow or runner comment
+  no longer counts as enforced. `--watch --format json` prints JSON. Shell
+  scripts and Bats suites count as code, so a shell-only project can pass, and
+  a fixed `sleep` in a shell test is refused.
+- A second review closed more gaps. A secret in an expression that YAML folds
+  over several lines is refused; on `pull_request_target` the automatic token
+  is refused unless top-level permissions are read-only; a path filter on
+  `push` beside a gate is no longer refused; `--reruns 0` passes; a `#` inside
+  a quoted value no longer reads as a comment, so it cannot hide code or allow
+  a finding; input errors honor `--format json`. A data file under `tests/`
+  no longer counts as a pitfall's test; `exc_info=False` no longer counts as
+  keeping an error's cause; NuGet references are read in any attribute order
+  and quote style; the body of a Rust `#[cfg(test)]` module is test code; and a
+  Python git command bound to a name before it runs is checked.
+- A third review closed more gaps. A path filter in a flow-style `on:`
+  mapping, `secrets : inherit`, `github['token']`, and `toJSON(github)` are
+  found; a `jobs:` key with a comment no longer hides every job; a repository
+  workflow that a gate calls gets the gate checks; every YAML boolean spelling
+  counts in pre-commit hooks; a commented NuGet reference is ignored; and the
+  latest binding of a Python command name wins.
+- Each `upstreams.json` entry has a required `version`: the release that a
+  commit SHA or digest in `pinned` identifies, or null when `pinned` is the
+  version. Releases are compared with it, so the practices checker pinned by
+  commit in the CI templates no longer reads as behind forever.
+- `docs/PRACTICES.md`: each rule with its reason, the check that enforces it,
+  the allowance syntax, and what the command cannot see.
+- Templates for a new project: the `templates/ci/quality.yml` merge gate, the
+  `templates/ci/upstream-watch.yml` weekly release watch, the
+  `templates/workflow/AGENTS.md` process-rules file with an enforced pitfalls
+  register, and `templates/workflow/upstreams.json`.
+- `upstreams.json` for this repository's own CLI, tool, and API pins, and a
+  pitfalls register in `CONTRIBUTING.md`.
+
+### Changed
+
+- This repository passes its own checker: pre-commit and CI run it, the gate
+  workflow also runs on `merge_group`, and the test step passes the automatic
+  read-only token to the live upstream-watch test. The CI gitleaks binary moved
+  to the 8.30.1 release, verified against its published checksum and run over
+  this repository's history.
+- The atomic-writer tests trigger real OS refusals instead of patching `Path`,
+  and the behavioral oracle observes calls into the canonical helper through a
+  profiling hook instead of replacing it.
+- `tests/test_red_drills.py` replaces `tests/test_delivery_red_drills.py`. Its
+  table of 43 drills breaks the validator, the practices checker, and the
+  behavioral oracle one defect at a time. Each drill requires the named test to
+  fail with an assertion, then restores the source and compares its SHA-256.
+- `project_setup` scaffolds the practices from the first commit: the merge-gate
+  and upstream-watch workflows, `upstreams.json` as the one place for pins, the
+  process-rules `AGENTS.md` with its register, and a test suite with no doubles.
+  Discovery covers parallel contributors, merge queues, and pinned upstreams.
+- `quality_retrofit` records practice findings in its baseline and turns CI into
+  a merge gate in phase 2. It adds phase 7, which replaces doubles and
+  presence-only, one-off, and re-run tests. Security and documentation are now
+  phases 8 and 9.
+- `feature_delivery` requires real-code tests, a drill for every new test and
+  gate, local checks before pushing, a first-run green CI, and claims only
+  after real use of the built product.
+- `RED-DRILLS.md` drills every new test and gate once and compares restoration
+  by hash. It proves gate scripts as commands: started as a child process, they
+  must fail on a planted violation, on missing and unparseable input, and when
+  started through a symlink.
+- `DELIVERY.md`, `CODE-QUALITY.md`, `PHILOSOPHY.md`, the brief, and the plan
+  template keep process rules apart from product rules and rewrite superseded
+  decisions. They route test, CI, and pin rules to `PRACTICES.md`.
+- The workflows, `DELIVERY.md`, and the rules template carry seven more general
+  practices. Code a dead-code tool flags is checked against unmerged branches
+  and open plans before removal. Error messages name the real cause. A
+  hand-written stand-in counts as a double. Tasks are small, single-outcome,
+  and finished before the next starts, with release-candidate integration.
+  Files every change edits become per-item files joined by a script. Parallel
+  work uses worktrees without `git stash` or base-branch checkouts. Local gates
+  run only the touched suites, and hosted CI runs every suite.
+- Both `detect-stack` scanners add `detail`, the real cause, to their error
+  JSON: the shell's reason for an unreadable root (missing, or not a
+  directory) and, in PowerShell, the caught error and line for a failed scan.
+  `error` stays the stable code. The smoke suite asserts the cause and drills
+  its removal, and CI checks the Bash scanner's unreadable-root contract.
+- A root `ruff check .` no longer writes a cache into `templates/python/`,
+  where it made the template-classification test fail on the next local run.
+
+### Removed
+
+- Smoke-suite assertions that only checked that skill wording, guide headings,
+  or package files exist. They passed whatever the workflows did. The suite
+  keeps its scanner, root-resolution, action-pinning, release-gate, template
+  loading, and manifest-version checks, and all six red drills.
+
+### Verification
+
+- The checker's first run on this repository found two mocks, a gate without
+  `merge_group`, and no pin file or register; all were fixed in the code.
+- 69 tests pass on Windows (4 POSIX or symlink skips) and on Linux under WSL
+  (1 Windows-only skip), with coverage at 85.1% against the 82% floor. All
+  repository hooks pass, both smoke suites pass under PowerShell 7 and 5.1,
+  and the live upstream watch ran against GitHub. Hosted CI has not yet run on
+  these commits. Evidence and limits are in `docs/QUALITY-REVIEW.md`.
+
 ## 0.7.0 — 2026-09-24
 
 ### Fixed

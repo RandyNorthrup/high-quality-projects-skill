@@ -464,3 +464,173 @@ publication.
 
 Evidence, environments, and limits: `docs/QUALITY-REVIEW.md`, section
 "Post-release audit: 2026-09-24".
+
+## Practices enforcement (2026-10-17)
+
+Baseline: `18e47cf`, clean tree, branch `lessons/2026-10-17`. The owner asked
+for the skill itself to prevent failures that pass lint and type gates. That
+means changing what the workflows scaffold, check, and require, not writing
+the lessons down. Scope is general engineering practice for any project. Out
+of scope: a version bump, tagging, publication, and repository settings such
+as a merge queue or branch protection.
+
+| ID | Required outcome |
+|---|---|
+| P01 | Tests run real code: doubles, fake servers and timers, stand-ins, presence-only, one-off, and re-run tests are refused by a command; the outside world is tested live or not at all |
+| P02 | Every new test and gate is proven to fire, and gate scripts are proven as commands, including through a symlink |
+| P03 | CI is a secret-free merge gate: `merge_group`, no path filters, no retries or `continue-on-error`, job timeouts |
+| P04 | Upstream currency: one pin file, a staleness gate, and a release watch |
+| P05 | Process rules stay apart from product rules; a pitfalls register is enforced by code |
+| P06 | All three workflows scaffold, check, or require the above, and this repository passes its own checker |
+
+- [x] P01 `verify-practices.py` with refused cases and negative controls in
+      `tests/test_practices.py`; this repository's mocks replaced by real OS
+      refusals and a profiling observer.
+- [x] P02 27 maintained drills in `tests/test_red_drills.py`; the harness
+      itself fails on surviving mutations and drifted anchors; gate-as-command
+      procedure in `docs/RED-DRILLS.md`.
+- [x] P03 `templates/ci/quality.yml`; this repository's gate runs on
+      `merge_group`.
+- [x] P04 `upstreams.json`, staleness checks, `--watch`, and
+      `templates/ci/upstream-watch.yml`; the watch was run live against GitHub.
+- [x] P05 `templates/workflow/AGENTS.md`, `docs/DELIVERY.md`, and the register
+      in `CONTRIBUTING.md`.
+- [x] P06 Workflow, documentation, and template changes; repository hooks,
+      the tests on Windows and Linux, both smoke suites, and the release smoke
+      pass locally.
+- [ ] Hosted cross-platform CI passes on the pushed commits, including macOS.
+
+Evidence, environments, and limits: `docs/QUALITY-REVIEW.md`, section
+"Practices enforcement: 2026-10-17".
+
+## Seven general practices (2026-10-17)
+
+Baseline: `d69b3f8`, clean tree, same branch. The owner asked for seven more
+general practices. Each is enforced where a file pattern can detect it (a
+`verify-practices` check, refused cases and negative controls in
+`tests/test_practices.py`, a drill in `tests/test_red_drills.py`) and
+documented where it cannot, with the blind spot listed in `docs/PRACTICES.md`.
+Every item is written for any project. Out of scope: a version bump, tagging,
+and publication.
+
+| ID | Practice | Where it goes | Kind |
+|---|---|---|---|
+| P07 | Check "dead" code against unmerged branches and open plans before removing it; finish unfinished work | `PRACTICES.md` new section; `quality_retrofit` phase 5 and "Refuse to"; rules template | Documented: needs Git history and plans, the checker reads one tree |
+| P08 | Error messages name the real cause; no catch-all message replaces the error | New check `error-cause` (Python syntax tree; JavaScript family, C#, Java, Kotlin, C++, Go, and Rust patterns): a catch-all handler that drops the caught error and emits a fixed message; `PRACTICES.md`, `CODE-QUALITY.md`, `quality_retrofit` phase 7, rules template | Enforced; PowerShell and shell handlers are documented |
+| P09 | A hand-written object, scripted port, or local server that pretends to be a dependency is a stand-in | New check `hand-written-double` (test classes named as doubles, several languages); `fake-server` extended to inline-handler servers in JavaScript-family tests; `PRACTICES.md`, rules template | Enforced (named and inline forms); a neutrally named double is documented |
+| P10 | Small single-outcome tasks with an observable done and an early first result; finish first; merge small and often; integrate on a release-candidate branch | `PRACTICES.md` new section; `DELIVERY.md` loop; `feature_delivery`; rules template | Documented: task size and cadence are plan judgment |
+| P11 | Files every change edits are split into per-item files or fragments joined by a script | `PRACTICES.md`; `DELIVERY.md` plan ownership; rules template | Documented: edit frequency is a history property |
+| P12 | Parallel work in worktrees: no `git stash`, no shared base branch checked out in a worktree | New check `git-shared-state` over scripts, Git hooks, workflows, and task runners; `PRACTICES.md`; `feature_delivery`; rules template | Enforced in checked-in automation; commands typed by hand are documented |
+| P13 | Local gates run format, lint, typecheck, build, and only the touched suites; hosted CI is the full gate | New check `local-full-suite` (a pre-commit hook or Git hook that runs a whole test suite); `PRACTICES.md`; rules template; `feature_delivery`; `CONTRIBUTING.md` | Enforced for hook configuration; which suites a change touches is documented |
+
+- [x] P07 `PRACTICES.md` section and blind spot; `quality_retrofit` phase 5
+      and "Refuse to"; rules template.
+- [x] P08 `error-cause` in `scripts/practices/error_rules.py`; 20 cases in
+      `test_errors_name_their_cause`; 4 drills.
+- [x] P09 `hand-written-double` and the inline-handler `fake-server` form; 14
+      cases added to the doubles table; 6 drills.
+- [x] P10 `PRACTICES.md` "Parallel work"; `DELIVERY.md` loop step 3; all three
+      workflows; rules template.
+- [x] P11 `PRACTICES.md` "Parallel work"; `DELIVERY.md` ownership;
+      `project_setup` changelog and plan guidance; rules template.
+- [x] P12 `git-shared-state` in `scripts/practices/parallel_rules.py`; cases in
+      `test_parallel_work_and_local_hooks`; 4 drills.
+- [x] P13 `local-full-suite` in the same module and test; 2 drills;
+      `CONTRIBUTING.md` and the workflows run only the touched suites locally.
+- [x] Gates on the final tree: Ruff format and lint, both mypy scopes,
+      `verify-practices` here, the full suite, `pre-commit run --all-files`,
+      and `cross-platform-smoke.ps1 -RedDrills` under PowerShell 7 and 5.1.
+- [ ] Hosted cross-platform CI passes on the pushed commits, including macOS.
+
+Evidence: `docs/QUALITY-REVIEW.md`, section "Seven general practices:
+2026-10-17".
+
+## Review threads and scanner causes (2026-10-17)
+
+Baseline: `58e6cdd`, pushed. The automated review of 21:09Z left 11
+unresolved threads on `d69b3f8`. None of the seven-practice commits touched
+the code they name, and each still reproduces at `58e6cdd`, so each is fixed at
+its cause with a refused case and a negative control, plus a drill when it adds
+a detection. Threads are answered in the report, not on GitHub.
+
+| ID | Thread | Fix |
+|---|---|---|
+| R01 | `workflows.py:23` bracket-form secrets | Find secret use anywhere inside `${{ }}`: `secrets.NAME`, `secrets['NAME']`, and `toJSON(secrets)`, keeping the `GITHUB_TOKEN` exception |
+| R02 | `upstreams.py:232` pin matched as any substring | Match the pin as a whole version token outside comments, so a comment, a file name, or a longer version cannot stand in for it |
+| R03 | `python_rules.py:307` keyword-only `mocker` | Inspect positional-only, regular, and keyword-only parameters |
+| R04 | `script_rules.py:201` imports inside string literals | Accept a module specifier only when its `import`, `from`, or `require` keyword is code, not literal text |
+| R05 | `register.py:138` gate path named only in a comment | Strip comments from workflows and gate runners before looking for the gate path |
+| R06 | `workflows.py:118` `pull_request_target` without `merge_group` | Require `merge_group` for both pull-request triggers |
+| R07 | `manifests.py:182` `requirements/dev.txt` | Read `.txt` and `.in` files under a `requirements/` directory as manifests |
+| R08 | `cli.py:60` pytest `reruns = 3` | Treat a non-zero `reruns` setting as a configured re-run |
+| R09 | `cli.py:279` `--watch --format json` | Render watch results as JSON when asked |
+| R10 | `workflows.py:30` expression `continue-on-error` | Refuse every value except a literal `false` |
+| R11 | `source.py:105` shell-only projects scan nothing | Classify `.sh`, `.bash`, `.zsh`, and `.bats` as code, running the shell checks that exist |
+| R12 | `detect-stack.ps1` reports failures without their cause (practice 2) | Add a `detail` field with the real cause to both scanners' error JSON, keeping `error` as the stable code; update `AGENTS.md` and `CONTRIBUTING.md` |
+
+- [x] R01, R06, R10 `f27731d`
+- [x] R02 `f93d2fa`
+- [x] R03, R04, R07, R08 `0bf88db`
+- [x] R05 `89417f5`
+- [x] R09 `09866ad`
+- [x] R11 `cfada06`
+- [x] R12 `6fae41e`
+- [x] Found while running the gates: a root `ruff check .` wrote a cache into
+      `templates/python/` that failed the template test; fixed in `787d06b`.
+- [x] Gates on `787d06b`: Ruff format and lint, both mypy scopes,
+      `verify-practices` here, the full suite, `pre-commit run --all-files`,
+      and `cross-platform-smoke.ps1 -RedDrills` under PowerShell 7 and 5.1.
+- [ ] Hosted CI passes on the pushed commits, including the new Bash
+      unreadable-root check on Linux and macOS.
+
+## Second review round (2026-10-18)
+
+Baseline: `193f09e`, pushed. The re-review raised 12 new threads; the 11
+earlier ones are resolved. Each new thread reproduces at `193f09e` and is fixed
+at its cause with a refused case, a negative control, and a drill.
+
+| ID | Thread | Fix |
+|---|---|---|
+| S01 | `workflows.py:146` folded `${{ }}` over several lines | Match expressions across the whole comment-free workflow text, reporting the line where `${{` starts |
+| S02 | `workflows.py:166` `GITHUB_TOKEN` exempt on `pull_request_target` | On `pull_request_target`, refuse the automatic token (`secrets.GITHUB_TOKEN`, `github.token`) unless the workflow declares top-level permissions and none is `write` |
+| S03 | `cli.py:316` input errors ignore `--format json` | Emit `{"passed": false, "error": ...}` for exit 2 when JSON was requested |
+| S04 | `cli.py:61` `--reruns 0` refused | Require a positive count for `--reruns`, in runner files and workflows |
+| S05 | `source.py:170` `#` inside quoted values read as a comment | One quote-aware `#` comment finder for YAML, TOML, INI, shell, and PowerShell, used for allowances and for stripping comments before checks |
+| S06 | `register.py:134` any file under `tests/` counts as a test | Require test code in a recognized language |
+| S07 | `error_rules.py:103` `exc_info=False` counts as keeping the cause | Count `exc_info` only when it is not statically false |
+| S08 | `workflows.py:144` path filter on `push` refused | Read the trigger nesting; refuse `paths` only under `pull_request`, `pull_request_target`, or `merge_group` |
+| S09 | `manifests.py:69` NuGet `Include` must be first and double-quoted | Read the `Include` attribute in any position and either quote, for `PackageReference`, `PackageVersion`, and `GlobalPackageReference` |
+| S10 | `family_rules.py:117` Rust `#[cfg(test)] mod` in product files | Treat the body of a `#[cfg(test)]` module as test code |
+| S11 | `upstreams.py:226` SHA pin never equals a release tag (P1) | New required `version` field: the release a SHA or digest pin identifies, or null when `pinned` is the version; `upstream-behind` compares `latest_seen` with it |
+| S12 | `parallel_rules.py:233` command held in a variable | Resolve names bound to literal commands earlier in the same scope |
+
+- [x] S01, S02, S03, S04, S05, S08 `1b0a3da`
+- [x] S06, S07, S09, S10, S12 `3c8c7fa`
+- [x] S11 `ee76585`
+- [x] Gates on `ee76585`: Ruff format and lint, both mypy scopes,
+      `verify-practices` here, the full suite, `pre-commit run --all-files`,
+      and `cross-platform-smoke.ps1 -RedDrills` under PowerShell 7 and 5.1.
+- [ ] Hosted CI passes on the pushed commits.
+
+## Third review round (2026-10-18)
+
+Baseline: `1a1e734`, pushed. The re-review raised 8 new threads; the 12 from
+the second round are resolved. Each reproduces at `1a1e734` and is fixed at its
+cause with a refused case, a negative control, and a drill.
+
+| ID | Thread | Fix |
+|---|---|---|
+| T01 | `workflows.py:80` flow-style `on: {pull_request: {paths: [...]}}` | Parse an inline trigger mapping: triggers are its first-level keys, and a `paths` key under a merge-gate trigger is refused |
+| T02 | `parallel_rules.py:277` oldest binding chosen | Pick the binding with the greatest line at or above the call |
+| T03 | `workflows.py:36` `secrets : inherit` | Allow whitespace before the colon |
+| T04 | `workflows.py:109` `jobs: # comment` | Strip the comment before locating the jobs block |
+| T05 | `manifests.py:166` NuGet reference inside an XML comment | Blank XML comments, keeping line numbers, before matching references |
+| T06 | `workflows.py:246` reusable workflow called by a gate | Apply the gate checks to local workflows that a gate calls with `jobs.<id>.uses`, transitively |
+| T07 | `parallel_rules.py:109` `pass_filenames: False` | Read every YAML boolean spelling pre-commit's loader accepts (`true/false`, `yes/no`, `on/off`, any case) |
+| T08 | `workflows.py:33` `github['token']`, `toJSON(github)` | Treat an indexed token property and whole-context serialization as the automatic token |
+
+- [x] T01 to T08 `de5cb26`
+- [x] Gates on `de5cb26`: Ruff format and lint, both mypy scopes,
+      `verify-practices` here, the full suite, `pre-commit run --all-files`,
+      and `cross-platform-smoke.ps1 -RedDrills` under PowerShell 7 and 5.1.
+- [ ] Hosted CI passes on the pushed commits.

@@ -148,6 +148,11 @@ restoration, then green again. Repeat affected drills when code, tests, tools,
 or configuration change and run the maintained set at release verification.
 Zero tests, unrelated crashes, and warning-only output earn no credit.
 
+**Test real code.** No mocks, fake servers, fake timers, or stand-ins; the
+outside world is tested live or not at all. CI is a secret-free merge gate
+that is green on its first run, and every pin lives in `upstreams.json`.
+[`verify-practices.py`](docs/PRACTICES.md) refuses the rest.
+
 **Verify effects.** Check observable behavior with independent expected results.
 Reject self-comparisons, assertions that merely mirror implementation, vacuous
 success paths, and placeholders presented as finished work.
@@ -178,8 +183,9 @@ compliance by being copied.
 | Go | gofmt, go vet, selected Staticcheck, govulncheck, go test, race/fuzz checks where supported |
 | GitHub Actions | actionlint, zizmor; SHA-pinned actions and least-privilege permissions |
 
-Go has guidance rather than a supplied configuration template. Cross-cutting
-references cover Gitleaks, Semgrep, jscpd, and OSV-Scanner, plus per-stack
+Go has guidance rather than a supplied configuration template. The CI
+templates provide a merge-gate workflow and a weekly upstream watch. Cross-cutting
+references cover Gitleaks, Semgrep, jscpd, OSV-Scanner, and `verify-practices.py`, plus per-stack
 coverage floors, mutation testing, property/fuzz tests, and benchmarks. See the
 [language review contract](docs/CODE-QUALITY.md) for primary sources and the
 [template index](templates/README.md) for configuration details and compatibility.
@@ -192,6 +198,7 @@ coverage floors, mutation testing, property/fuzz tests, and benchmarks. See the
 | [Installation](docs/INSTALLATION.md) | Registration, updates, checksums, and provenance |
 | [Delivery](docs/DELIVERY.md) | Native ledger, readiness, reconciliation, and resume |
 | [Red drills](docs/RED-DRILLS.md) | Reproducible failure and restoration procedures |
+| [Practices](docs/PRACTICES.md) | Real-code tests, merge-gate CI, pins, and the pitfalls register |
 | [Code quality](docs/CODE-QUALITY.md) | Common and language-specific review rules |
 | [Discovery questions](skills/project_setup/references/grill-me.md) | Product and delivery decisions |
 | [Philosophy](docs/PHILOSOPHY.md) | Why gates exist and when strictness becomes counterproductive |
@@ -204,8 +211,8 @@ coverage floors, mutation testing, property/fuzz tests, and benchmarks. See the
 
 ```text
 skills/       three workflow entry points and focused resources
-scripts/      native inventory, delivery validation, atomic updates, release tools
-templates/    language configurations and the native plan asset
+scripts/      native inventory, delivery and practice checks, atomic updates, release tools
+templates/    language configurations, CI workflows, and plan, rules, and pin assets
 tests/        deterministic checks, red drills, and isolated behavioral fixtures
 docs/         shared contracts, primary sources, and verification evidence
 ```

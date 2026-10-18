@@ -340,3 +340,367 @@ passed all thirteen jobs, and each new SHA matched its upstream tag. All three
 were squash-merged after the release and are not part of v0.7.0. The release
 workflow has not yet run with checkout and setup-python v7; the next tag is
 the first to exercise them.
+
+## Practices enforcement: 2026-10-17
+
+Scope: commits `fd96289`, `85f373e`, and `799b2d6` on branch
+`lessons/2026-10-17`, from base `18e47cf` (v0.7.0 plus evidence). They add
+`verify-practices.py`, the CI and project-rules templates, and the workflow
+changes that route to `docs/PRACTICES.md`. They also make this repository pass
+the new checker. The checks are general engineering practice; nothing in them
+is specific to one kind of product.
+
+### What the checker found here first
+
+The first run against this repository refused: two uses of `unittest.mock`
+(`tests/test_update_delivery.py` and `tests/behavioral/probe.py`), a gate
+workflow without `merge_group`, and the absence of `upstreams.json` and a
+pitfalls register. Each was fixed in the code, not allowed:
+
+- The atomic-writer tests now meet real OS refusals. On Windows, an open
+  handle makes the final replace fail. On POSIX, a no-write umask makes the
+  lock's owner file uncreatable after `mkdir`.
+- The behavioral oracle observes calls into the canonical helper with
+  `sys.setprofile` instead of replacing it.
+- `cross-platform.yml` runs on `merge_group`. The CI gitleaks binary moved
+  from 8.30.0 to 8.30.1, after the archive matched the release's published
+  checksum and the binary scanned this history (44 commits, no leaks, exit 0)
+  under WSL.
+- `upstreams.json` pins gitleaks, PSScriptAnalyzer, and the GitHub REST API
+  version the watch sends (2026-03-10). `CONTRIBUTING.md` carries a register
+  of six pitfalls, each enforced by a test or a check.
+
+### Executed drills
+
+Every drill passed first, failed for the named reason with a non-zero exit,
+and passed again after restoration. Restoration was compared by SHA-256.
+Source was mutated only in disposable copies.
+
+| Gate or test | Injected defect | Required failure |
+|---|---|---|
+| `tests/test_red_drills.py` (maintained, 27 drills) | Removed or disabled each detection rule of the checker (mock imports and calls, fake servers, stand-ins, flaky markers, comment masking, other-language imports, Pester, manifests, presence-only and copied tests, sleeps, per-test timeouts, `merge_group`, path filters, secrets, timeouts, staleness, pin drift, live tag parsing, register rules, allowance reasons), two validator rules, and the oracle's delegation check | The named test fails with `AssertionError`; each run exits non-zero; then green |
+| The drill harness itself | A behavior-neutral mutation; a drifted anchor | `Defect survived` and `Mutation anchor drifted`, harness exit 1 |
+| `test_failure_before_replace_preserves_complete_plan` (Windows) | Temporary-file cleanup removed | Leftover `.tmp` listed, exit 1 |
+| `test_failed_owner_write_releases_owned_lock` (Linux, WSL) | Lock cleanup on a failed owner write removed | `AssertionError: True is not false`, exit 1 |
+| `tests/test_templates.py` | New templates not yet classified | Completeness assertion listed the four files, exit 1 |
+| zizmor 1.30.1 on `templates/ci/quality.yml` | `actions/setup-python@v7` instead of a SHA | `unpinned-uses`, exit 14 |
+
+The drill table also caught one of its own stale anchors after a refactor,
+failing instead of skipping, as designed.
+
+### Results
+
+- Windows: 69 tests pass with 4 skips: two POSIX mode-bit tests, the POSIX
+  umask test, and the symlinked start, because this host cannot create
+  symlinks without privilege (WinError 1314). Coverage is 85.1% against the
+  82% floor. Every repository hook passes, including `verify-practices`; the
+  broken-symlink hook had no files to check.
+  `cross-platform-smoke.ps1 -RedDrills` passes its six drills under PowerShell
+  7.6.6 and 5.1.26100.9711. `release-package-smoke.ps1` passes under both from
+  native PowerShell.
+- Linux (Arch on WSL2, Python 3.14.7, non-root): 69 tests pass with 1 skip,
+  the Windows-only replace refusal. The symlinked start passes.
+- Real use: `verify-practices.py --root . --rules CONTRIBUTING.md` passes on
+  45 code files with no allowances. `--watch` queried GitHub live and reported
+  all three upstreams current (exit 0). In a scratch project that had last seen
+  gitleaks 8.30.0, it reported the real 8.30.1 release (exit 1).
+- Both CI templates pass actionlint 1.7.12 and zizmor 1.30.1.
+
+Environment: Windows 11, Python 3.14.0 with the hash-locked tools (Ruff
+0.16.8, mypy 2.3.1, coverage 7.16.1, vulture 2.16, Bandit 1.9.4, pre-commit
+4.6.2), PSScriptAnalyzer 1.25.0, PowerShell 7.6.6 and Windows PowerShell 5.1.
+
+### Limits and open gates
+
+- Hosted CI has not run on these commits; nothing is pushed. The macOS jobs,
+  and the Windows CI symlink case, run only there.
+- `test_release_watch_queries_github_live` needs network access and fails,
+  never skips, when GitHub is unreachable. CI passes it the automatic
+  read-only token to stay within the API rate limit.
+- From Git Bash, `release-package-smoke.ps1` fails to list the tar.gz archive,
+  because the GNU `tar` first on that PATH reads `C:` as a remote host. The
+  script is unchanged; from native PowerShell it passes.
+- The checker matches patterns. Test shape is analyzed for Python and the
+  JavaScript family only, and comment and literal masking for other languages
+  is approximate (`masking.py` is 67% covered). Its documented blind spots,
+  such as a fake CLI on `PATH` or a manual re-run in the CI interface, remain
+  review work.
+- Live agent trials were not rerun for the changed workflow wording. Enabling
+  a merge queue and branch protection are repository settings for the owner.
+
+## Seven general practices: 2026-10-17
+
+Scope: commits `6e00973` (plan), `1022541`, `e30be59`, and `d0c2ad1` on branch
+`lessons/2026-10-17`, from base `d69b3f8`. Each practice is general; nothing
+in it names a kind of product, tool vendor, or contributor.
+
+| Practice | Where it landed | Kind |
+|---|---|---|
+| Check flagged dead code against unmerged branches and open plans | `PRACTICES.md`, `quality_retrofit` phase 5 and "Refuse to", rules template | Documented |
+| Error messages name the real cause | `error-cause` check; `PRACTICES.md`, `CODE-QUALITY.md`, `quality_retrofit` phase 7, rules template | Enforced |
+| A hand-written object, scripted port, or local server is a stand-in | `hand-written-double` check and the inline-handler `fake-server` form; `PRACTICES.md`, the workflows, rules template | Enforced for named and inline forms |
+| Small single-outcome tasks, finish first, merge small, release-candidate integration | `PRACTICES.md` "Parallel work", `DELIVERY.md`, all three workflows, rules template | Documented |
+| Files every change edits become per-item files joined by a script | `PRACTICES.md`, `DELIVERY.md`, `project_setup`, `feature_delivery`, rules template | Documented |
+| Worktrees without `git stash` or base-branch checkouts | `git-shared-state` check; `PRACTICES.md`, `feature_delivery`, `quality_retrofit`, rules template | Enforced in checked-in automation |
+| Local gates run only touched suites; hosted CI is the full gate | `local-full-suite` check; `PRACTICES.md`, the workflows, rules template, `CONTRIBUTING.md` | Enforced for hook configuration |
+
+The documented practices, and the parts of the enforced ones that no file
+pattern shows, are listed under "What the command cannot see" in
+`PRACTICES.md`. The four new checks accept reviewed allowances: each matches
+names or command text, which can misread a legitimate case.
+
+### Executed drills
+
+The maintained table in `tests/test_red_drills.py` grew from 27 to 43 drills.
+Each new drill breaks one rule in a disposable copy, requires the named test
+to fail with `AssertionError` and a non-zero exit, restores the bytes
+(SHA-256 compared), and requires green again. Four of them break negative
+controls instead of detections: the caught-error name, the C#/C++ rethrow, the
+three-argument `type()` builder, and the `-b`/`--detach` worktree exception. A
+checker that fired on everything fails those, as one that fired on nothing
+fails the others.
+
+| Rule | Drills |
+|---|---|
+| `error-cause` | Python handler condition, caught-name recognition, masked-body emission, rethrow recognition |
+| `hand-written-double` and `fake-server` | Python class, `type()` arity, JavaScript-family class, JavaScript-family function binding, inline `createServer`, C-family and Go types |
+| `git-shared-state` | Stash pattern, base-worktree pattern, `-b`/`--detach` exception, Python process calls |
+| `local-full-suite` | pre-commit change-ignoring settings, Git hook scripts |
+
+### Results
+
+All on Windows 11 at `d0c2ad1`, with temporary files kept under the
+repository's ignored `build/tmp/`:
+
+| Gate | Exit |
+|---|---|
+| `ruff format --check .` (64 files) | 0 |
+| `ruff check .` | 0 |
+| mypy, package scripts (26 files) | 0 |
+| mypy, tests (14 files) | 0 |
+| `verify-practices.py --root . --rules CONTRIBUTING.md` (47 code files, no allowances) | 0 |
+| Full suite with coverage: 71 tests, 4 skips, 86.3% against the 82% floor | 0, report 0 |
+| `pre-commit run --all-files` | 0 |
+| `cross-platform-smoke.ps1 -RedDrills`, PowerShell 7.6.6 | 0 |
+| `cross-platform-smoke.ps1 -RedDrills`, Windows PowerShell 5.1.26100.9711 | 0 |
+
+The four skips are the same as before: two POSIX mode-bit tests, the POSIX
+umask test, and the symlinked start (WinError 1314).
+
+Real use: a scratch project with one planted violation per new check made the
+command, started as a child process, exit 1 with exactly `error-cause`,
+`hand-written-double`, `git-shared-state`, and `local-full-suite`. With each
+violation replaced by its legitimate form (a chained error, a real import, a
+branch switch, a related-tests hook) it exited 0. The project was removed.
+
+The new rules found nothing in this repository's code. Applying the practices
+by review found two places they apply here:
+
+- `scripts/detect-stack.ps1` reports any internal failure as
+  `{"error":"scan failed"}` and drops the cause. PowerShell handlers are
+  outside `error-cause`, so no check caught it. The owner then asked for the
+  fix; see "Review threads and scanner causes" below.
+- This repository's `CHANGELOG.md` and `PLAN.md` are files every change edits.
+  Moving them to per-item files joined by a script is separate work.
+
+A first full-suite run, started while `pre-commit run --all-files` ran in
+parallel, failed `test_every_template_is_classified`: a
+`templates/python/.ruff_cache/` had appeared, and that cache already held an
+older `0.15.9` directory from August. After removing it, pre-commit alone and
+the suite alone each passed and left no cache there. The writer was found
+later: the root `ruff format --check .` and `ruff check .` run before the
+suite. See "Review threads and scanner causes" below.
+
+Environment: Windows 11, Python 3.14.0, Ruff 0.16.8, mypy 2.3.1, coverage
+7.16.1, pre-commit 4.6.2, PowerShell 7.6.6 and Windows PowerShell 5.1.
+
+### Limits and open gates
+
+- Hosted CI has not run on these commits; nothing is pushed. Linux and macOS
+  ran nothing locally for this change.
+- Live agent trials were not rerun for the changed workflow wording.
+
+## Review threads and scanner causes: 2026-10-17
+
+Scope: commits `41a4660` (plan) through `787d06b`, from `58e6cdd`. The
+automated review of 21:09Z left 11 unresolved threads on `d69b3f8`. None of
+the seven-practice commits touched the code they name, and each reproduced at
+`58e6cdd`, so each was fixed at its cause. None was answered as no longer
+applying. Threads were not resolved or replied to on GitHub.
+
+| Thread | Cause | Fix |
+|---|---|---|
+| `workflows.py:23` | The secret pattern matched only `${{ secrets.NAME` at the start of an expression | `f27731d`: any secret read inside `${{ }}`, by property, by index, or through `toJSON(secrets)`, with the `GITHUB_TOKEN` exception kept |
+| `upstreams.py:232` | The pin was any substring of the file | `f93d2fa`: a whole version token (optional `v`) outside comments; this repository's own `GITLEAKS_VERSION` line sits beside exactly such a comment |
+| `python_rules.py:307` | Only regular parameters were read | `0bf88db`: positional-only and keyword-only too |
+| `script_rules.py:201` | The module pattern ran on text that keeps literals | `0bf88db`: the `import`, `from`, or `require` keyword must be code |
+| `register.py:138` | Runner text included comments | `89417f5`: comments removed before the search |
+| `workflows.py:118` | Only `pull_request` required `merge_group` | `f27731d`: `pull_request_target` too |
+| `manifests.py:182` | Only `requirements*` file names were manifests | `0bf88db`: `.txt` and `.in` files in a `requirements/` folder too |
+| `cli.py:60` | The retry setting did not include `reruns` | `0bf88db`: a non-zero `reruns` is refused |
+| `cli.py:279` | Watch mode always printed text | `09866ad`: JSON when asked |
+| `workflows.py:30` | Only a literal `true` was refused | `f27731d`: anything but a literal `false` |
+| `source.py:105` | Shell files were not code | `cfada06`: `.sh`, `.bash`, `.zsh`, `.ksh`, and `.bats` count, with shared-Git-state and fixed-sleep checks |
+
+`6fae41e` applies practice 2 to the scanners. Both now add `detail` to their
+error JSON. The Bash scanner reports the shell's reason ("No such file or
+directory", "Not a directory"). The PowerShell scanner reports the caught
+error's message and line for both an unreadable root and a failed scan.
+`error` stays the stable code that `AGENTS.md` and `CONTRIBUTING.md` tell
+callers to match, and both documents now say to report `detail`.
+
+Running the owner's gates in order exposed a defect with a known cause: a root
+`ruff check .` treated `templates/python/ruff.toml` as a nested project and
+wrote a cache beside it, failing `test_every_template_is_classified` on the
+next suite run. One `ruff check .` reproduced it. `787d06b` excludes
+`templates/python` from the root configuration; Markdown elsewhere in
+`templates/` stays checked (64 files before and after).
+
+### Executed drills
+
+The Python drill table grew from 43 to 58. Five of the new drills break
+negative controls: the `GITHUB_TOKEN` exception, the literal-`false` value, the
+comment removal for pins, the token boundary for pins, and the literal-text
+guard for imports. Three drills were re-anchored because the lines they break
+changed: the `merge_group` condition, the secret detection, and the pin
+check. `cross-platform-smoke.ps1 -RedDrills` grew from 6 to 7: replacing the
+PowerShell scanner's caught message with a fixed sentence fails
+`Unreadable path did not name its cause.` with exit 1, and the restored source
+passes. The new CI check for the Bash scanner was run locally from Git Bash
+against the real script and passed. Hosted CI has not run it.
+
+### Results
+
+All on Windows 11 at `787d06b`, run one after another, with temporary files
+under the ignored `build/tmp/`:
+
+| Gate | Exit |
+|---|---|
+| `ruff format --check .` (64 files) | 0 |
+| `ruff check .` | 0 |
+| mypy, package scripts (26 files) | 0 |
+| mypy, tests (14 files) | 0 |
+| `verify-practices.py --root . --rules CONTRIBUTING.md` (49 code files, no allowances) | 0 |
+| Full suite with coverage: 71 tests, 4 skips, 87.0% against the 82% floor | 0, report 0 |
+| `pre-commit run --all-files` | 0 |
+| `cross-platform-smoke.ps1 -RedDrills`, PowerShell 7.6.6 (7 drills) | 0 |
+| `cross-platform-smoke.ps1 -RedDrills`, Windows PowerShell 5.1 (7 drills) | 0 |
+
+### Limits and open gates
+
+- Hosted CI has not run on `41a4660` and later; nothing is pushed. The new
+  Bash unreadable-root check runs only on the Linux and macOS jobs.
+- The scanners' `scan failed` path cannot be triggered from a test here; its
+  detail uses the same function as the unreadable-root path, which the smoke
+  suite asserts and drills.
+
+## Second review round: 2026-10-18
+
+Scope: commits `7930722` (plan) through `ee76585`, from `193f09e`. The
+re-review of `193f09e` resolved the earlier 11 threads and raised 12 new ones.
+Each reproduced at `193f09e` and was fixed at its cause; none was answered as
+no longer applying. Threads were not resolved or replied to on GitHub.
+
+| Thread | Cause | Fix |
+|---|---|---|
+| `workflows.py:146` (security) | Expressions were matched per physical line, so a folded `${{ … }}` escaped | `1b0a3da`: matched across the comment-free workflow text, reported at the line where `${{` starts |
+| `workflows.py:166` (security) | The `GITHUB_TOKEN` exception held on `pull_request_target`, where the token has the base repository's permissions | `1b0a3da`: on that trigger the token (`secrets.GITHUB_TOKEN` or `github.token`) is refused unless top-level permissions are declared and none is `write` |
+| `cli.py:316` | Input errors were plain text in JSON mode | `1b0a3da`: `{"passed": false, "error": ...}` |
+| `cli.py:61` | `--reruns` was refused at any count | `1b0a3da`: only a positive count, in runner files and workflows |
+| `source.py:170` | Any `#` began a comment, even inside quotes | `1b0a3da`: one quote-aware finder for YAML, TOML, INI, shell, and PowerShell, used for allowances and for stripping comments before checks; a quoted `#` before a secret no longer hides it either |
+| `register.py:134` | Any file under `tests/` counted as a test | `3c8c7fa`: test code in a recognized language only |
+| `error_rules.py:103` | `exc_info=False` counted as keeping the cause | `3c8c7fa`: only a value that is not statically false |
+| `workflows.py:144` | Path filters were refused under any trigger | `1b0a3da`: only under `pull_request`, `pull_request_target`, or `merge_group` |
+| `manifests.py:69` | `Include` had to come first, in double quotes | `3c8c7fa`: any attribute order and either quote, for `PackageReference`, `PackageVersion`, and `GlobalPackageReference` |
+| `family_rules.py:117` | Rust tests in a `#[cfg(test)]` module of a product file were product code | `3c8c7fa`: the module body is test code; a product type outside it is not |
+| `upstreams.py:226` (P1) | A commit SHA in `pinned` never equals a release tag | `ee76585`: a required `version` field records the release a SHA or digest identifies, and `upstream-behind` compares with it; this repository's pins and the templates carry it |
+| `parallel_rules.py:233` | A command held in a name was invisible | `3c8c7fa`: names bound to literal commands earlier in the same scope are resolved |
+
+### Executed drills
+
+The Python drill table grew from 58 to 74. Six of the new drills break
+negative controls: the read-only-permissions test, the merge-gate trigger
+condition on path filters, the quote tracking in comments, the Rust
+product-code boundary, the NuGet attribute order, and the SHA pin's version
+comparison. Four drills were re-anchored because the lines they break moved:
+the secret detection, the path-filter detection, the shell sleep, and the
+`upstream-behind` condition.
+
+One drill first survived. The quoted-value allowance case had its `#` right
+after the quote, which the whitespace rule already rejects, so disabling quote
+tracking changed nothing. The case now puts a space before the `#` inside the
+quotes, and the drill fails as intended.
+
+### Results
+
+All on Windows 11 at `ee76585`, run one after another:
+
+| Gate | Exit |
+|---|---|
+| `ruff format --check .` (64 files) | 0 |
+| `ruff check .` | 0 |
+| mypy, package scripts (26 files) | 0 |
+| mypy, tests (14 files) | 0 |
+| `verify-practices.py --root . --rules CONTRIBUTING.md` (49 code files, no allowances) | 0 |
+| Full suite with coverage: 71 tests, 4 skips, 87.6% against the 82% floor | 0, report 0 |
+| `pre-commit run --all-files` | 0 |
+| `cross-platform-smoke.ps1 -RedDrills`, PowerShell 7.6.6 (7 drills) | 0 |
+| `cross-platform-smoke.ps1 -RedDrills`, Windows PowerShell 5.1 (7 drills) | 0 |
+
+### Limits and open gates
+
+- Hosted CI has not run on `7930722` and later; nothing is pushed.
+- The read-only test for `pull_request_target` reads declared permissions. It
+  cannot see a repository's default token setting, so a target workflow that
+  declares no permissions is refused even where the default is read-only.
+
+## Third review round: 2026-10-18
+
+Scope: commits `1874841` (plan) and `de5cb26`, from `1a1e734`. The re-review
+of `1a1e734` resolved the 12 second-round threads and raised 8 new ones. Each
+reproduced at `1a1e734` and was fixed at its cause in `de5cb26`; none was
+answered as no longer applying. Threads were not resolved or replied to on
+GitHub.
+
+| Thread | Cause | Fix |
+|---|---|---|
+| `workflows.py:80` | A flow-style `on:` value was read as a bag of words, with no trigger nesting | Parsed as a flow list or mapping: triggers are its first-level keys, and `paths` under a merge-gate trigger is refused; `paths` under `push` is not |
+| `parallel_rules.py:277` | The scope walk visits statements in reverse, and the last binding in visit order was the oldest | The binding with the greatest line at or above the call wins |
+| `workflows.py:36` | `secrets:` had to touch its colon | `secrets : inherit` matches |
+| `workflows.py:109` | The jobs key had to be exactly `jobs:` | The comment is stripped first |
+| `manifests.py:166` | References were matched in raw XML, comments included | XML comments are blanked, keeping line numbers, before matching |
+| `workflows.py:246` | Gate checks ran only on workflows with a merge-gate trigger | A repository workflow a gate calls through `jobs.<id>.uses`, directly or transitively, gets them too; one called only from `push` does not |
+| `parallel_rules.py:109` | Only lowercase `false` and `true` counted | Every YAML 1.1 boolean spelling that pre-commit's loader accepts, in any case |
+| `workflows.py:33` (security) | Only dotted `github.token` was the automatic token | `github['token']`, a computed `github[...]` index, and `toJSON(github)` count; `github['event_name']` does not |
+
+### Executed drills
+
+The Python drill table grew from 74 to 86. Four of the new drills break
+negative controls: the merge-gate condition on flow-style path filters, the
+gate-caller condition for called workflows (a `push` caller must not count),
+the literal-index test for `github[...]`, and the latest-binding choice. The
+control for a workflow called only from `push` was added when it became clear
+that the called-workflow drill had nothing to fail against without it.
+
+### Results
+
+All on Windows 11 at `de5cb26`, run one after another:
+
+| Gate | Exit |
+|---|---|
+| `ruff format --check .` (64 files) | 0 |
+| `ruff check .` | 0 |
+| mypy, package scripts (26 files) | 0 |
+| mypy, tests (14 files) | 0 |
+| `verify-practices.py --root . --rules CONTRIBUTING.md` (49 code files, no allowances) | 0 |
+| Full suite with coverage: 71 tests, 4 skips, 88.0% against the 82% floor | 0, report 0 |
+| `pre-commit run --all-files` | 0 |
+| `cross-platform-smoke.ps1 -RedDrills`, PowerShell 7.6.6 (7 drills) | 0 |
+| `cross-platform-smoke.ps1 -RedDrills`, Windows PowerShell 5.1 (7 drills) | 0 |
+
+### Limits and open gates
+
+- Hosted CI has not run on `1874841` and later; nothing is pushed.
+- Called-workflow tracing follows `uses: ./.github/workflows/...` inside this
+  repository only. A reusable workflow from another repository is pinned and
+  reviewed as an upstream, not checked as part of the gate.

@@ -19,9 +19,10 @@ TEMPLATES = ROOT / "templates"
 XML_TEMPLATES = ("csharp/Directory.Build.props",)
 TOML_TEMPLATES = ("python/ruff.toml", "rust/clippy-strict.toml", "rust/deny.toml")
 INI_TEMPLATES = ("python/mypy.ini", "csharp/.editorconfig")
-JSON_TEMPLATES = ("web/.stylelintrc.json",)
-# JSONC (tsconfig, knip) and YAML (pre-commit, clang-tidy) need parsers outside
-# the standard library; their own tools and the repository hooks load them.
+JSON_TEMPLATES = ("web/.stylelintrc.json", "workflow/upstreams.json")
+# JSONC (tsconfig, knip) and YAML (pre-commit, clang-tidy, CI workflows) need
+# parsers outside the standard library; their own tools load them, and
+# test_practices runs the shipped CI and rules templates through verify-practices.
 OTHER_FORMATS = (
     "typescript/tsconfig.strict.json",
     "web/knip.jsonc",
@@ -31,6 +32,9 @@ OTHER_FORMATS = (
     "typescript/eslint.config.mjs",
     "cpp/sanitizers.md",
     "workflow/PLAN.md",
+    "workflow/AGENTS.md",
+    "ci/quality.yml",
+    "ci/upstream-watch.yml",
     "README.md",
 )
 
